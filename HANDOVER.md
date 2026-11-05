@@ -1,6 +1,6 @@
 # NumberNebula: current state and agent handover
 
-Updated 2026-10-28. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
+Updated 2026-11-05. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
 ## Current state (2026-10-28)
@@ -22,29 +22,29 @@ baseline (1.5.39+55, described below), these changes have landed:
   (live-region text matched twice). `b84a927` reverts a `Podfile.lock` change
   swept into that commit.
 
-Evidence at `b84a927`: [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700725093)
+Evidence: at `b84a927`, [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700725093)
 and [pure calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700724702)
-passed. The [web build, live tests and deploy](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700724838)
-passed build and live tests, including the fixed practice-lesson test. Its
-`deploy` and `pages` jobs were still running when this was written: open the run,
-confirm both succeeded and that the live site serves `b84a927` or a later
-docs-only head with the same app code (`git diff --stat b84a927 <head> -- lib
-web assets pubspec.yaml` is empty), and record that
-here before calling the web deployment current. PRs #67 and #68 were merged with admin
-rights before their required checks finished; the checks above ran afterwards on
-`main`.
+passed. At `ddc72f3` (same app code as 1.5.45+61), [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/40738365561),
+[calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/40738365624) and the
+[web build, live tests, deploy and pages](https://github.com/CrispStrobe/NumberNebula/actions/runs/40738365648)
+all passed; on 2026-11-05 the live site's `version.json` reported 1.5.45 (61).
+PRs #67 and #68 were merged with admin rights before their required checks
+finished; the checks above ran afterwards on `main`.
 
-Store: iOS 1.4.10 (14) is **Waiting for Review** again (resubmitted 2026-10-27).
-TestFlight has **1.5.45 (61) for both iOS and macOS**, built and uploaded locally
-on 2026-10-28 from `68de24c`/`8c68fa4` (same app code; 1.5.44 (60) iOS before it). Internal testers have it, and
-external testers get it after Beta App Review. macOS 1.4.10
-is live. The details, and a release path that does not need GitHub's macOS
+Store (2026-11-05): after nine days in Waiting for Review, iOS 1.4.10 was withdrawn
+and **1.5.45 (61) was submitted for App Store review on both iOS and macOS**, with
+the all-ages store text and release type Manual (the owner releases after
+approval). 1.5.45 (61) passed Beta App Review and is in TestFlight for internal and
+external testers on both platforms. macOS 1.4.10 stays live until 1.5.45 is
+released. The details, and a release path that does not need GitHub's macOS
 runners, are in [docs/release-readiness.md](docs/release-readiness.md).
 
-The only open PR is the Gridlock repair, [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66).
-It is a draft at `8ea0975`, version 1.5.40+56. It fails 2 native tests, conflicts
-with `main` in `HANDOVER.md` and `pubspec.yaml`, and needs a version above
-1.5.45+61. Its exact next steps are in lane D of [REMAINING_WORK.md](REMAINING_WORK.md).
+The only open PR is the Gridlock repair, [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66),
+now version **1.5.46+62** and merged with `main`. Its 2 failing small-screen tests
+were a real input bug: inside the scroll view used below 650 px height or at
+large text, a free pan needed 36 px before it beat vertical scrolling, so short
+ship drags did nothing. Ship drags are now locked to the ship's axis and measured
+from touch-down. Its remaining steps are in lane D of [REMAINING_WORK.md](REMAINING_WORK.md).
 
 ## Preceding verified main publication
 

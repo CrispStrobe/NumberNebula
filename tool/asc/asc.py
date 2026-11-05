@@ -13,10 +13,14 @@ Requires: python3 with `cryptography`.
 
 Commands (run from the repository root):
   status                         versions, review submissions, latest builds
-  push-metadata [--write]        diff fastlane/metadata against the editable
-                                 App Store version; --write applies it
+  push-metadata [--write] [--macos]
+                                 diff fastlane/metadata (incl. release notes)
+                                 against the editable App Store version;
+                                 --write applies it
   resubmit                       resolve the rejected item of the open review
                                  submission and submit it again
+  submit [--macos]               put the editable App Store version into a new
+                                 review submission and submit it
   testflight BUILD NOTES_FILE [--macos]
                                  wait for processing, set What to Test, add the
                                  build to every group, submit for Beta App Review
@@ -102,8 +106,8 @@ def app_id():
     return r["data"][0]["id"]
 
 
-def ios_version(app):
-    _, r = api("GET", f"/v1/apps/{app}/appStoreVersions?filter[platform]=IOS&limit=5")
+def editable_version(app, platform="IOS"):
+    _, r = api("GET", f"/v1/apps/{app}/appStoreVersions?filter[platform]={platform}&limit=5")
     return next((v for v in r["data"] if v["attributes"]["appStoreState"] in EDITABLE), None)
 
 
@@ -138,11 +142,11 @@ def status():
               a["processingState"], a["uploadedDate"])
 
 
-def push_metadata(write):
+def push_metadata(write, platform="IOS"):
     app = app_id()
-    ver = ios_version(app)
+    ver = editable_version(app, platform)
     if not ver:
-        sys.exit("no editable iOS App Store version")
+        sys.exit(f"no editable {platform} App Store version")
     vid = ver["id"]
     print("version", ver["attributes"]["versionString"], ver["attributes"]["appStoreState"])
 
@@ -164,14 +168,20 @@ def push_metadata(write):
                 if write:
                     patch("appInfoLocalizations", loc["id"], {"subtitle": want})
 
+    # A platform's first App Store release has no "What's New" (409 STATE_ERROR).
+    _, vs = api("GET", f"/v1/apps/{app}/appStoreVersions?filter[platform]={platform}"
+                       "&filter[appStoreState]=READY_FOR_SALE&limit=1")
+    fields = [("description", "description"), ("keywords", "keywords"),
+              ("promotional_text", "promotionalText")]
+    if vs["data"]:
+        fields.append(("release_notes", "whatsNew"))
     _, locs = api("GET", f"/v1/appStoreVersions/{vid}/appStoreVersionLocalizations")
     for loc in locs["data"]:
         lc, f = loc["attributes"]["locale"], folder(loc["attributes"]["locale"])
         if not f:
             continue
         attrs = {}
-        for name, key in [("description", "description"), ("keywords", "keywords"),
-                          ("promotional_text", "promotionalText")]:
+        for name, key in fields:
             want = meta(f, name)
             if want and want != (loc["attributes"].get(key) or "").strip():
                 attrs[key] = want
@@ -208,6 +218,30 @@ def resubmit():
                {"data": {"type": "reviewSubmissions", "id": sid,
                          "attributes": {"submitted": True}}})
     print("resubmit:", s, errors(r) if s >= 300 else r["data"]["attributes"])
+
+
+def submit(platform="IOS"):
+    app = app_id()
+    ver = editable_version(app, platform)
+    if not ver:
+        sys.exit(f"no editable {platform} App Store version")
+    s, r = api("POST", "/v1/reviewSubmissions",
+               {"data": {"type": "reviewSubmissions", "attributes": {"platform": platform},
+                         "relationships": {"app": {"data": {"type": "apps", "id": app}}}}})
+    if s >= 300:
+        sys.exit(errors(r))
+    sid = r["data"]["id"]
+    s, r = api("POST", "/v1/reviewSubmissionItems",
+               {"data": {"type": "reviewSubmissionItems", "relationships": {
+                   "reviewSubmission": {"data": {"type": "reviewSubmissions", "id": sid}},
+                   "appStoreVersion": {"data": {"type": "appStoreVersions", "id": ver["id"]}}}}})
+    print("add", ver["attributes"]["versionString"], s)
+    if s >= 300:
+        sys.exit(errors(r))
+    s, r = api("PATCH", f"/v1/reviewSubmissions/{sid}",
+               {"data": {"type": "reviewSubmissions", "id": sid,
+                         "attributes": {"submitted": True}}})
+    print("submit:", s, errors(r) if s >= 300 else r["data"]["attributes"])
 
 
 def testflight(build, notes_file, platform="IOS"):
@@ -262,9 +296,11 @@ if __name__ == "__main__":
     if cmd == "status":
         status()
     elif cmd == "push-metadata":
-        push_metadata("--write" in sys.argv)
+        push_metadata("--write" in sys.argv, "MAC_OS" if "--macos" in sys.argv else "IOS")
     elif cmd == "resubmit":
         resubmit()
+    elif cmd == "submit":
+        submit("MAC_OS" if "--macos" in sys.argv else "IOS")
     elif cmd == "testflight" and len(sys.argv) in (4, 5):
         testflight(sys.argv[2], sys.argv[3],
                    "MAC_OS" if "--macos" in sys.argv[4:] else "IOS")

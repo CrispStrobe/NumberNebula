@@ -1,25 +1,21 @@
 # Executable next-work lanes
 
-Updated 2026-10-28. Read [HANDOVER.md](HANDOVER.md) first for the current state,
+Updated 2026-11-05. Read [HANDOVER.md](HANDOVER.md) first for the current state,
 the shipping baseline and completed audits. These are scoped next steps, not claims
 that the named games are broken. Each round-audit batch below is independent;
 implement one game per PR rather than combining an entire batch.
 
 ## Next up (in this order)
 
-1. **Confirm the web deployment of `b84a927`** (lane R, step 1). Small; blocks
-   calling `main` green.
-2. **Watch both reviews** (lane R, step 2): iOS 1.4.10 App Review and Beta App
-   Review for build 61 (build 60 was submitted too). React only to Apple's messages; do not resubmit
-   proactively.
-3. **Store listing fixes** (lane S): "20+" → 48, screenshots, truncated cards.
-   Text changes need no app build.
+1. **Watch App Review** (lane R, step 2): 1.5.45 (61) for iOS and macOS,
+   submitted 2026-11-05, release type Manual. React only to Apple's messages; do
+   not resubmit proactively, and do not release without the owner.
+2. **Gridlock PR #66** (lane D): see its status there.
+3. **Store listing fixes** (lane S): screenshots, truncated cards. The game
+   count is fixed. Text changes need no app build.
 4. **Release tooling** (lane T): build numbers, fastlane lanes, local release
    script. This stops the next release from going through what 2026-10-27/28 did.
-5. **Gridlock PR #66** (lane D): fix 2 failing tests, rebase, and bump above
-   main's version (main is 1.5.45+61, so 1.5.46+62 or higher; builds up to 61
-   are taken).
-6. Then the remaining round audits (B–F), lane L validation and the product
+5. Then the remaining round audits (B–F), lane L validation and the product
    ideas in lane U, as capacity allows.
 
 ## Player availability
@@ -138,25 +134,25 @@ snapshots, authored levels/progression/fallback and existing score/quality refer
 `star_loader_game.dart`, `robot_path_game.dart`, `solarpanel_game.dart`.
 
 **Gridlock already has a draft: [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66)**
-(branch `fix/gridlock-round-isolation`, head `8ea0975`, 4 commits on base `32383b4`,
-version 1.5.40+56). Its web build, live test and deploy passed; native
-`analyze-and-test` fails 2 cases in `test/widgets/space_station_gridlock_round_test.dart`:
-`Gridlock: en 390x500.0 text2 keeps actual legal drag and current result Next reachable`
-and the same for `de`. To finish it:
-1. Check out the branch and run that test file locally. Reproduce both failures
-   and read the assertion: whether the drag is not legal or Next is not
-   reachable at 390×500 with text scale 2.
-2. Fix the layout or the round logic, not the test, unless the test asserts
-   something the design does not promise. Note how the shared onboarding overlay
-   was handled in lane L (pinned footer, whole-card scroll only above text scale
-   1.3) if the cause is similar.
-3. Merge `origin/main`. Resolve `HANDOVER.md` by keeping main's "Current state"
-   section and adding one Gridlock line, and `pubspec.yaml` by setting a version
-   **above main's version** (1.5.45+61 on 2026-10-28, so for example 1.5.46+62).
-   Read `pubspec.yaml` on `main` first. Build numbers up to 61 are taken in App
-   Store Connect.
-4. Mark the PR ready only when `analyze-and-test`, `build` and `live-test` pass
+(branch `fix/gridlock-round-isolation`, version **1.5.46+62**). Status on
+2026-11-05:
+- The 2 failing cases in `test/widgets/space_station_gridlock_round_test.dart`
+  (`Gridlock: en/de 390x500.0 text2 keeps actual legal drag and current result
+  Next reachable`) were a real input bug. Below 650 px height, or at large text,
+  the board sits in a vertical `SingleChildScrollView`. A free pan must travel
+  36 px (twice the touch slop) before it beats vertical scrolling, and the move
+  threshold was then measured from that point, so a short horizontal drag never
+  moved a ship. `_buildShip` now uses axis-locked horizontal/vertical drag
+  callbacks with `DragStartBehavior.down`; the 20 px step threshold is unchanged.
+- `origin/main` is merged in; `pubspec.yaml` is 1.5.46+62.
+To finish it:
+1. Read the PR's checks at its head. If `analyze-and-test` still fails, read
+   `gh run view <id> --log-failed` and fix the cause, not the test.
+2. Mark the PR ready only when `analyze-and-test`, `build` and `live-test` pass
    at the exact head; then merge and verify on `main`.
+3. Ship it like 1.5.45: build 62 to TestFlight (lane T / release readiness), and
+   submit it for App Store review only after 1.5.45 is released and with the
+   owner's go-ahead.
 The scope below is what PR #66 was written against; use it to review the PR.
 
 Start with Gridlock, using `shipsFromBoard` and a legal authored board such as
@@ -301,35 +297,27 @@ review; 1.5.44 (60) is in TestFlight; macOS 1.4.10 is live. **Owner files:**
 `.github/workflows/release.yml`, `submit.yml`, `fastlane/`, `tool/asc/asc.py`,
 `pubspec.yaml`.
 
-1. **Web deployment of `b84a927`.** Open the
-   [web run](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700724838).
-   `build` and `live-test` already passed; `deploy` and `pages` were still
-   running at hand-over. If they passed, check that the live site serves that commit, or a later docs-only head with the same app
-   code (`git diff --stat b84a927 <head> -- lib web assets pubspec.yaml` is empty)
-   (the app's runtime marker / `hosted-proof.json`, as earlier entries in
-   HANDOVER.md did), then record the run link in HANDOVER.md "Current state". If
-   it failed, read `--log-failed`, reproduce, fix, and push a test-only or
-   version-bumped change as appropriate.
-2. **App Review for iOS 1.4.10.** Check with `tool/asc/asc.py status`.
-   - If approved: release stays manual (`AUTOMATIC_RELEASE = false`). Ask the
-     owner whether to release 1.4.10 or to replace it with 1.5.x first. Do not
-     press release on your own.
-   - If rejected again: read the message in App Store Connect. Apple's review
-     history for this app includes 4.3(a) (spam/template) and an Extended Review
+1. **Web deployment: done.** The [web run](https://github.com/CrispStrobe/NumberNebula/actions/runs/40738365648)
+   for `ddc72f3` passed build, live-test, deploy and pages, and on 2026-11-05 the
+   live site's `version.json` reported 1.5.45 (61) with the all-ages description.
+   For later heads, repeat the same check.
+2. **App Review for 1.5.45 (61), iOS and macOS** (submitted 2026-11-05). Check
+   with `tool/asc/asc.py status`.
+   - If approved: release type is Manual. Ask the owner before releasing; they
+     may release in App Store Connect themselves. Releasing macOS 1.5.45 replaces
+     the live 1.4.10 listing's old "kids" text.
+   - If rejected: read the message in App Store Connect. Apple's review history
+     for this app includes 4.3(a) (spam/template) and an Extended Review
      warning, so any reply or resubmission needs the owner's explicit go-ahead.
      For metadata-only issues, fix `fastlane/metadata`, then run
-     `asc.py push-metadata --write` and `asc.py resubmit`.
-3. **Beta App Review for builds 60 and 61.** When approved, external testers are
-   notified automatically, and nothing else is needed. If rejected, fix the reason
-   and upload a new build number (62+).
-4. **Next store version (1.5.x).** Once 1.4.10 is resolved, the next App Store
-   version should ship the current `main` (at least 1.5.44 (60) or a newer
-   build), on both iOS and macOS so that the macOS listing also loses the old
-   "kids" text. Steps:
-   - Create the version in App Store Connect.
-   - Update `fastlane/metadata/*/release_notes.txt`; it still describes 1.4.10.
-   - Push the metadata, attach the build, and submit manually.
-   The 4.3(a)/Extended Review caution in `submit.yml` still applies.
+     `asc.py push-metadata --write [--macos]` and `asc.py resubmit`.
+   - If it sits in Waiting for Review for more than a week again, tell the
+     owner; an expedited-review request is only possible on the web.
+3. **Next store version.** After 1.5.45 is released, the next version (for
+   example 1.5.46 with PR #66) follows the same path: upload the build (62+),
+   create the App Store version, attach the build, update
+   `fastlane/metadata/*/release_notes.txt`, `push-metadata --write`, `submit`.
+   That version also carries the "48 mini-games" descriptions.
 **Done:** each platform's state is recorded with date and evidence in
 `docs/release-readiness.md`. Keep account IDs, keys and machine instructions out
 of repo docs.
@@ -340,9 +328,9 @@ of repo docs.
 `fastlane/screenshots/`, and the game cards in the menu screen (see
 `lib/features/games/game_registry.dart` for the card text sources).
 
-1. **Fix the game count.** `fastlane/metadata/{en-US,de-DE}/promotional_text.txt`
-   and both `description.txt` files say "20+"/"über 20" mini-games; there are 48
-   (`game_registry.dart`). Change it to 48, and keep the audience wording as "math
+1. **Game count: done 2026-11-05.** `fastlane/metadata` says 48 everywhere; the
+   promotional text is live on both platforms, and the descriptions ship with the
+   version after 1.5.45 (they were locked in review). Keep the audience wording as "math
    learners of all ages" / "Mathe-Lernende jeden Alters". **Never** reintroduce
    "kids"/"Kinder" or school grades as the target audience in the name, subtitle,
    keywords, screenshots or icon: that was the 2.3.8 rejection. Promotional text

@@ -1,11 +1,30 @@
 # Store release readiness
 
-## Current state (checked 2026-10-28 via the App Store Connect API)
+## Current state (checked 2026-11-05 via the App Store Connect API)
 
-| Platform | App Store version | Review | Newest TestFlight build |
+| Platform | Live on the App Store | In App Review | TestFlight |
 | --- | --- | --- | --- |
-| iOS | 1.4.10 (build 14) | **Waiting for Review**, resubmitted 2026-10-27 after a guideline **2.3.8** rejection | **1.5.45 (61)** from `main` `68de24c` (age statements removed), uploaded 2026-10-28: internal testers have it; external group added, Beta App Review waiting. 1.5.44 (60) before it. |
-| macOS | 1.4.10 (build 14) | **Ready for Sale** (live; still shows the old "Target age" row and "kids" listing text) | **1.5.45 (61)** from `8c68fa4` (same app code as `68de24c`), uploaded 2026-10-28: internal testers have it; external group added, Beta App Review waiting |
+| iOS | nothing yet (first release) | **1.5.45 (61)**, Waiting for Review, submitted 2026-11-05 | 1.5.45 (61): Beta App Review approved, internal and external testers |
+| macOS | 1.4.10 (14), with the old "Target age" row and "kids" description/keywords | **1.5.45 (61)**, Waiting for Review, submitted 2026-11-05 | 1.5.45 (61): Beta App Review approved, internal and external testers |
+
+Both 1.5.45 versions use release type **Manual**: after approval, the owner
+releases them in App Store Connect (or ask the owner before releasing via the
+API). Their listing text is the all-ages text in `fastlane/metadata`, with the
+"What's New" text from `release_notes.txt` on macOS only. iOS has never had a
+release, and Apple rejects "What's New" on a platform's first version (409
+STATE_ERROR); `asc.py push-metadata` skips it in that case.
+
+How this came about: iOS 1.4.10 (14) was resubmitted on 2026-10-27 after the
+2.3.8 rejection described below, then sat in Waiting for Review for nine days.
+On 2026-11-05 that submission was cancelled (the version became Developer
+Rejected), the same App Store version record was renamed to 1.5.45 with build
+61 attached, and a macOS 1.5.45 version was created. App Store Connect copied the
+screenshots, localizations and review contact from the previous versions; the
+screenshots show no age or child-audience text. The promotional text (editable
+at any time) now says 48 mini-games on both platforms, including the live
+macOS 1.4.10 listing. The descriptions in `fastlane/metadata` say 48 too, but
+the submitted versions still say "20+"/"über 20": descriptions are locked during
+review and change with the next version.
 
 Review history: a **4.3(a)** rejection on 2026-09-12 led to a resubmission of
 1.4.10 (14) on 2026-09-24. Review on 2026-10-27 raised only **2.3.8 Accurate
@@ -20,15 +39,14 @@ into the Kids category, which brings its own rules.
 
 Facts that are easy to get wrong:
 
-- `pubspec.yaml` on `main` is **1.5.45+61**, and build 61 is uploaded. The next
-  upload needs build **62 or higher**.
+- Build 61 is uploaded on both platforms. The next upload needs build **62 or
+  higher** (PR #66 uses 1.5.46+62).
 - `submit.yml` and the Fastfile take `APP_VERSION`/`BUILD_NUMBER` from
-  `pubspec.yaml` of the checked-out ref. Running `appstore_submit` from `main` would
-  try to submit 1.5.44, not the 1.4.10 version that is under review.
-- The live macOS 1.4.10 listing still carries the old description and keywords
-  (version-level text such as "primary-school explorers" and `kids`). They can
-  only change with a new macOS App Store version.
-- The promotional text and descriptions still say "20+ mini-games"; there are 48.
+  `pubspec.yaml` of the checked-out ref. Make sure that matches the App Store
+  version you mean to submit.
+- The live macOS 1.4.10 listing keeps its old description and keywords
+  (version-level text such as "primary-school explorers" and `kids`) until
+  1.5.45 is approved and released.
 
 ## Local release path (when the GitHub macOS queue stalls)
 
@@ -38,10 +56,16 @@ those workflows do can also run on the maintainer's Mac:
 
 1. **App Store Connect actions** use `tool/asc/asc.py` (read its docstring). It
    needs `ASC_KEY_ID`, `ASC_ISSUER_ID` and `ASC_KEY_PATH` in the environment, and
-   these are never committed. Commands: `status` (read-only), `push-metadata`
-   (dry run unless `--write`), `resubmit` (marks the open "unresolved issues"
-   submission's item resolved, then submits it again), and
-   `testflight BUILD NOTES_FILE`.
+   these are never committed. Commands: `status` (read-only), `push-metadata
+   [--macos]` (dry run unless `--write`), `resubmit` (marks the open "unresolved
+   issues" submission's item resolved, then submits it again), `submit [--macos]`
+   (new review submission for the editable version), and
+   `testflight BUILD NOTES_FILE [--macos]`.
+   - To ship a new App Store version: create it (or rename a Developer Rejected
+     one) with `POST /v1/appStoreVersions` / `PATCH versionString`, attach the build
+     with `PATCH /v1/appStoreVersions/{id}/relationships/build`, then
+     `push-metadata --write [--macos]` and `submit [--macos]`. To withdraw a
+     waiting submission, `PATCH /v1/reviewSubmissions/{id}` with `canceled: true`.
    - When the API answers 409 "Version is not ready to be submitted yet", read
      `meta.associatedErrors` (the script prints them). The real cause on
      2026-10-27 was an unanswered age-rating attribute.

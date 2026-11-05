@@ -1,5 +1,19 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-11-05 — 1.5.45 (61) submitted to the App Store on iOS and macOS
+
+- iOS 1.4.10 (14) had been Waiting for Review for nine days. Its submission was
+  cancelled, the version record renamed to 1.5.45 with build 61, and a macOS
+  1.5.45 version created with build 61. Both were submitted on 2026-11-05
+  (release type Manual). Build 61 had already passed Beta App Review on both
+  platforms.
+- Store text: 48 mini-games instead of "20+" in `fastlane/metadata`; the
+  promotional text is live on both platforms, and the descriptions follow with the
+  next version.
+- `tool/asc/asc.py`: `push-metadata --macos`, release notes ("What's New",
+  skipped on a platform's first release), and `submit [--macos]`.
+- Web deployment of 1.5.45 (61) confirmed live.
+
 ## 2026-10-27/28 — App Store 2.3.8 fix, practice rewrite merged, TestFlight 1.5.44 (60)
 
 - **App Review 2.3.8 (Accurate Metadata).** 1.4.10 (14) was rejected on
