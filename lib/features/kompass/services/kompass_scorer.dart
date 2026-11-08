@@ -214,11 +214,18 @@ class KompassScorer {
                   parseNumber(responses[source.id], unit: source.unit);
               final previousExpected =
                   (source.answer['value'] as num).toDouble();
+              // A whole-euro canonical answer can follow a valid cents error.
+              // Counting tasks still require whole numbers; cash amounts must
+              // be expressible in cents, never fractions of a cent.
+              final validGranularity = part.unit == '€'
+                  ? (number * 100 - (number * 100).roundToDouble()).abs() <=
+                      1e-7
+                  : expected != expected.roundToDouble() ||
+                      number == number.roundToDouble();
               if (previous != null &&
                   (previous - previousExpected).abs() > tolerance &&
                   number >= 0 &&
-                  (expected != expected.roundToDouble() ||
-                      number == number.roundToDouble()) &&
+                  validGranularity &&
                   (number - (previous + part.carryOffset!)).abs() <=
                       tolerance) {
                 carried = true;

@@ -143,6 +143,8 @@ void main() {
       expect(KompassScorer.parseNumber('1.000,5'), isNull);
       expect(KompassScorer.parseNumber(double.nan), isNull);
       expect(KompassScorer.parseNumber('4.0 cm', unit: 'cm'), 4);
+      expect(KompassScorer.parseNumber('12 cm²', unit: 'cm²'), 12);
+      expect(KompassScorer.parseNumber('12 cm2', unit: 'cm²'), 12);
       expect(KompassScorer.parseNumber('4.0 m', unit: 'cm'), isNull);
     });
 
@@ -224,6 +226,24 @@ void main() {
           KompassScorer.score(task, {
             'net': ['0,1']
           }).awardedPoints,
+          0);
+    });
+
+    test('money follow-through keeps valid cents despite a whole-euro answer',
+        () {
+      final remaining = _numberPart('game', 8, unit: '€')
+        ..['carryFrom'] = 'spent'
+        ..['carryOffset'] = -4.5;
+      final task =
+          _task(parts: [_numberPart('spent', 12.5, unit: '€'), remaining]);
+      final score =
+          KompassScorer.score(task, {'spent': '12,00 €', 'game': '7,50 €'});
+      expect(score.partById('spent')!.correct, isFalse);
+      expect(score.partById('game')!.carriedError, isTrue);
+      expect(score.awardedPoints, 1);
+      expect(
+          KompassScorer.score(task, {'spent': '12,001', 'game': '7,501'})
+              .awardedPoints,
           0);
     });
 
@@ -353,6 +373,31 @@ void main() {
               .firstScore
               .fullyCorrect,
           isFalse);
+      expect(
+          () => initial.copyWith(responses: {'a': '12'}), throwsArgumentError);
+    });
+
+    test('practice content cannot become independent through its screen mode',
+        () {
+      final misplaced = _attempt(_task(use: 'practice'));
+      expect(misplaced.score.fullyCorrect, isTrue);
+      expect(misplaced.contentUse, 'practice');
+      expect(misplaced.verified, isFalse);
+      expect(
+          KompassAttempt.fromJson(jsonDecode(jsonEncode(misplaced.toJson())))
+              .verified,
+          isFalse);
+    });
+
+    test('later hints are retained without replacing first-submission evidence',
+        () {
+      final task = _task(use: 'check');
+      final first = _attempt(task);
+      final revised =
+          first.reviseTask(task: task, responses: {'a': '12'}, hintsUsed: 1);
+      expect(revised.verified, isTrue);
+      expect(revised.assisted, isTrue);
+      expect(revised.hintsBeforeFirstResponse, 0);
     });
 
     test(
@@ -375,6 +420,72 @@ void main() {
       expect(lab.score.fullyCorrect, isTrue);
       expect(lab.mode, KompassMode.lab);
       expect(lab.verified, isFalse);
+    });
+
+    test('labs retain partial first work separately from eventual completion',
+        () {
+      final first = <String, dynamic>{'a': 12, 'b': 10};
+      final last = <String, dynamic>{'a': 12, 'b': 11};
+      final lab =
+          KompassAttempt.forLab(id: 'lab:partial', packVersion: '2', result: {
+        'labId': 'number_dock',
+        'roundId': 'partial',
+        'skillIds': ['M-Z04'],
+        'firstCorrect': false,
+        'hintsUsed': 1,
+        'activeSeconds': 35,
+        'response': first,
+        'finalResponse': last,
+        'completedCorrect': true,
+        'maxPoints': 2,
+        'awardedPoints': 1,
+      });
+      first['a'] = 0;
+      last['b'] = 0;
+      expect(lab.firstScore.awardedPoints, 1);
+      expect(lab.firstScore.fullyCorrect, isFalse);
+      expect(lab.score.awardedPoints, 2);
+      expect(lab.score.fullyCorrect, isTrue);
+      expect(lab.firstResponses['lab'], {'a': 12, 'b': 10});
+      expect(lab.responses['lab'], {'a': 12, 'b': 11});
+      expect(lab.verified, isFalse);
+    });
+
+    test('manual work cannot promote a skill through another automated part',
+        () {
+      final pack = _pack();
+      final attempts = <KompassAttempt>[];
+      for (var index = 0; index < 2; index++) {
+        final task = _task(
+            id: 'mixed_$index',
+            family: 'mixed_$index',
+            use: 'check',
+            parts: [
+              _numberPart('sum', 12),
+              {
+                'id': 'explanation',
+                'kind': 'text',
+                'prompt': _words,
+                'competencyIds': ['M-Z04'],
+                'maxPoints': 1,
+                'answer': {'type': 'manual', 'criteria': _words},
+              },
+              _numberPart('shape', 4, skill: 'M-R06'),
+            ]);
+        final answers = {'sum': '12', 'explanation': 'My method', 'shape': '4'};
+        attempts.add(_attempt(task, id: 'mixed_$index', responses: answers)
+            .reviseTask(
+                task: task,
+                responses: answers,
+                manualPoints: {'explanation': 1}));
+      }
+      final statuses = KompassPlanner.progress(pack, attempts,
+          now: DateTime.utc(2026, 11, 9));
+      expect(statuses['M-Z04']!.manualReviews, 2);
+      expect(statuses['M-Z04']!.independentCorrect, 0);
+      expect(statuses['M-Z04']!.state, KompassProgressState.practising);
+      expect(statuses['M-R06']!.independentCorrect, 2);
+      expect(statuses['M-R06']!.state, KompassProgressState.independent);
     });
 
     test('two distinct independent families support a dated observation', () {

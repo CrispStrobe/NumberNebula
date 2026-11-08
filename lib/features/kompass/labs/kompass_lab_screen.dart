@@ -14,7 +14,7 @@ import 'kompass_lab_round.dart';
 class KompassLabScreen extends StatefulWidget {
   final String labId;
   final bool german;
-  final void Function(Map<String, dynamic> result)? onCompleted;
+  final FutureOr<void> Function(Map<String, dynamic> result)? onCompleted;
 
   const KompassLabScreen({
     super.key,
@@ -37,6 +37,7 @@ class KompassLabScreenState extends State<KompassLabScreen>
   bool? _firstCorrect;
   bool _loaded = false, _completed = false, _reported = false;
   bool _foreground = true, _visible = true, _saveFailed = false;
+  bool _recording = false, _reportFailed = false;
   String _sessionId = '';
   Map<String, dynamic> _response = {}, _firstResponse = {};
   KompassLabRound? _round;
@@ -63,7 +64,7 @@ class KompassLabScreenState extends State<KompassLabScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _visible = TickerMode.of(context);
+    _visible = TickerMode.valuesOf(context).enabled;
     _syncClock();
   }
 
@@ -163,8 +164,9 @@ class KompassLabScreenState extends State<KompassLabScreen>
 
   Future<void> _save() {
     final prefs = _preferences;
-    if (!_loaded || prefs == null || _round == null)
+    if (!_loaded || prefs == null || _round == null) {
       return Future<void>.value();
+    }
     final payload = jsonEncode(exportState());
     final key = _storageKey;
     _writes = _writes.then((_) async {
@@ -205,36 +207,69 @@ class KompassLabScreenState extends State<KompassLabScreen>
     });
     _syncClock();
     if (_completed && !_reported) {
-      // Set this before the callback. A rebuild, double tap or restored solved
-      // round cannot emit a second completion. The course store also keys by ID.
-      _reported = true;
-      final result = <String, dynamic>{
-        'labId': widget.labId,
-        'roundId': _roundId,
-        'skillIds': List<String>.of(round.skillIds),
-        'mode': 'practice',
-        'practiceOnly': true,
-        'firstCorrect': _firstCorrect,
-        'hintsUsed': _hintsUsed,
-        'activeSeconds': (_activeMillis / 1000).round(),
-        'response': _copy(_firstResponse),
-        'finalResponse': _copy(_response),
-        'attempts': _attempts,
-        'maxPoints': check.maxPoints,
-        'awardedPoints': _firstPoints,
-        'completedCorrect': true,
-      };
-      unawaited(_save());
-      widget.onCompleted?.call(Map<String, dynamic>.unmodifiable(result));
+      unawaited(_deliverCompletion());
     } else {
       unawaited(_save());
+    }
+  }
+
+  Future<void> _deliverCompletion() async {
+    if (!_completed ||
+        _reported ||
+        _recording ||
+        _preferences?.profileId != ProfilePreferences.activeId) {
+      return;
+    }
+    setState(() {
+      _recording = true;
+      _reportFailed = false;
+    });
+    // Persist a completed, pending round before awaiting the course store.
+    // A failed store write remains retryable after leaving and reopening.
+    await _save();
+    if (!mounted || _preferences?.profileId != ProfilePreferences.activeId) {
+      _recording = false;
+      return;
+    }
+    final round = _round!;
+    final result = <String, dynamic>{
+      'labId': widget.labId,
+      'roundId': _roundId,
+      'skillIds': List<String>.of(round.skillIds),
+      'mode': 'practice',
+      'practiceOnly': true,
+      'firstCorrect': _firstCorrect,
+      'hintsUsed': _hintsUsed,
+      'activeSeconds': (_activeMillis / 1000).round(),
+      'response': _copy(_firstResponse),
+      'finalResponse': _copy(_response),
+      'attempts': _attempts,
+      'maxPoints': round.check(_response).maxPoints,
+      'awardedPoints': _firstPoints,
+      'completedCorrect': true,
+    };
+    try {
+      await widget.onCompleted?.call(Map<String, dynamic>.unmodifiable(result));
+      _reported = true;
+      await _save();
+    } catch (_) {
+      _reportFailed = true;
+      // Keep the same round ID and immutable first response for an idempotent
+      // retry. Never award progress merely because a callback was invoked.
+    } finally {
+      _recording = false;
+      if (mounted) setState(() {});
     }
   }
 
   void _next() {
     if (!_loaded ||
         !_completed ||
-        _preferences?.profileId != ProfilePreferences.activeId) return;
+        !_reported ||
+        _recording ||
+        _preferences?.profileId != ProfilePreferences.activeId) {
+      return;
+    }
     setState(() {
       _index++;
       _round = generateKompassLabRound(widget.labId, _index, _seed);
@@ -246,6 +281,7 @@ class KompassLabScreenState extends State<KompassLabScreen>
       _attempts = 0;
       _completed = false;
       _reported = false;
+      _reportFailed = false;
       _feedback = null;
       _storedMillis = 0;
       _clock.reset();
@@ -391,12 +427,39 @@ class KompassLabScreenState extends State<KompassLabScreen>
                                   if (_completed)
                                     FilledButton.icon(
                                       key: const ValueKey('lab_next'),
-                                      onPressed: _next,
+                                      onPressed: _reported && !_recording
+                                          ? _next
+                                          : null,
                                       icon: const Icon(Icons.arrow_forward),
                                       label: Text(
                                           _t('Nächste Runde', 'Next round')),
                                     ),
                                 ]),
+                                if (_completed && !_reported) ...[
+                                  const SizedBox(height: 12),
+                                  Text(_recording
+                                      ? _t('Übungsrunde wird gespeichert …',
+                                          'Saving practice round …')
+                                      : _reportFailed
+                                          ? _t(
+                                              'Die Runde ist gelöst. Das Übungsprotokoll konnte noch nicht gespeichert werden.',
+                                              'The round is solved. Its practice record could not be saved yet.')
+                                          : _t(
+                                              'Die gelöste Runde wartet noch auf ihren Eintrag im Übungsprotokoll.',
+                                              'This solved round is waiting to be added to the practice record.')),
+                                  if (!_recording)
+                                    Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: OutlinedButton(
+                                          key: const ValueKey(
+                                              'lab_retry_record'),
+                                          onPressed: () =>
+                                              unawaited(_deliverCompletion()),
+                                          child: Text(_t(
+                                              'Übungsrunde speichern',
+                                              'Save practice round')),
+                                        )),
+                                ],
                                 const SizedBox(height: 20),
                                 Text(
                                     _t('Diese Lernlabor-Runden sind Übung. Eigenständige Lernstandschecks findest du im Kurs.',

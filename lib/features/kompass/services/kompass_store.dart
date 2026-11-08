@@ -143,8 +143,9 @@ class KompassStore {
   /// Only final responses/review/support/time may change. First evidence is fixed.
   Future<bool> revise(KompassAttempt revised) => _mutate((state) {
         final index = state.attempts.indexWhere((a) => a.id == revised.id);
-        if (index < 0)
+        if (index < 0) {
           throw ArgumentError('Record an attempt before revising it.');
+        }
         final saved = state.attempts[index];
         final immutable = <String>[
           'id',
@@ -155,6 +156,7 @@ class KompassStore {
           'familyId',
           'domain',
           'mode',
+          'contentUse',
           'firstResponses',
           'firstScore',
           'hintsBeforeFirstResponse',
@@ -198,8 +200,9 @@ class KompassStore {
       if (state.closedSessions.contains(id)) return false;
       final old = state.session;
       if (old != null && _sessionId(old) != id) {
-        if (!replace)
+        if (!replace) {
           throw StateError('Another learning session is already saved.');
+        }
         state.closedSessions.add(_sessionId(old));
       }
       // A caller can persist a revision counter to ignore older async snapshots.
@@ -237,6 +240,19 @@ class KompassStore {
         final raw = _prefs.getString(storageKey);
         if (_corruptionError == null) {
           throw StateError('There is no unreadable progress to reset.');
+        }
+        // A second instance may have repaired the data while this UI was open.
+        // Never replace that newer, valid progress with an empty snapshot.
+        _StoredProgress? repaired;
+        try {
+          repaired = _StoredProgress.decode(raw);
+        } catch (_) {
+          // The current bytes are still unreadable; preserve them below.
+        }
+        if (repaired != null) {
+          _state = repaired;
+          _corruptionError = null;
+          throw StateError('Progress has already been restored. Reload it.');
         }
         if (raw != null) {
           final key =

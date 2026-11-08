@@ -117,7 +117,12 @@ class KompassPlanner {
             latestParts.isNotEmpty &&
             latestParts.every((p) => p.correct);
         final automated = firstParts.where((p) => !p.manual).toList();
-        if (fresh && attempt.verified && automated.any((p) => p.attempted)) {
+        // A required explanation cannot be silently omitted from the evidence
+        // for that skill or promoted through a self-reviewed rubric score.
+        if (fresh &&
+            attempt.verified &&
+            automated.length == firstParts.length &&
+            automated.any((p) => p.attempted)) {
           skill.independentAttempts++;
           skill.lastIndependentAt = attempt.at;
           final correct = automated.every((p) => p.correct && !p.carriedError);
@@ -213,8 +218,9 @@ class KompassPlanner {
             (mode == KompassMode.practice || !seen.contains(task.familyId)))
         .toList();
     _sortPractice(candidates, statuses, attempts, reference);
-    if (domain != null)
+    if (domain != null) {
       return List.unmodifiable(_distinctFamilies(candidates, count));
+    }
 
     const weights = <String, int>{
       'numbers': 8,

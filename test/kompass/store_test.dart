@@ -206,4 +206,18 @@ void main() {
     final saved = jsonDecode(prefs.getString(KompassStore.storageKey)!) as Map;
     expect(saved['attempts'], hasLength(1));
   });
+
+  test('a stale recovery screen cannot erase progress repaired elsewhere',
+      () async {
+    SharedPreferences.setMockInitialValues(
+        {KompassStore.storageKey: '{broken'});
+    final first = await KompassStore.open();
+    final stale = await KompassStore.open();
+    await first.resetAfterCorruption();
+    await first.record(_attempt('recovered'));
+    await expectLater(stale.resetAfterCorruption(), throwsStateError);
+    expect(stale.corruptionError, isNull);
+    expect(stale.attempts.single.id, 'recovered');
+    expect((await KompassStore.open()).attempts.single.id, 'recovered');
+  });
 }

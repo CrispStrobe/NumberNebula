@@ -13,6 +13,9 @@ class KompassAttempt {
   final String familyId;
   final String domain;
   final KompassMode mode;
+
+  /// The content's authored split is retained independently of the UI mode.
+  final String contentUse;
   final Map<String, dynamic> firstResponses;
   final Map<String, dynamic> responses;
   final int hintsUsed;
@@ -35,6 +38,7 @@ class KompassAttempt {
     required this.familyId,
     required this.domain,
     required this.mode,
+    required this.contentUse,
     required Map<String, dynamic> firstResponses,
     required Map<String, dynamic> responses,
     required this.hintsUsed,
@@ -64,14 +68,14 @@ class KompassAttempt {
   /// Eligible evidence; success is evaluated separately for each scored part.
   bool get verified =>
       (mode == KompassMode.check || mode == KompassMode.rehearsal) &&
+      contentUse == mode.name &&
       completed &&
       isNovel &&
       hintsBeforeFirstResponse == 0 &&
       !solutionSeenBeforeFirstResponse &&
       firstScore.parts.any((part) => !part.manual && part.attempted);
 
-  bool get assisted =>
-      hintsBeforeFirstResponse > 0 || solutionSeenBeforeFirstResponse;
+  bool get assisted => hintsUsed > 0 || solutionSeenBeforeFirstResponse;
   bool get pendingReview => score.pendingReview;
   List<String> get competencyIds => List.unmodifiable(
       firstScore.parts.expand((part) => part.competencyIds).toSet());
@@ -104,6 +108,7 @@ class KompassAttempt {
       familyId: task.familyId,
       domain: task.domain,
       mode: mode,
+      contentUse: task.use,
       firstResponses: firstResponses,
       responses: currentResponses,
       hintsUsed: hintsUsed,
@@ -135,11 +140,12 @@ class KompassAttempt {
     final firstCorrect = result['firstCorrect'] == true;
     final skills = (result['skillIds'] as List).cast<String>();
     final submittedAt = (at ?? DateTime.now()).toUtc();
+    final completedCorrect = result['completedCorrect'] == true;
     final first = KompassScore([
       KompassPartScore(
         partId: 'lab',
         competencyIds: skills,
-        awardedPoints: firstCorrect ? max : 0,
+        awardedPoints: awarded,
         maxPoints: max,
         correct: firstCorrect,
       ),
@@ -159,8 +165,9 @@ class KompassAttempt {
           }[labId] ??
           '',
       mode: KompassMode.lab,
+      contentUse: 'practice',
       firstResponses: {'lab': result['firstResponse'] ?? result['response']},
-      responses: {'lab': result['response']},
+      responses: {'lab': result['finalResponse'] ?? result['response']},
       hintsUsed: (result['hintsUsed'] as num? ?? 0).toInt(),
       hintsBeforeFirstResponse: (result['hintsUsed'] as num? ?? 0).toInt(),
       activeSeconds: (result['activeSeconds'] as num? ?? 0).toInt(),
@@ -174,9 +181,9 @@ class KompassAttempt {
         KompassPartScore(
           partId: 'lab',
           competencyIds: skills,
-          awardedPoints: awarded,
+          awardedPoints: completedCorrect ? max : awarded,
           maxPoints: max,
-          correct: awarded == max,
+          correct: completedCorrect || awarded == max,
         ),
       ]),
     );
@@ -191,29 +198,35 @@ class KompassAttempt {
     bool? completed,
     bool? isNovel,
     DateTime? updatedAt,
-  }) =>
-      KompassAttempt._(
-        id: id,
-        sessionId: sessionId,
-        taskId: taskId,
-        taskVersion: taskVersion,
-        packVersion: packVersion,
-        familyId: familyId,
-        domain: domain,
-        mode: mode,
-        firstResponses: firstResponses,
-        responses: responses ?? this.responses,
-        hintsUsed: hintsUsed ?? this.hintsUsed,
-        hintsBeforeFirstResponse: hintsBeforeFirstResponse,
-        activeSeconds: activeSeconds ?? this.activeSeconds,
-        at: at,
-        updatedAt: (updatedAt ?? DateTime.now()).toUtc(),
-        completed: completed ?? this.completed,
-        solutionSeenBeforeFirstResponse: solutionSeenBeforeFirstResponse,
-        isNovel: isNovel ?? this.isNovel,
-        firstScore: firstScore,
-        score: score ?? this.score,
-      );
+  }) {
+    if (responses != null && score == null) {
+      throw ArgumentError(
+          'Changed responses need an explicitly revised score.');
+    }
+    return KompassAttempt._(
+      id: id,
+      sessionId: sessionId,
+      taskId: taskId,
+      taskVersion: taskVersion,
+      packVersion: packVersion,
+      familyId: familyId,
+      domain: domain,
+      mode: mode,
+      contentUse: contentUse,
+      firstResponses: firstResponses,
+      responses: responses ?? this.responses,
+      hintsUsed: hintsUsed ?? this.hintsUsed,
+      hintsBeforeFirstResponse: hintsBeforeFirstResponse,
+      activeSeconds: activeSeconds ?? this.activeSeconds,
+      at: at,
+      updatedAt: (updatedAt ?? DateTime.now()).toUtc(),
+      completed: completed ?? this.completed,
+      solutionSeenBeforeFirstResponse: solutionSeenBeforeFirstResponse,
+      isNovel: isNovel ?? this.isNovel,
+      firstScore: firstScore,
+      score: score ?? this.score,
+    );
+  }
 
   KompassAttempt reviseTask({
     required KompassTask task,
@@ -245,6 +258,7 @@ class KompassAttempt {
         'familyId': familyId,
         'domain': domain,
         'mode': mode.name,
+        'contentUse': contentUse,
         'firstResponses': firstResponses,
         'responses': responses,
         'hintsUsed': hintsUsed,
@@ -272,6 +286,8 @@ class KompassAttempt {
       familyId: json['familyId'] as String,
       domain: json['domain'] as String,
       mode: KompassMode.values.byName(json['mode'] as String),
+      // Records from before authored splits were retained cannot prove novelty.
+      contentUse: json['contentUse'] as String? ?? 'unknown',
       firstResponses: kompassMap(json['firstResponses']),
       responses: kompassMap(json['responses']),
       hintsUsed: json['hintsUsed'] as int,

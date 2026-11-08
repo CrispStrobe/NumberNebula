@@ -65,6 +65,7 @@ flutter:
     - assets/data/molecule_levels.json
     - assets/puzzles/
     - assets/kompass/math_v2.json
+    - assets/kompass/print/
     
   fonts:
     - family: SpaceGrotesk

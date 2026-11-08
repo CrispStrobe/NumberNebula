@@ -61,11 +61,13 @@ class _HomeScreenState extends State<HomeScreen>
         builder: (_) => kompass.KompassHubScreen(),
       ));
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(Localizations.localeOf(context).languageCode == 'de'
             ? 'Der Lernpfad konnte nicht geöffnet werden. Bitte versuche es erneut.'
             : 'The learning path could not be opened. Please try again.'),
-      ));
+        ));
+      }
     } finally {
       if (mounted) setState(() => _openingKompass = false);
     }

@@ -73,11 +73,19 @@ class KompassFigureView extends StatelessWidget {
           ],
         );
       case 'shapeComparison':
+        final shapes = _list(data['shapes']).map(_map).toList();
+        final allCells = shapes.expand((shape) => _cells(shape['cells']));
+        // Every shape uses the same grid extent and therefore the same unit
+        // square. Auto-fitting each shape separately would distort its area.
+        final rows =
+            allCells.fold<int>(1, (n, cell) => math.max(n, cell.$1 + 1));
+        final cols =
+            allCells.fold<int>(1, (n, cell) => math.max(n, cell.$2 + 1));
         body = Wrap(
           spacing: 16,
           runSpacing: 16,
           children: [
-            for (final shape in _list(data['shapes']).map(_map))
+            for (final shape in shapes)
               SizedBox(
                 width: 170 * math.min(scale, 2),
                 child: Column(
@@ -86,7 +94,7 @@ class KompassFigureView extends StatelessWidget {
                     _drawing(
                       context,
                       'cubeNet',
-                      {'cells': shape['cells']},
+                      {'cells': shape['cells'], 'rows': rows, 'cols': cols},
                       ink,
                       accent,
                       scale,
@@ -109,11 +117,18 @@ class KompassFigureView extends StatelessWidget {
       case 'mirror':
         body = _drawing(context, kind, data, ink, accent, scale);
       default:
-        body = Text(
-          alt.isNotEmpty
-              ? alt
-              : (german ? 'Abbildung nicht verfügbar.' : 'Figure unavailable.'),
-          style: style,
+        body = ExcludeSemantics(
+          // The surrounding image semantics already supplies this description.
+          // Avoid announcing it twice when an unknown figure uses a text fallback.
+          excluding: alt.isNotEmpty,
+          child: Text(
+            alt.isNotEmpty
+                ? alt
+                : (german
+                    ? 'Abbildung nicht verfügbar.'
+                    : 'Figure unavailable.'),
+            style: style,
+          ),
         );
     }
     return Container(
@@ -137,21 +152,24 @@ class KompassFigureView extends StatelessWidget {
                 data: Theme.of(
                   context,
                 ).copyWith(dividerColor: Colors.transparent),
-                child: ExpansionTile(
-                  key: const ValueKey('figure_description'),
-                  tilePadding: EdgeInsets.zero,
-                  iconColor: ink,
-                  collapsedIconColor: ink,
-                  title: Text(
-                    german ? 'Abbildung beschreiben' : 'Describe this figure',
-                    style: style.copyWith(fontSize: 14),
-                  ),
-                  children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(alt, style: style),
+                child: Material(
+                  color: Colors.transparent,
+                  child: ExpansionTile(
+                    key: const ValueKey('figure_description'),
+                    tilePadding: EdgeInsets.zero,
+                    iconColor: ink,
+                    collapsedIconColor: ink,
+                    title: Text(
+                      german ? 'Abbildung beschreiben' : 'Describe this figure',
+                      style: style.copyWith(fontSize: 14),
                     ),
-                  ],
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(alt, style: style),
+                      ),
+                    ],
+                  ),
                 ),
               ),
           ],
