@@ -1,7 +1,7 @@
 name: space_math_academy
 description: A space-themed math puzzle app
 publish_to: 'none'
-version: 1.5.46+62
+version: 1.6.0+63
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
@@ -64,6 +64,7 @@ flutter:
     - assets/data/starloader_levels.json
     - assets/data/molecule_levels.json
     - assets/puzzles/
+    - assets/kompass/math_v2.json
     
   fonts:
     - family: SpaceGrotesk
