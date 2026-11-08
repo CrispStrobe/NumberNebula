@@ -9,6 +9,8 @@ from pathlib import Path
 from competencies import competencies
 from content_numbers import tasks as number_tasks
 from content_geometry import tasks as geometry_tasks
+from content_measurement import tasks as measurement_tasks
+from content_data import tasks as data_tasks
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSET = ROOT / "assets/kompass/math_v2.json"
@@ -29,7 +31,7 @@ def build_package():
             "assessmentLimits": "Practice evidence is not an official KOMPASS score, school recommendation, calibrated difficulty, or predicted result. Times are author estimates, not learner norms.",
         },
         "competencies": competencies(),
-        "tasks": number_tasks() + geometry_tasks(),
+        "tasks": number_tasks() + geometry_tasks() + measurement_tasks() + data_tasks(),
     }
 
 
