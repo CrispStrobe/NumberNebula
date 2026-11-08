@@ -285,20 +285,42 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  for (final german in [true, false]) {
+    testWidgets('cube plan exposes height numbers and orientation ($german)',
+        (tester) async {
+      await tester.pumpWidget(_app(KompassFigureView(
+        figure: {'kind': 'cubePlan', 'data': _figures['cubePlan']},
+        german: german,
+      )));
+      expect(find.text(german ? 'hinten' : 'back'), findsOneWidget);
+      expect(find.text(german ? 'vorne' : 'front'), findsOneWidget);
+      expect(find.text('0'), findsOneWidget);
+      expect(find.text('3'), findsOneWidget);
+      expect(find.text('1'), findsNWidgets(2));
+      expect(find.text('2'), findsNWidgets(2));
+      expect(tester.getTopLeft(find.text('0')).dy,
+          lessThan(tester.getTopLeft(find.text('3')).dy));
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('unknown figures retain the authored accessible description',
       (tester) async {
     final handle = tester.ensureSemantics();
-    addTearDown(handle.dispose);
-    await tester.pumpWidget(_app(const KompassFigureView(
-      figure: {
-        'kind': 'futureFigure',
-        'alt': {'de': 'Drei gleich große Felder.', 'en': 'Three equal cells.'}
-      },
-      german: true,
-    )));
-    expect(find.text('Drei gleich große Felder.'), findsOneWidget);
-    expect(find.bySemanticsLabel('Drei gleich große Felder.'), findsWidgets);
-    expect(tester.takeException(), isNull);
+    try {
+      await tester.pumpWidget(_app(const KompassFigureView(
+        figure: {
+          'kind': 'futureFigure',
+          'alt': {'de': 'Drei gleich große Felder.', 'en': 'Three equal cells.'}
+        },
+        german: true,
+      )));
+      expect(find.text('Drei gleich große Felder.'), findsOneWidget);
+      expect(find.bySemanticsLabel('Drei gleich große Felder.'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    } finally {
+      handle.dispose();
+    }
   });
 
   test('localized table data uses requested language and handles numbers', () {

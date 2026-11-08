@@ -5,6 +5,17 @@ the shipping baseline and completed audits. These are scoped next steps, not cla
 that the named games are broken. Each round-audit batch below is independent;
 implement one game per PR rather than combining an entire batch.
 
+## Active owner-requested KOMPASS pathway
+
+The full mathematics pathway is implemented on
+[`codex/kompass4-learning-path`](https://github.com/CrispStrobe/NumberNebula/tree/codex/kompass4-learning-path).
+Use [the feature handoff](docs/kompass4-implementation.md) for source contracts,
+validation commands and known limits, and [the coverage map](docs/kompass4-coverage.md)
+for the 32 competencies. Complete exact-head remote CI and review before merging;
+then verify merged-main publication through the existing workflows. Learner and
+teacher pilots remain necessary before any learning-outcome or test-readiness
+claim. Existing release and unrelated game-audit lanes below remain separate.
+
 ## Next up (in this order)
 
 1. **Watch App Review** (lane R, step 2): 1.5.45 (61) for iOS and macOS,

@@ -105,10 +105,35 @@ class KompassFigureView extends StatelessWidget {
               ),
           ],
         );
+      case 'cubePlan':
+        body = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              german
+                  ? 'Bauplan · Ansicht von oben'
+                  : 'Building plan · top view',
+              textAlign: TextAlign.center,
+              style: style.copyWith(fontWeight: FontWeight.bold),
+            ),
+            Text(german ? 'hinten' : 'back', textAlign: TextAlign.center),
+            _table(
+              const [],
+              _list(data['heights'])
+                  .map((row) =>
+                      _list(row).map((v) => figureText(v, german)).toList())
+                  .toList(),
+              ink,
+              style,
+            ),
+            Text(german ? 'vorne' : 'front', textAlign: TextAlign.center),
+            const SizedBox(height: 8),
+            _drawing(context, kind, data, ink, accent, scale),
+          ],
+        );
       case 'numberLine':
       case 'grid':
       case 'barChart':
-      case 'cubePlan':
       case 'cubeNet':
       case 'clock':
       case 'spinner':
@@ -146,7 +171,7 @@ class KompassFigureView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Semantics(image: true, label: alt, child: body),
+            Semantics(container: true, image: true, label: alt, child: body),
             if (alt.isNotEmpty)
               Theme(
                 data: Theme.of(

@@ -120,6 +120,30 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
             domain: mode == KompassMode.rehearsal ? null : _domain,
             exposedFamilies: _store!.exposedFamilies);
       }
+      var repeatedRehearsalTasks = 0;
+      if (mode == KompassMode.rehearsal) {
+        const expected = {
+          'numbers': 8,
+          'geometry': 5,
+          'measurement': 4,
+          'data': 3
+        };
+        if (tasks.length < 20 ||
+            expected.entries.any((entry) =>
+                tasks.where((task) => task.domain == entry.key).length !=
+                entry.value)) {
+          // A repeat remains useful timed practice. Exposure history still
+          // prevents these tasks from becoming new independent evidence.
+          tasks = KompassPlanner.selectSession(_pack!, const [],
+              mode: KompassMode.rehearsal, count: 20);
+          final seen = {
+            ..._store!.exposedFamilies,
+            ..._store!.attempts.map((attempt) => attempt.familyId)
+          };
+          repeatedRehearsalTasks =
+              tasks.where((task) => seen.contains(task.familyId)).length;
+        }
+      }
       if (tasks.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -139,9 +163,15 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
                 '45 minutes of working time')),
             content: SingleChildScrollView(
                 child: Text(kc(
-                    _german,
-                    'Lege Papier und Stift bereit. Du kannst Aufgaben überspringen, zurückkehren und Antworten ändern. Hinweise und Lösungen gibt es erst am Ende. Die Uhr beginnt mit „Start“ und läuft auch beim Verlassen der App weiter. Dies ist eine eigene Übung; Punkte sind keine amtliche Bewertung.',
-                    'Have paper and a pencil ready. You can skip tasks, return and edit answers. Hints and solutions appear at the end. The clock starts with “Start” and keeps running if you leave the app. This is original practice; points are not an official assessment.'))),
+                        _german,
+                        'Lege Papier und Stift bereit. Du kannst Aufgaben überspringen, zurückkehren und Antworten ändern. Hinweise und Lösungen gibt es erst am Ende. Die Uhr beginnt mit „Start“ und läuft auch beim Verlassen der App weiter. Dies ist eine eigene Übung; Punkte sind keine amtliche Bewertung.',
+                        'Have paper and a pencil ready. You can skip tasks, return and edit answers. Hints and solutions appear at the end. The clock starts with “Start” and keeps running if you leave the app. This is original practice; points are not an official assessment.') +
+                    (repeatedRehearsalTasks == 0
+                        ? ''
+                        : kc(
+                            _german,
+                            '\n\nDies ist ein Wiederholungs-Probelauf: $repeatedRehearsalTasks Aufgaben hast du bereits gesehen. Sie zählen als Wiederholung, nicht als neue selbstständige Beobachtungen.',
+                            '\n\nThis is a repeat rehearsal: you have already seen $repeatedRehearsalTasks tasks. They count as review, not as new independent observations.')))),
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(context, false),
@@ -160,6 +190,14 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
           builder: (_) => KompassCourseScreen(
               pack: _pack!, store: _store!, tasks: tasks, mode: mode)));
       if (mounted) setState(() {});
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(kc(
+                _german,
+                'Die Runde konnte nicht geöffnet werden. Bitte versuche es erneut.',
+                'The session could not be opened. Please try again.'))));
+      }
     } finally {
       _opening = false;
     }

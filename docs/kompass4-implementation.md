@@ -24,7 +24,7 @@ official papers remain linked references and are not embedded or adapted.
   independent checks, a 45-minute working-period rehearsal and a progress report.
 - [x] Interactive activities for place value/number lines, everyday quantities,
   data/probability and geometry; keep learning untimed and support accessible input.
-- [ ] Matching printable practice and review output from the content package.
+- [x] Matching printable practice and review output from the content package.
 - [ ] Content validation, focused scorer/planner/persistence/widget tests and
   exact-branch remote CI/build/browser checks, with evidence recorded honestly.
 
@@ -175,5 +175,15 @@ bank's difficulty labels or time estimates. Any outcome claim needs that evidenc
 
 ## Validation evidence
 
-Implementation and validation are in progress. This document will be updated
-with exact commit/run URLs and remaining limits before handoff.
+Local focused verification covers 111 Flutter cases across engine/scoring,
+storage, figures, labs, home entry, course interactions, paper mode and versioned
+review. The independent Python content/print tests and reproducibility gates run
+in CI. The checked package contains 128 tasks and 257 separately scored parts.
+
+Exact integrated-head full-suite, calibration, wasm/JavaScript browser and preview
+results are recorded in the branch pull request. Use its current checks rather
+than treating a prior checkpoint as proof of the final head:
+[branch pull request and checks](https://github.com/CrispStrobe/NumberNebula/pulls?q=is%3Apr+head%3Acodex%2Fkompass4-learning-path).
+Remote browser artifacts include real-control screenshots and print-layout PDFs.
+Native store binaries and learner outcome studies are outside this branch's
+verified results. Publication still follows the existing release process.

@@ -213,11 +213,15 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('45:00'), findsOneWidget);
     await tester.enterText(find.byKey(const ValueKey('answer-task0-a')), '12');
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
     await tester.pump();
     expect(DateTime.parse(store.session!['deadline'] as String),
         now.add(const Duration(minutes: 45)));
     now = now.add(const Duration(minutes: 46));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
     expect(find.text('Working time has ended.'), findsOneWidget);
@@ -251,6 +255,34 @@ void main() {
   });
 
   testWidgets(
+      'expiry closes the finish prompt and finalizes the session only once',
+      (tester) async {
+    final pack = _pack(use: 'rehearsal');
+    final store = await KompassStore.open();
+    var now = DateTime.utc(2026, 11, 8, 12);
+    await tester.pumpWidget(_app(KompassCourseScreen(
+        pack: pack,
+        store: store,
+        tasks: pack.tasks,
+        mode: KompassMode.rehearsal,
+        now: () => now)));
+    await tester.pumpAndSettle();
+    await _tap(tester, find.byKey(const ValueKey('kompass-finish')));
+    expect(find.byType(AlertDialog), findsOneWidget);
+    now = now.add(const Duration(minutes: 46));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text('Working time has ended.'), findsOneWidget);
+    expect(store.attempts, hasLength(2));
+    expect(store.session, isNull);
+    await tester.pump(const Duration(seconds: 12));
+    expect(store.attempts, hasLength(2));
+    expect(store.session, isNull);
+    await _close(tester, store);
+  });
+
+  testWidgets(
       'manual rubric review persists separately from independent correctness',
       (tester) async {
     final pack = _pack(use: 'check', manual: true);
@@ -273,10 +305,35 @@ void main() {
     await _close(tester, store);
   });
 
+  testWidgets(
+      'historical scores are not paired with a changed solution or rubric',
+      (tester) async {
+    final pack = _pack(use: 'check', manual: true);
+    final store = await KompassStore.open();
+    await store.record(KompassAttempt.forTask(
+        id: 'old',
+        sessionId: 'old-session',
+        task: pack.tasks.first,
+        packVersion: '1.0.0',
+        mode: KompassMode.check,
+        firstResponses: {'a': '12', 'why': 'my original explanation'}));
+    await tester.pumpWidget(_app(KompassReviewScreen(
+        pack: pack, store: store, attemptIds: const ['old'])));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Earlier record'), 250,
+        scrollable: find.byType(Scrollable).first);
+    expect(find.text('Earlier record'), findsOneWidget);
+    expect(find.text('my original explanation'), findsOneWidget);
+    expect(find.text('7 + 3 + 2 = 12.'), findsNothing);
+    expect(find.byType(ChoiceChip), findsNothing);
+    expect(store.attempts.single.score.pendingReview, isTrue);
+    await _close(tester, store);
+  });
+
   for (final locale in ['de', 'en']) {
     testWidgets('$locale course and hub fit a small phone with twice-size text',
         (tester) async {
-      tester.view.physicalSize = const Size(390, 600);
+      tester.view.physicalSize = const Size(390, 500);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);

@@ -1,7 +1,20 @@
 # NumberNebula: current state and agent handover
 
-Updated 2026-11-05. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
+Updated 2026-11-08. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
+
+## KOMPASS mathematics pathway branch (2026-11-08)
+
+The owner requested the complete optional KOMPASS 4 mathematics pathway, including
+new minigames, with incremental remote checkpoints. Work is on
+[`codex/kompass4-learning-path`](https://github.com/CrispStrobe/NumberNebula/tree/codex/kompass4-learning-path),
+version **1.6.0+63**. The implementation covers all 32 project competency IDs,
+128 original bilingual tasks, four interactive labs, independent checks, a
+resumable 45-minute rehearsal, local learning evidence and printable booklets.
+See [implementation and validation](docs/kompass4-implementation.md),
+[complete coverage](docs/kompass4-coverage.md), and the branch's PR checks for the
+exact integrated source. Main and store publication remain at the verified
+versions described below until this branch is reviewed and merged.
 
 ## Current state (2026-10-28)
 

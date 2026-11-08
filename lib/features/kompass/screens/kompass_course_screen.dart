@@ -121,7 +121,7 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
               .clamp(0, widget.tasks.length - 1);
         }
         if (saved['deadline'] != null) {
-          _deadline = DateTime.parse(saved['deadline'] as String);
+          _deadline = DateTime.parse(saved['deadline'] as String).toUtc();
         }
         _feedback
             .addAll((saved['feedback'] as List? ?? []).whereType<String>());
@@ -132,7 +132,7 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
         _invalidSession = true;
       }
     } else if (widget.mode == KompassMode.rehearsal) {
-      _deadline = widget.now().add(widget.rehearsalDuration);
+      _deadline = widget.now().toUtc().add(widget.rehearsalDuration);
     }
     if (widget.tasks.isEmpty) _invalidSession = true;
     if (!_invalidSession) {
@@ -306,7 +306,9 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
   Future<void> _finish({bool expired = false}) async {
     if (_busy || _finished || _invalidSession) return;
     if (_confirming) {
-      if (expired && _confirmationContext?.mounted == true) {
+      if (expired &&
+          _confirmationContext?.mounted == true &&
+          ModalRoute.of(_confirmationContext!)?.isCurrent == true) {
         Navigator.of(_confirmationContext!).pop(true);
         _confirmationContext = null;
       }

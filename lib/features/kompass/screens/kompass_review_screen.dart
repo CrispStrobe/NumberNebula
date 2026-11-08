@@ -42,14 +42,29 @@ class _KompassReviewScreenState extends State<KompassReviewScreen> {
       return kc(_german, 'Keine Elemente ausgewählt', 'No elements selected');
     }
     String label(dynamic item) {
+      if (part.kind == 'cells') {
+        final coordinates = item.toString().split(',');
+        if (coordinates.length == 2) {
+          final row = int.tryParse(coordinates[0]);
+          final column = int.tryParse(coordinates[1]);
+          if (row != null && column != null) {
+            return kc(_german, 'Reihe ${row + 1}, Spalte ${column + 1}',
+                'row ${row + 1}, column ${column + 1}');
+          }
+        }
+      }
       for (final option in part.options) {
         if (option['id'] == item) return kompassText(option['label'], _german);
       }
       return item.toString();
     }
 
-    final text = value is List ? value.map(label).join(' → ') : label(value);
-    return part.unit.isEmpty ? text : '$text ${part.unit}';
+    final text = value is List
+        ? value.map(label).join(part.kind == 'order' ? ' → ' : '; ')
+        : label(value);
+    return part.unit.isEmpty || RegExp(r'[a-zA-Z€²]').hasMatch(text)
+        ? text
+        : '$text ${part.unit}';
   }
 
   Future<void> _review(KompassAttempt attempt, KompassTask task,
@@ -84,7 +99,16 @@ class _KompassReviewScreenState extends State<KompassReviewScreen> {
         'Original practice; not an official assessment.\n'));
     for (final attempt in _attempts) {
       final task = widget.pack.taskById(attempt.taskId);
-      if (task == null) continue;
+      if (task == null || attempt.packVersion != widget.pack.version) {
+        report.writeln(kc(_german, 'Frühere Aufzeichnung', 'Earlier record'));
+        report.writeln(
+            '${attempt.score.awardedPoints} / ${attempt.score.maxPoints}');
+        for (final response in attempt.responses.values) {
+          report.writeln(response);
+        }
+        report.writeln();
+        continue;
+      }
       report.writeln(kompassText(task.title, _german));
       report.writeln(
           '${attempt.score.awardedPoints} / ${attempt.score.maxPoints}');
@@ -112,11 +136,15 @@ class _KompassReviewScreenState extends State<KompassReviewScreen> {
 
   Future<void> _nextPractice() async {
     if (_busy) return;
-    final task = KompassPlanner.nextPractice(widget.pack, widget.store.attempts);
+    final task =
+        KompassPlanner.nextPractice(widget.pack, widget.store.attempts);
     if (task == null) return;
     await Navigator.of(context).pushReplacement(MaterialPageRoute<void>(
-      builder: (_) => KompassCourseScreen(pack: widget.pack, store: widget.store,
-          tasks: [task], mode: KompassMode.practice),
+      builder: (_) => KompassCourseScreen(
+          pack: widget.pack,
+          store: widget.store,
+          tasks: [task],
+          mode: KompassMode.practice),
     ));
   }
 
@@ -180,26 +208,62 @@ class _KompassReviewScreenState extends State<KompassReviewScreen> {
             'Look at your methods and the support you needed. These are original practice tasks. They do not produce an official KOMPASS level or school recommendation.')),
       ])),
       const SizedBox(height: 16),
-      KompassPanel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      KompassPanel(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(kc(_german, 'Dein nächster Schritt', 'Your next step'),
             style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
-        Text(pending > 0 ? kc(_german,
-            'Prüfe zuerst die offenen Begründungen mit den Kriterien. Wähle dann eine kurze Übung und erkläre dir deinen Lösungsweg.',
-            'First review the pending explanations against the criteria. Then try a short practice task and explain your method.') : kc(_german,
-            'Wähle eine kurze Übung zu einem offenen Lernziel. Eine spätere Aufgabe ohne Hilfe zeigt dir, was du behalten hast.',
-            'Try a short practice task for a learning goal you are working on. A later task without help can show what you retained.')),
+        Text(pending > 0
+            ? kc(
+                _german,
+                'Prüfe zuerst die offenen Begründungen mit den Kriterien. Wähle dann eine kurze Übung und erkläre dir deinen Lösungsweg.',
+                'First review the pending explanations against the criteria. Then try a short practice task and explain your method.')
+            : kc(
+                _german,
+                'Wähle eine kurze Übung zu einem offenen Lernziel. Eine spätere Aufgabe ohne Hilfe zeigt dir, was du behalten hast.',
+                'Try a short practice task for a learning goal you are working on. A later task without help can show what you retained.')),
         for (final id in reviewSkills.take(4))
           if (widget.pack.competencyById(id) case final skill?)
-            Padding(padding: const EdgeInsets.only(top: 6),
+            Padding(
+                padding: const EdgeInsets.only(top: 6),
                 child: Text('• ${kompassText(skill.title, _german)}')),
         const SizedBox(height: 12),
-        FilledButton.tonal(onPressed: _nextPractice,
-            child: Text(kc(_german, 'Nächste passende Übung', 'Next suggested practice'))),
+        FilledButton.tonal(
+            onPressed: widget.store.session == null
+                ? _nextPractice
+                : () => Navigator.of(context).pop(),
+            child: Text(widget.store.session == null
+                ? kc(_german, 'Nächste passende Übung',
+                    'Next suggested practice')
+                : kc(_german, 'Offene Runde in der Übersicht fortsetzen',
+                    'Return to your unfinished session in the overview'))),
       ])),
       const SizedBox(height: 16),
       for (final attempt in attempts)
-        if (widget.pack.taskById(attempt.taskId) case final task?)
+        if (attempt.packVersion != widget.pack.version ||
+            widget.pack.taskById(attempt.taskId) == null)
+          Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: KompassPanel(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Text(kc(_german, 'Frühere Aufzeichnung', 'Earlier record'),
+                        style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                        '${attempt.score.awardedPoints} / ${attempt.score.maxPoints}'),
+                    const SizedBox(height: 8),
+                    Text(kc(
+                        _german,
+                        'Diese Aufgabe stammt aus einer anderen Inhaltsfassung. Deine Antworten und die damalige Bewertung bleiben erhalten; neue Lösungen oder Kriterien werden nicht darauf angewendet.',
+                        'This task comes from a different content version. Your responses and original score are preserved; current solutions or rubrics are not applied to it.')),
+                    for (final response in attempt.responses.values)
+                      Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: SelectableText(response.toString())),
+                  ])))
+        else if (widget.pack.taskById(attempt.taskId) case final task?)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Card(

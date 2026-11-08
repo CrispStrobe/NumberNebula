@@ -15,8 +15,9 @@ import 'printing/kompass_html_export.dart';
 class KompassPaperScreen extends StatefulWidget {
   final KompassPack pack;
   final KompassStore store;
+  final AssetBundle? assetBundle;
   const KompassPaperScreen(
-      {super.key, required this.pack, required this.store});
+      {super.key, required this.pack, required this.store, this.assetBundle});
 
   @override
   State<KompassPaperScreen> createState() => _KompassPaperScreenState();
@@ -40,9 +41,9 @@ class _KompassPaperScreenState extends State<KompassPaperScreen> {
 
   Future<void> _load() async {
     try {
+      final bundle = widget.assetBundle ?? rootBundle;
       final manifest = jsonDecode(
-              await rootBundle.loadString('assets/kompass/print/manifest.json'))
-          as Map;
+          await bundle.loadString('assets/kompass/print/manifest.json')) as Map;
       if (manifest['schemaVersion'] != 1) {
         throw const FormatException('Unsupported paper manifest');
       }
@@ -57,7 +58,7 @@ class _KompassPaperScreenState extends State<KompassPaperScreen> {
               throw const FormatException('Invalid paper filename');
             }
             _html[filename] =
-                await rootBundle.loadString('assets/kompass/print/$filename');
+                await bundle.loadString('assets/kompass/print/$filename');
           }
         }
       }

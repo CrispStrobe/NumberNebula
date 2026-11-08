@@ -1,0 +1,339 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>NumberNebula · 45-minute rehearsal</title><style>
+@page { size: A4; margin: 16mm 17mm 17mm; }
+* { box-sizing: border-box; }
+body { max-width: 820px; margin: 0 auto; padding: 24px; color: #17242e; background: white;
+       font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.4; }
+h1 { font-size: 29px; line-height: 1.15; margin: 10px 0; }
+h2 { font-size: 19px; margin: 0 0 8px; line-height: 1.3; }
+h3 { font-size: 16px; margin: 12px 0 6px; }
+p { margin: 6px 0 10px; }
+.eyebrow { text-transform: uppercase; letter-spacing: .1em; font-size: 11px; font-weight: bold; color: #45616c; }
+.intro { border: 1px solid #c3cdd3; border-left: 4px solid #416c69; padding: 14px 16px; margin: 18px 0; }
+.warning { font-size: 13px; color: #364b57; }
+.name { margin: 22px 0; }
+.toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; padding: 12px 0; margin-bottom: 14px; }
+button, select { font: inherit; background: #eef2f4; border: 1px solid #9dadb8; border-radius: 6px; padding: 8px 12px; }
+.domain-title { font-size: 24px; margin: 30px 0 14px; border-bottom: 2px solid #416c69; padding-bottom: 6px; }
+.task { margin: 0 0 22px; padding: 15px 0 16px; border-bottom: 1px solid #c7d0d7; break-inside: avoid; page-break-inside: avoid; }
+.task h2 span { font-size: 11px; font-weight: normal; color: #546572; margin-left: 8px; white-space: nowrap; }
+.part { margin-top: 12px; }
+.part-prompt { font-weight: 600; }
+.points { font-size: 11px; font-weight: normal; color: #526472; }
+.response { display: flex; align-items: baseline; gap: 9px; margin: 16px 0 5px; }
+.number-line { display: inline-block; width: 160px; border-bottom: 1px solid #4b5b65; height: 20px; }
+.writing-line { height: 27px; border-bottom: 1px solid #9caab4; }
+.choices { list-style: none; margin: 5px 0; padding: 0; }
+.choices li { display: flex; gap: 8px; margin: 6px 0; align-items: baseline; }
+.box { display: inline-block; border: 1px solid #4b5b65; width: 13px; height: 13px; flex: 0 0 13px; }
+.order-box { width: 24px; height: 20px; }
+.diagram { display: block; width: 100%; height: auto; max-width: 100%; max-height: 185px; margin: 10px auto; }
+.data-table, .score-table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+th, td { border: 1px solid #7d909d; padding: 7px 9px; text-align: left; vertical-align: top; }
+th { background: #eef2f4; font-weight: 600; }
+.solution { padding: 9px 12px; background: #f0f5f2; border-left: 3px solid #416c69; }
+.rubric { margin: 6px 0 10px; padding-left: 22px; font-size: 13px; }
+.source { font-size: 11px; color: #53646f; overflow-wrap: anywhere; }
+.review-sheet { break-before: page; page-break-before: always; }
+footer { margin-top: 24px; border-top: 1px solid #c7d0d7; padding-top: 8px; font-size: 11px; color: #53646f; }
+[hidden] { display: none !important; }
+@media print {
+  body { padding: 0; max-width: none; font-size: 10.5pt; }
+  h1 { font-size: 22pt; } h2 { font-size: 13pt; }
+  .screen-only { display: none !important; }
+  .intro { padding: 9px 12px; }
+  .task { margin-bottom: 12px; padding-top: 10px; }
+  .domain-title { break-before: page; page-break-before: always; font-size: 17pt; }
+  .diagram { max-height: 44mm; }
+  .data-table, .score-table { font-size: 9.5pt; }
+  th, td { padding: 5px 7px; }
+  a { color: inherit; text-decoration: none; }
+  .solution { background: white; }
+}
+</style></head><body>
+<div class="toolbar screen-only"><button type="button" onclick="window.print()">Print / save as PDF</button><label for="domain-filter">Domain:</label><select id="domain-filter"><option value="all">All domains</option><option value="numbers">Numbers and operations</option><option value="geometry">Space and shape</option><option value="measurement">Quantities and measurement</option><option value="data">Data and chance</option></select></div>
+<div class="eyebrow">NumberNebula · KOMPASS 4 Mathematics</div>
+<h1>45-minute rehearsal</h1><p>20 tasks · English · 2.0.0</p>
+<div class="intro"><p>These original exercises belong to the optional KOMPASS 4 mathematics pathway. This is not an official test. Points do not establish an official proficiency level or school recommendation.</p><p><strong>After reading the general instructions, begin 45 minutes of work, including reading the tasks and checking answers. You may skip tasks and return later. Open solutions only after submission.</strong></p><p>Materials: paper, pencil, eraser and ruler. No calculator. Use labelled dimensions; do not measure screen images with a physical ruler.</p></div>
+<p class="name">Name: ______________________________  Date: ______________</p>
+<h2 class="domain-title" data-domain="numbers">Numbers and operations</h2>
+<article class="task" data-task-id="mz01_missing_bundle_count" data-domain="numbers">
+<h2>1. A bundle count is missing<span>2 points</span></h2>
+<p>A collection represents 2734: 2 thousands, an unknown number of hundreds, 13 tens and 4 ones.</p>
+<section class="part"><p class="part-prompt">a) How many hundreds are missing? <span class="points">(1 pt)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Use a calculation to show that your representation equals 2734. <span class="points">(1 pt)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz02_missing_comparison_digit" data-domain="numbers">
+<h2>2. Several digits can fit<span>2 points</span></h2>
+<p>The three-digit number 6□4 must be greater than 654 and less than 684.</p>
+<section class="part"><p class="part-prompt">a) Which digits fit in the box? Select all. <span class="points">(1 pt)</span></p>
+<p class="points">Select every matching option.</p><ul class="choices">
+<li><span class="box"></span><span>4</span></li>
+<li><span class="box"></span><span>5</span></li>
+<li><span class="box"></span><span>6</span></li>
+<li><span class="box"></span><span>7</span></li>
+<li><span class="box"></span><span>8</span></li>
+<li><span class="box"></span><span>9</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Why does the digit 8 not fit? <span class="points">(1 pt)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz04_subtraction_audit" data-domain="numbers">
+<h2>3. Audit a subtraction<span>2 points</span></h2>
+<p>A note says: 3004 − 1789 = 1325. Check the calculation.</p>
+<section class="part"><p class="part-prompt">a) What is the correct result? <span class="points">(1 pt)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Which calculation correctly checks a proposed result x? <span class="points">(1 pt)</span></p>
+<p class="points">Select exactly one answer.</p><ul class="choices">
+<li><span class="box"></span><span>x + 1789 must equal 3004</span></li>
+<li><span class="box"></span><span>x + 3004 must equal 1789</span></li>
+<li><span class="box"></span><span>x − 1789 must equal 3004</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mz05_quarter_hundred_groups" data-domain="numbers">
+<h2>4. Use groups of four<span>2 points</span></h2>
+<p>Four packs of 25 tokens contain 100 tokens altogether. There are 36 such packs.</p>
+<section class="part"><p class="part-prompt">a) How many tokens do 36 packs contain? <span class="points">(1 pt)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Explain a method using groups of four packs. <span class="points">(1 pt)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz07_near_thousand_correction" data-domain="numbers">
+<h2>5. Check a suggested method<span>2 points</span></h2>
+<p>Someone says: &#x27;I calculate 999 + 68 as 1000 + 68. The answer 1068 is already final.&#x27;</p>
+<section class="part"><p class="part-prompt">a) What is the correct answer to 999 + 68? <span class="points">(1 pt)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) What is missing from the proposed method? <span class="points">(1 pt)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz08_invariant_sum_pattern" data-domain="numbers">
+<h2>6. Continue a calculation pattern<span>2 points</span></h2>
+<p>A set follows this rule: the first addend increases by 1 each time and the second decreases by 1. It begins 201 + 89, 202 + 88, 203 + 87.</p>
+<section class="part"><p class="part-prompt">a) Which second addend pairs with 205? <span class="points">(1 pt)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) What happens to the sums? Explain. <span class="points">(1 pt)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz09_best_pair_below_limit" data-domain="numbers">
+<h2>7. As close as possible to the limit<span>2 points</span></h2>
+<p>Choose exactly two different cards from 12, 15, 18 and 21. Their sum must not exceed 35 and should be as large as possible.</p>
+<section class="part"><p class="part-prompt">a) What is the largest allowed sum? <span class="points">(1 pt)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Which pairs achieve that best sum? Select all. <span class="points">(1 pt)</span></p>
+<p class="points">Select every matching option.</p><ul class="choices">
+<li><span class="box"></span><span>12 and 21</span></li>
+<li><span class="box"></span><span>15 and 18</span></li>
+<li><span class="box"></span><span>15 and 21</span></li>
+<li><span class="box"></span><span>18 and 21</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mz10_insufficient_information" data-domain="numbers">
+<h2>8. Is the information sufficient?<span>2 points</span></h2>
+<p>Three boxes contain books. The first has 12 and the second has 15. All we know about the third is that it is blue. Find the total number of books.</p>
+<section class="part"><p class="part-prompt">a) Can the exact total be determined from this information? <span class="points">(1 pt)</span></p>
+<p class="points">Select exactly one answer.</p><ul class="choices">
+<li><span class="box"></span><span>Yes, there are 27 books.</span></li>
+<li><span class="box"></span><span>No, a quantity is missing.</span></li>
+<li><span class="box"></span><span>Yes, there are 30 books.</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) What extra information is needed? <span class="points">(1 pt)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<h2 class="domain-title" data-domain="geometry">Space and shape</h2>
+<article class="task" data-task-id="mr02_join_identical_rectangles" data-domain="geometry">
+<h2>9. Join two identical rectangles<span>2 points</span></h2>
+<p>Two paper rectangles each measure 2 cm by 3 cm. Join them without overlap along one whole side of equal length. The outer shape must be a rectangle again.</p>
+<section class="part"><p class="part-prompt">a) Which outer dimensions are possible? Select all, without counting rotations twice. <span class="points">(1 pt)</span></p>
+<p class="points">Select every matching option.</p><ul class="choices">
+<li><span class="box"></span><span>2 cm × 6 cm</span></li>
+<li><span class="box"></span><span>4 cm × 3 cm</span></li>
+<li><span class="box"></span><span>4 cm × 6 cm</span></li>
+<li><span class="box"></span><span>2 cm × 3 cm</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Describe either valid arrangement. <span class="points">(1 pt)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mr03_combine_half_squares" data-domain="geometry">
+<h2>10. Combine half squares<span>2 points</span></h2>
+<p>An area consists of 4 whole unit squares and 2 triangles. Each triangle is exactly half of another unit square. The pieces join without gaps or overlaps.</p>
+<section class="part"><p class="part-prompt">a) How many whole units of area is that altogether? <span class="points">(1 pt)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Explain how you counted the two triangles. <span class="points">(1 pt)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mr05_triangle_axis_counterexample" data-domain="geometry">
+<h2>11. Disprove a claim<span>2 points</span></h2>
+<p>Jona says: &#x27;Every triangle has a symmetry axis.&#x27; Consider a triangle with side lengths 3 cm, 4 cm and 5 cm.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 193.333 155" role="img" aria-label="Right triangle with three unequal sides: 3 cm, 4 cm and 5 cm."><title>Right triangle with three unequal sides: 3 cm, 4 cm and 5 cm.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><polygon points="20,135 173.333,135 20,20" fill="#eef1f4" stroke="#27333c" stroke-width="1.8"/></g></svg>
+<section class="part"><p class="part-prompt">a) How many symmetry axes does this triangle have? <span class="points">(1 pt)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) What does this example show about Jona&#x27;s claim? <span class="points">(1 pt)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mr06_reverse_view_plans" data-domain="geometry">
+<h2>12. More than one plan can fit<span>2 points</span></h2>
+<p>A building contains exactly 6 cubes. Its front silhouette is 2 cubes high on the left and 3 on the right. Each plan lists the back row first, then the front row. 0 means no tower.</p>
+<section class="part"><p class="part-prompt">a) Which plans meet both conditions? Select all. <span class="points">(1 pt)</span></p>
+<p class="points">Select every matching option.</p><ul class="choices">
+<li><span class="box"></span><span>Back: 2, 1; front: 0, 3</span></li>
+<li><span class="box"></span><span>Back: 2, 3; front: 2, 0</span></li>
+<li><span class="box"></span><span>Back: 2, 1; front: 0, 2</span></li>
+<li><span class="box"></span><span>Back: 0, 3; front: 2, 1</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Why does a front view not determine every individual tower? <span class="points">(1 pt)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mr07_valid_net_selection" data-domain="geometry">
+<h2>13. Which nets form a cube?<span>2 points</span></h2>
+<p>Each shape has six equal squares. Fold only along shared edges, without cutting or overlapping.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 696 117" role="img" aria-label="Four six-square shapes: A two rows of three, the second starting below the last cell of the first; B a 2-by-3 rectangle; C a row of six; D a row of four with one square above its left end and one below its right end."><title>Four six-square shapes: A two rows of three, the second starting below the last cell of the first; B a 2-by-3 rectangle; C a row of six; D a row of four with one square above its left end and one below its right end.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><text x="87" y="16" text-anchor="middle" font-size="15" font-weight="bold">A</text><rect x="18" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="41" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="64" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="64" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="87" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="110" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><text x="261" y="16" text-anchor="middle" font-size="15" font-weight="bold">B</text><rect x="192" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="215" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="238" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="192" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="215" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="238" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><text x="435" y="16" text-anchor="middle" font-size="15" font-weight="bold">C</text><rect x="366" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="389" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="412" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="435" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="458" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="481" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><text x="609" y="16" text-anchor="middle" font-size="15" font-weight="bold">D</text><rect x="540" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="563" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="586" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="609" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="540" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="609" y="76" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/></g></svg>
+<section class="part"><p class="part-prompt">a) Which shapes are valid cube nets? Select all. <span class="points">(1 pt)</span></p>
+<p class="points">Select every matching option.</p><ul class="choices">
+<li><span class="box"></span><span>A</span></li>
+<li><span class="box"></span><span>B</span></li>
+<li><span class="box"></span><span>C</span></li>
+<li><span class="box"></span><span>D</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Why is having six squares alone insufficient? <span class="points">(1 pt)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<h2 class="domain-title" data-domain="measurement">Quantities and measurement</h2>
+<article class="task" data-task-id="mg01_implausible_label" data-domain="measurement">
+<h2>14. An implausible label<span>2 points</span></h2>
+<p>Four labels describe usual everyday sizes: one banana 150 kg, a loaded backpack 3 kg, a pencil 15 cm and a large juice bottle 2 l.</p>
+<section class="part"><p class="part-prompt">a) Which label is clearly implausible? <span class="points">(1 pt)</span></p>
+<p class="points">Select exactly one answer.</p><ul class="choices">
+<li><span class="box"></span><span>Banana: 150 kg</span></li>
+<li><span class="box"></span><span>Backpack: 3 kg</span></li>
+<li><span class="box"></span><span>Pencil: 15 cm</span></li>
+<li><span class="box"></span><span>Juice bottle: 2 l</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Change only the unit of the implausible label to make it reasonable. <span class="points">(1 pt)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mg02_reconstruct_route_leg" data-domain="measurement">
+<h2>15. A route section is missing<span>2 points</span></h2>
+<p>A walking route is 3 km long in total. Its first section measures 1 km 200 m and the second 650 m. A third section reaches the destination. Use 1 km = 1000 m.</p>
+<section class="part"><p class="part-prompt">a) How long is the third section in metres? <span class="points">(1 pt)</span></p>
+<div class="response"><span class="number-line"></span><span>m</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Which mixed-unit notation matches that length? <span class="points">(1 pt)</span></p>
+<p class="points">Select exactly one answer.</p><ul class="choices">
+<li><span class="box"></span><span>1 km 150 m</span></li>
+<li><span class="box"></span><span>1 km 15 m</span></li>
+<li><span class="box"></span><span>11 km 50 m</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mg04_reverse_receipt" data-domain="measurement">
+<h2>16. A missing receipt price<span>2 points</span></h2>
+<p>A purchase is paid for with €20, and €7.50 is returned. The receipt has exactly two items: a book for €4.50 and a game with an unreadable price.</p>
+<section class="part"><p class="part-prompt">a) How much was spent altogether? <span class="points">(1 pt)</span></p>
+<div class="response"><span class="number-line"></span><span>€</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) What did the game cost? Subtract the book price from your total. <span class="points">(1 pt)</span></p>
+<div class="response"><span class="number-line"></span><span>€</span></div>
+</section>
+</article>
+<article class="task" data-task-id="mg05_timetable_with_walk" data-domain="measurement">
+<h2>17. The latest suitable bus<span>2 points</span></h2>
+<p>An appointment starts at 10:30. There is a further 12-minute walk from the destination stop. The table shows three buses. Choose the latest bus that gets you to the appointment on time.</p>
+<table class="data-table" aria-label="Bus A runs 09:05 to 10:00; B 09:25 to 10:20; C 09:40 to 10:35."><thead><tr><th>Bus</th><th>Departure</th><th>Arrival at stop</th></tr></thead><tbody><tr><td>A</td><td>09:05</td><td>10:00</td></tr><tr><td>B</td><td>09:25</td><td>10:20</td></tr><tr><td>C</td><td>09:40</td><td>10:35</td></tr></tbody></table>
+<section class="part"><p class="part-prompt">a) Which bus is suitable? <span class="points">(1 pt)</span></p>
+<p class="points">Select exactly one answer.</p><ul class="choices">
+<li><span class="box"></span><span>Bus A</span></li>
+<li><span class="box"></span><span>Bus B</span></li>
+<li><span class="box"></span><span>Bus C</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) How many minutes remain after the walk until 10:30? <span class="points">(1 pt)</span></p>
+<div class="response"><span class="number-line"></span><span>min</span></div>
+</section>
+</article>
+<h2 class="domain-title" data-domain="data">Data and chance</h2>
+<article class="task" data-task-id="md01_table_constraints" data-domain="data">
+<h2>18. Find a suitable room<span>2 points</span></h2>
+<p>An event needs at least 18 seats. The room may cost at most €25. The table lists every available room.</p>
+<table class="data-table" aria-label="Room A: 16 seats, 20 euros. B: 20 seats, 25 euros. C: 24 seats, 30 euros."><thead><tr><th>Room</th><th>Seats</th><th>Cost</th></tr></thead><tbody><tr><td>A</td><td>16</td><td>20 €</td></tr><tr><td>B</td><td>20</td><td>25 €</td></tr><tr><td>C</td><td>24</td><td>30 €</td></tr></tbody></table>
+<section class="part"><p class="part-prompt">a) Which room meets both conditions? <span class="points">(1 pt)</span></p>
+<p class="points">Select exactly one answer.</p><ul class="choices">
+<li><span class="box"></span><span>A</span></li>
+<li><span class="box"></span><span>B</span></li>
+<li><span class="box"></span><span>C</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) How many seats remain free with 18 people in that room? <span class="points">(1 pt)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="md04_draw_two_without_replacement" data-domain="data">
+<h2>19. Draw two without replacement<span>2 points</span></h2>
+<p>A bag contains exactly two red counters and one blue counter. Draw two without looking and without replacement.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 64" role="img" aria-label="Bag with two red counters and one blue; two are drawn without replacement."><title>Bag with two red counters and one blue; two are drawn without replacement.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><circle cx="32" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="32" y="36" text-anchor="middle" font-size="12" font-weight="normal">red</text><circle cx="90" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="90" y="36" text-anchor="middle" font-size="12" font-weight="normal">red</text><circle cx="148" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="148" y="36" text-anchor="middle" font-size="12" font-weight="normal">blue</text></g></svg>
+<section class="part"><p class="part-prompt">a) Which statement is certainly true? <span class="points">(1 pt)</span></p>
+<p class="points">Select exactly one answer.</p><ul class="choices">
+<li><span class="box"></span><span>Both are red.</span></li>
+<li><span class="box"></span><span>At least one is red.</span></li>
+<li><span class="box"></span><span>Both are blue.</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Drawing two blue counters is … <span class="points">(1 pt)</span></p>
+<p class="points">Select exactly one answer.</p><ul class="choices">
+<li><span class="box"></span><span>certain</span></li>
+<li><span class="box"></span><span>possible, but not certain</span></li>
+<li><span class="box"></span><span>impossible</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="md05_fair_number_card_rules" data-domain="data">
+<h2>20. Equally good winning rules<span>2 points</span></h2>
+<p>Number cards 1 to 8 are shuffled face down. Every card is equally likely. Alex earns a point for a number greater than 6. Choose a rule giving Bo the same chance of earning a point.</p>
+<section class="part"><p class="part-prompt">a) Which rule gives Bo the same chance? <span class="points">(1 pt)</span></p>
+<p class="points">Select exactly one answer.</p><ul class="choices">
+<li><span class="box"></span><span>The number is even.</span></li>
+<li><span class="box"></span><span>The number is at most 2.</span></li>
+<li><span class="box"></span><span>The number is odd.</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Explain using the matching cards. <span class="points">(1 pt)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<footer>Original NumberNebula tasks · AGPL-3.0-only · Practice evidence is not a test prediction.</footer>
+<script>
+document.getElementById('domain-filter').addEventListener('change', function () {
+  const selected = this.value;
+  document.querySelectorAll('[data-domain]').forEach(function (element) {
+    element.hidden = selected !== 'all' && element.dataset.domain !== selected;
+  });
+});
+</script></body></html>

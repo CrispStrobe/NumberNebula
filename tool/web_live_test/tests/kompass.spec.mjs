@@ -126,3 +126,42 @@ test('KOMPASS downloads the matching offline paper worksheet and separate soluti
   expect(log.errors).toEqual([]);
   expect(log.failures).toEqual([]);
 });
+
+for (const language of ['de', 'en']) {
+  test(`KOMPASS printable ${language} has complete diagrams and clean paper layout`, async ({ page }, info) => {
+    const log = watch(page);
+    await page.setViewportSize({ width: 800, height: 1100 });
+    await page.goto(`./assets/assets/kompass/print/practice_${language}.html`);
+    await expect(page.locator('article.task')).toHaveCount(64);
+    await expect(page.locator('.solution, .rubric')).toHaveCount(0);
+    await page.locator('#domain-filter').selectOption('geometry');
+    await expect(page.locator('article.task:visible')).toHaveCount(16);
+    await page.locator('#domain-filter').selectOption('all');
+    await page.emulateMedia({ media: 'print' });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    for (const id of ['mz04_inverse_wall', 'mr06_front_view_heights', 'md03_read_two_step_chart']) {
+      const task = page.locator(`article[data-task-id="${id}"]`);
+      await expect(task.locator('svg').first()).toBeVisible();
+      await info.attach(`${language}-${id}.png`, {
+        body: await task.screenshot(), contentType: 'image/png',
+      });
+    }
+    if (info.project.name === 'chromium-wasm') {
+      await info.attach(`kompass-practice-${language}.pdf`, {
+        body: await page.pdf({ preferCSSPageSize: true, printBackground: true }),
+        contentType: 'application/pdf',
+      });
+    }
+    await page.goto(`./assets/assets/kompass/print/rehearsal_${language}.html`);
+    await expect(page.locator('article.task')).toHaveCount(20);
+    await expect(page.locator('.solution, .rubric')).toHaveCount(0);
+    if (info.project.name === 'chromium-wasm') {
+      await info.attach(`kompass-rehearsal-${language}.pdf`, {
+        body: await page.pdf({ preferCSSPageSize: true, printBackground: true }),
+        contentType: 'application/pdf',
+      });
+    }
+    expect(log.errors).toEqual([]);
+    expect(log.failures).toEqual([]);
+  });
+}
