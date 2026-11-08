@@ -95,7 +95,8 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
         tasks = KompassPlanner.selectSession(_pack!, _store!.attempts,
             mode: mode,
             count: mode == KompassMode.rehearsal ? 20 : mode == KompassMode.check ? 8 : 4,
-            domain: mode == KompassMode.rehearsal ? null : _domain);
+            domain: mode == KompassMode.rehearsal ? null : _domain,
+            exposedFamilies: _store!.exposedFamilies);
       }
       if (tasks.isEmpty) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -154,6 +155,7 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
               if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text(kc(_german, 'Lernaufzeichnung konnte nicht gespeichert werden.',
                       'The learning record could not be saved.'))));
+              return false;
             });
           })));
       if (mounted) setState(() {});
@@ -199,7 +201,7 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
                         child: Text(kc(_german, 'Aktuellen Spieler laden', 'Load current player'))))
                     : _store!.corruptionError != null
                         ? _corruptionNotice()
-                        : _content(),
+                        : Builder(builder: _content),
       );
 
   Widget _corruptionNotice() => Center(child: Padding(
@@ -221,7 +223,7 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
         }, child: Text(kc(_german, 'Aufzeichnungen zurücksetzen', 'Reset records'))),
       ])));
 
-  Widget _content() {
+  Widget _content(BuildContext context) {
     final pack = _pack!;
     final progress = KompassPlanner.progress(pack, _store!.attempts);
     final recent = _store!.attempts.where((a) => a.mode != KompassMode.lab).toList().reversed.take(12).toList();

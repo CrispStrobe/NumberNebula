@@ -50,9 +50,13 @@ class KompassAttempt {
   })  : firstResponses =
             kompassFreezeJson(firstResponses) as Map<String, dynamic>,
         responses = kompassFreezeJson(responses) as Map<String, dynamic> {
-    if (id.isEmpty || taskId.isEmpty || familyId.isEmpty ||
-        hintsUsed < 0 || hintsBeforeFirstResponse < 0 ||
-        hintsUsed < hintsBeforeFirstResponse || activeSeconds < 0) {
+    if (id.isEmpty ||
+        taskId.isEmpty ||
+        familyId.isEmpty ||
+        hintsUsed < 0 ||
+        hintsBeforeFirstResponse < 0 ||
+        hintsUsed < hintsBeforeFirstResponse ||
+        activeSeconds < 0) {
       throw const FormatException('Invalid attempt evidence.');
     }
   }
@@ -158,8 +162,7 @@ class KompassAttempt {
       firstResponses: {'lab': result['firstResponse'] ?? result['response']},
       responses: {'lab': result['response']},
       hintsUsed: (result['hintsUsed'] as num? ?? 0).toInt(),
-      hintsBeforeFirstResponse:
-          (result['hintsUsed'] as num? ?? 0).toInt(),
+      hintsBeforeFirstResponse: (result['hintsUsed'] as num? ?? 0).toInt(),
       activeSeconds: (result['activeSeconds'] as num? ?? 0).toInt(),
       at: submittedAt,
       updatedAt: submittedAt,
@@ -188,7 +191,8 @@ class KompassAttempt {
     bool? completed,
     bool? isNovel,
     DateTime? updatedAt,
-  }) => KompassAttempt._(
+  }) =>
+      KompassAttempt._(
         id: id,
         sessionId: sessionId,
         taskId: taskId,

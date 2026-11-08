@@ -15,8 +15,8 @@ String kompassText(dynamic value, bool german) {
 /// Snapshots JSON data so later UI edits cannot change saved first answers.
 dynamic kompassFreezeJson(dynamic value) {
   if (value is Map) {
-    return Map<String, dynamic>.unmodifiable(value.map((key, child) =>
-        MapEntry(key.toString(), kompassFreezeJson(child))));
+    return Map<String, dynamic>.unmodifiable(value.map(
+        (key, child) => MapEntry(key.toString(), kompassFreezeJson(child))));
   }
   if (value is List) {
     return List<dynamic>.unmodifiable(value.map(kompassFreezeJson));
@@ -188,13 +188,15 @@ class KompassPart {
     }
     if (kind == 'choice' &&
         (options.isEmpty || !optionIds.contains(answer['value']))) {
-      throw const FormatException('Choice answer must name a displayed option.');
+      throw const FormatException(
+          'Choice answer must name a displayed option.');
     }
     final carryFrom = json['carryFrom'] as String?;
     final offset = json['carryOffset'];
     if (carryFrom != null &&
         (type != 'number' || offset is! num || !offset.isFinite)) {
-      throw const FormatException('Carry rules need a numeric answer and offset.');
+      throw const FormatException(
+          'Carry rules need a numeric answer and offset.');
     }
     final errors = <Map<String, dynamic>>[];
     for (final item in json['errors'] as List? ?? const []) {
@@ -293,7 +295,8 @@ class KompassTask {
       }
       if (part.carryFrom != null &&
           previousParts[part.carryFrom]?.answer['type'] != 'number') {
-        throw const FormatException('Carry source must be an earlier numeric part.');
+        throw const FormatException(
+            'Carry source must be an earlier numeric part.');
       }
       previousParts[part.id] = part;
     }
@@ -367,7 +370,8 @@ class KompassPack {
       }
       final previous = familyUses[task.familyId];
       if (previous != null && previous != task.use) {
-        throw FormatException('Family ${task.familyId} crosses practice/check sets.');
+        throw FormatException(
+            'Family ${task.familyId} crosses practice/check sets.');
       }
       familyUses[task.familyId] = task.use;
     }

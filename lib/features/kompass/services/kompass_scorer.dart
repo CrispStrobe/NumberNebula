@@ -72,7 +72,8 @@ class KompassPartScore {
         attempted: json['attempted'] as bool? ?? true,
         carriedError: json['carriedError'] as bool? ?? false,
         errorCode: json['errorCode'] as String?,
-        feedback: json['feedback'] == null ? null : kompassMap(json['feedback']),
+        feedback:
+            json['feedback'] == null ? null : kompassMap(json['feedback']),
       );
 }
 
@@ -113,7 +114,14 @@ class KompassScorer {
   static const _unitAliases = <String, List<String>>{
     '€': ['€', 'eur', 'euro', 'euros'],
     'ct': ['ct', 'cent', 'cents'],
-    'cm': ['cm', 'zentimeter', 'centimeter', 'centimeters', 'centimetre', 'centimetres'],
+    'cm': [
+      'cm',
+      'zentimeter',
+      'centimeter',
+      'centimeters',
+      'centimetre',
+      'centimetres'
+    ],
     'mm': ['mm', 'millimeter', 'millimeters', 'millimetre', 'millimetres'],
     'm': ['m', 'meter', 'meters', 'metre', 'metres'],
     'km': ['km', 'kilometer', 'kilometers', 'kilometre', 'kilometres'],
@@ -171,8 +179,10 @@ class KompassScorer {
     final byId = {for (final part in task.parts) part.id: part};
     for (final part in task.parts) {
       final response = responses[part.id];
-      final attempted = isAnswered(response);
       final type = part.answer['type'];
+      final attempted = type == 'set'
+          ? responses.containsKey(part.id) && response is List
+          : isAnswered(response);
       var correct = false;
       var pending = false;
       var reviewed = false;
@@ -202,17 +212,23 @@ class KompassScorer {
               final source = byId[part.carryFrom]!;
               final previous =
                   parseNumber(responses[source.id], unit: source.unit);
-              final previousExpected = (source.answer['value'] as num).toDouble();
+              final previousExpected =
+                  (source.answer['value'] as num).toDouble();
               if (previous != null &&
                   (previous - previousExpected).abs() > tolerance &&
                   number >= 0 &&
-                  (number - (previous + part.carryOffset!)).abs() <= tolerance) {
+                  (expected != expected.roundToDouble() ||
+                      number == number.roundToDouble()) &&
+                  (number - (previous + part.carryOffset!)).abs() <=
+                      tolerance) {
                 carried = true;
                 points = part.maxPoints;
                 errorCode = 'carried_error';
                 feedback = const {
-                  'de': 'Dieser Rechenschritt passt zu deinem vorherigen Ergebnis. Prüfe den vorherigen Schritt noch einmal.',
-                  'en': 'This step follows your earlier result correctly. Check that earlier step again.',
+                  'de':
+                      'Dieser Rechenschritt passt zu deinem vorherigen Ergebnis. Prüfe den vorherigen Schritt noch einmal.',
+                  'en':
+                      'This step follows your earlier result correctly. Check that earlier step again.',
                 };
               }
             }
@@ -235,7 +251,8 @@ class KompassScorer {
             final expected = (part.answer['values'] as List).cast<String>();
             final alternatives = <List<String>>[
               expected,
-              for (final other in part.answer['alternatives'] as List? ?? const [])
+              for (final other
+                  in part.answer['alternatives'] as List? ?? const [])
                 (other as List).cast<String>(),
             ];
             correct = given != null &&
@@ -251,8 +268,8 @@ class KompassScorer {
               final right = unique.intersection(target).length;
               final wrong = unique.difference(target).length;
               if (target.isNotEmpty) {
-                points = part.maxPoints *
-                    math.max(0, right - wrong) / target.length;
+                points =
+                    part.maxPoints * math.max(0, right - wrong) / target.length;
               }
             }
           case 'sequence':

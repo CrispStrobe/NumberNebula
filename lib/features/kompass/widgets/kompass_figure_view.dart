@@ -213,14 +213,14 @@ class KompassFigureView extends StatelessWidget {
     ].fold<int>(0, math.max);
     if (columns == 0) return const SizedBox.shrink();
     Widget cell(String text, {bool heading = false}) => Padding(
-      padding: const EdgeInsets.all(12),
-      child: Text(
-        text,
-        style: style.copyWith(
-          fontWeight: heading ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-    );
+          padding: const EdgeInsets.all(12),
+          child: Text(
+            text,
+            style: style.copyWith(
+              fontWeight: heading ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        );
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Table(
@@ -258,9 +258,8 @@ class KompassFigureView extends StatelessWidget {
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final available = constraints.maxWidth.isFinite
-            ? constraints.maxWidth
-            : 360.0;
+        final available =
+            constraints.maxWidth.isFinite ? constraints.maxWidth : 360.0;
         final minWidth = (compact ? 140.0 : 300.0) * math.min(scale, 2.5);
         final width = math.max(available, minWidth);
         final baseHeight = switch (kind) {
@@ -644,9 +643,8 @@ class _FigurePainter extends CustomPainter {
       }
     }
     final right = data['view'] == 'right';
-    final from = right
-        ? p(cols + 1.0, rows / 2, 0)
-        : p(cols / 2, rows + 1.0, 0);
+    final from =
+        right ? p(cols + 1.0, rows / 2, 0) : p(cols / 2, rows + 1.0, 0);
     final to = right ? p(cols + 0.1, rows / 2, 0) : p(cols / 2, rows + 0.1, 0);
     _arrow(canvas, from, to);
     _text(
@@ -761,6 +759,30 @@ class _FigurePainter extends CustomPainter {
     final path = Path()..addPolygon(plotted, true);
     canvas.drawPath(path, Paint()..color = accent.withValues(alpha: 0.2));
     canvas.drawPath(path, pen..strokeWidth = 2);
+    final bounds = Rect.fromLTWH(
+      origin.dx,
+      origin.dy,
+      (maxX - minX) * unit,
+      (maxY - minY) * unit,
+    );
+    for (final axis in _list(data['axes'])) {
+      final endpoints = switch (axis) {
+        'vertical' => (bounds.topCenter, bounds.bottomCenter),
+        'horizontal' => (bounds.centerLeft, bounds.centerRight),
+        'diagonalDown' => (bounds.topLeft, bounds.bottomRight),
+        'diagonalUp' => (bounds.bottomLeft, bounds.topRight),
+        _ => null,
+      };
+      if (endpoints != null) {
+        _dashed(
+            canvas,
+            endpoints.$1,
+            endpoints.$2,
+            pen
+              ..color = ink
+              ..strokeWidth = 2.5);
+      }
+    }
     final labels = _list(data['labels']);
     for (var i = 0; i < math.min(labels.length, plotted.length); i++) {
       _text(

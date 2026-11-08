@@ -23,6 +23,7 @@ import '../../missions/screens/mission_hub_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../games/widgets/debug_panel.dart';
 import '../../../shared/widgets/imprint_dialog.dart';
+import '../../kompass/screens/kompass_hub_screen.dart' deferred as kompass;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -48,6 +49,43 @@ class _HomeScreenState extends State<HomeScreen>
 
   int _debugTapCount = 0;
   Timer? _debugResetTimer;
+  bool _openingKompass = false;
+
+  Future<void> _openKompass() async {
+    if (_openingKompass) return;
+    setState(() => _openingKompass = true);
+    try {
+      await kompass.loadLibrary();
+      if (!mounted) return;
+      await Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => kompass.KompassHubScreen(),
+      ));
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(Localizations.localeOf(context).languageCode == 'de'
+            ? 'Der Lernpfad konnte nicht geöffnet werden. Bitte versuche es erneut.'
+            : 'The learning path could not be opened. Please try again.'),
+      ));
+    } finally {
+      if (mounted) setState(() => _openingKompass = false);
+    }
+  }
+
+  Widget _buildKompassButton() => Padding(
+    padding: const EdgeInsets.only(top: 12),
+    child: OutlinedButton.icon(
+      key: const ValueKey('open-kompass'),
+      onPressed: _openingKompass ? null : _openKompass,
+      icon: const Icon(Icons.explore_outlined),
+      label: Text(Localizations.localeOf(context).languageCode == 'de'
+          ? 'KOMPASS 4 · Mathematik' : 'KOMPASS 4 · Mathematics'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.white,
+        side: const BorderSide(color: SpaceTheme.starYellow),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      ),
+    ),
+  );
 
   @override
   void initState() {
@@ -81,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     _fadeController.forward();
     Future.delayed(const Duration(milliseconds: 300), () {
-      _slideController.forward();
+      if (mounted) _slideController.forward();
     });
   }
 
@@ -439,6 +477,7 @@ class _HomeScreenState extends State<HomeScreen>
                     child: _buildStartButton(isSmallScreen),
                   ),
                 ),
+                _buildKompassButton(),
               ],
             ), // Column
           ) // SingleChildScrollView
@@ -478,7 +517,8 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildPortraitLayout() {
-    return Column(
+    return SingleChildScrollView(child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
         FadeTransition(
             opacity: _fadeAnimation,
@@ -497,7 +537,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
         ),
 
-        const Spacer(),
+        const SizedBox(height: 24),
 
         SlideTransition(
             position: _slideAnimation,
@@ -523,7 +563,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
         ),
 
-        const Spacer(),
+        const SizedBox(height: 24),
 
         SlideTransition(
             position: _slideAnimation,
@@ -540,8 +580,9 @@ class _HomeScreenState extends State<HomeScreen>
             child: _buildStartButton(false),
             ),
         ),
+        _buildKompassButton(),
         ],
-    );
+    ));
     }
 
   Widget _buildMissionsButton(bool isSmallScreen) {
