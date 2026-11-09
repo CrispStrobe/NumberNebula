@@ -1,3 +1,6 @@
+// Run this standalone audit with the offline Dart VM, without pub get.
+// ignore_for_file: avoid_relative_lib_imports
+
 import 'dart:io';
 
 import '../../lib/features/kompass/labs/extensions/reasoning_rounds.dart';
@@ -100,8 +103,9 @@ void main() {
     final codes = <String>[];
     for (var first = 0; first < symbols.length; first++) {
       for (var second = 0; second < symbols.length; second++) {
-        if (repeat || first != second)
+        if (repeat || first != second) {
           codes.add('${symbols[first]}${symbols[second]}');
+        }
       }
     }
     final answer = {

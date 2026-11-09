@@ -102,13 +102,16 @@ class KompassLabRound {
   /// Restore only the known response shape. A damaged local draft must not
   /// turn a counter list into an out-of-range widget access.
   Map<String, dynamic> normalizeResponse(Map<String, dynamic> saved) {
-    if (type.startsWith('reasoning_'))
+    if (type.startsWith('reasoning_')) {
       return normalizeReasoningResponse(this, saved);
-    if (type.startsWith('journey_'))
+    }
+    if (type.startsWith('journey_')) {
       return normalizeJourneyResponse(this, saved);
+    }
     if (type.startsWith('area_')) return normalizeAreaResponse(this, saved);
-    if (type.startsWith('chance_'))
+    if (type.startsWith('chance_')) {
       return normalizeChanceDetectiveResponse(this, saved);
+    }
     final defaults = createResponse();
     final result = <String, dynamic>{};
     for (final entry in defaults.entries) {
@@ -167,12 +170,14 @@ class KompassLabRound {
   }
 
   KompassLabCheck check(Map<String, dynamic> response) {
-    if (type.startsWith('reasoning_'))
+    if (type.startsWith('reasoning_')) {
       return checkReasoningRound(this, response);
+    }
     if (type.startsWith('journey_')) return checkJourneyRound(this, response);
     if (type.startsWith('area_')) return checkAreaRound(this, response);
-    if (type.startsWith('chance_'))
+    if (type.startsWith('chance_')) {
       return checkChanceDetectiveRound(this, response);
+    }
     int points = 0, maximum = 1;
     String feedbackDe = 'Prüfe deine Darstellung noch einmal.',
         feedbackEn = 'Check your representation once more.';
