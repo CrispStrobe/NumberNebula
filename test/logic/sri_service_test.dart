@@ -19,9 +19,11 @@ import 'package:space_math_academy/features/games/models/math_problem.dart';
 import 'package:space_math_academy/features/games/tuning.dart';
 
 /// Builds a deterministic problem whose SRI id is stable across runs.
-MathProblem addProblem(int a, int b) => MathProblem.addition(a, b);
+MathProblem addProblem(int a, int b) =>
+    MathProblem.addition(a, b);
 
-MathProblem mulProblem(int a, int b) => MathProblem.multiplication(a, b);
+MathProblem mulProblem(int a, int b) =>
+    MathProblem.multiplication(a, b);
 
 /// Reads the [SriProblemData] for [id] out of the service via its public API.
 SriProblemData? dataFor(SriService svc, String id) {
@@ -138,8 +140,7 @@ void main() {
       }
       final d = dataFor(svc, 'MUL_8_9')!;
       // Sanity: the streak satisfies every documented criterion.
-      expect(d.repetitions,
-          greaterThanOrEqualTo(kSm2MinimumRepetitionsForMastery));
+      expect(d.repetitions, greaterThanOrEqualTo(kSm2MinimumRepetitionsForMastery));
       expect(d.easinessFactor, greaterThan(kSm2MasteryEasinessThreshold));
       expect(d.failureCount, lessThanOrEqualTo(kSm2MaxFailuresForMastery));
       expect(svc.isProblemMastered('MUL_8_9'), isTrue);
@@ -194,8 +195,7 @@ void main() {
       await svc.moveItemToBox('ADD_1_4', 1); // EF 2.5, due now
 
       // Make ADD_1_4 clearly harder than ADD_1_2 so ordering is testable:
-      svc.recordResponse(
-          addProblem(1, 4), false); // EF drops, reps reset, due ~1 day
+      svc.recordResponse(addProblem(1, 4), false); // EF drops, reps reset, due ~1 day
       // (Now ADD_1_4 is scheduled ~1 day out, so only ADD_1_2 is reliably due.)
 
       final ids = svc.getFreshProblemsForReview(limit: 10);
@@ -203,7 +203,9 @@ void main() {
       // and the result is sorted by EF ascending where multiple are present.
       expect(ids, contains('ADD_1_2'));
       // Verify the sort invariant on whatever subset came back.
-      final efs = ids.map((id) => dataFor(svc, id)!.easinessFactor).toList();
+      final efs = ids
+          .map((id) => dataFor(svc, id)!.easinessFactor)
+          .toList();
       final sorted = [...efs]..sort();
       expect(efs, sorted, reason: 'review queue must be EF-ascending');
     });
@@ -262,8 +264,7 @@ void main() {
       expect(svc.getBoxFor(dataFor(svc, 'MUL_2_2')!), 5);
     });
 
-    test('getBoxCounts always reports keys 1..5 and totals match tracked',
-        () async {
+    test('getBoxCounts always reports keys 1..5 and totals match tracked', () async {
       svc.recordResponse(addProblem(9, 1), true); // ADD_1_9
       svc.recordResponse(addProblem(9, 2), true); // ADD_2_9
       await svc.moveItemToBox('ADD_1_9', 2);
@@ -304,7 +305,8 @@ void main() {
     test('getDetailedBreakdown buckets a tracked problem correctly', () {
       svc.recordResponse(addProblem(2, 3), true); // ADD_2_3, max operand 3
       final breakdown = svc.getDetailedBreakdown();
-      final stat = breakdown[MathOperation.addition]![NumberRange.range1_10]!;
+      final stat =
+          breakdown[MathOperation.addition]![NumberRange.range1_10]!;
       expect(stat.tracked, greaterThanOrEqualTo(1));
     });
   });

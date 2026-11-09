@@ -22,8 +22,7 @@ class PurchaseDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildDialogContent(
-      BuildContext context, PurchaseService service, S s) {
+  Widget _buildDialogContent(BuildContext context, PurchaseService service, S s) {
     if (!service.isAvailable) {
       return _buildErrorContent(s.storeUnavailable);
     }
@@ -33,19 +32,12 @@ class PurchaseDialog extends StatelessWidget {
     if (service.product == null) {
       return _buildLoadingContent(s.contactingStore);
     }
-    return Text(s.purchaseDescription,
-        style: SpaceTheme.bodyStyle, textAlign: TextAlign.center);
+    return Text(s.purchaseDescription, style: SpaceTheme.bodyStyle, textAlign: TextAlign.center);
   }
-
-  List<Widget> _buildDialogActions(
-      BuildContext context, PurchaseService service, S s) {
+  
+  List<Widget> _buildDialogActions(BuildContext context, PurchaseService service, S s) {
     if (!service.isAvailable || service.errorMessage != null) {
-      return [
-        TextButton(
-            autofocus: true,
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(s.cancel))
-      ];
+      return [TextButton(autofocus: true, onPressed: () => Navigator.of(context).pop(), child: Text(s.cancel))];
     }
     if (service.product == null || service.purchasePending) {
       return [const CircularProgressIndicator()];
@@ -54,8 +46,7 @@ class PurchaseDialog extends StatelessWidget {
     return [
       TextButton(
         onPressed: service.restorePurchases,
-        child: Text(s.restorePurchases,
-            style: const TextStyle(color: SpaceTheme.moonSilver)),
+        child: Text(s.restorePurchases, style: const TextStyle(color: SpaceTheme.moonSilver)),
       ),
       ElevatedButton(
         autofocus: true,

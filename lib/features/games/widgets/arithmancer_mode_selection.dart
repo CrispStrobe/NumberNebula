@@ -26,14 +26,10 @@ class ArithmancerModeSelection extends StatelessWidget {
               // Header
               Container(
                 height: 80,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      SpaceTheme.deepSpace.withValues(alpha: 0.9),
-                      Colors.transparent
-                    ],
+                    colors: [SpaceTheme.deepSpace.withValues(alpha: 0.9), Colors.transparent],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -41,8 +37,7 @@ class ArithmancerModeSelection extends StatelessWidget {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back,
-                          color: Colors.white, size: 24),
+                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     const SizedBox(width: 16),
@@ -53,13 +48,11 @@ class ArithmancerModeSelection extends StatelessWidget {
                         children: [
                           Text(
                             S.of(context)!.arithmancerGameTitle,
-                            style:
-                                SpaceTheme.headlineStyle.copyWith(fontSize: 20),
+                            style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
                           ),
                           Text(
                             S.of(context)!.arithmancerModeSelectionSubtitle,
-                            style: SpaceTheme.bodyStyle
-                                .copyWith(fontSize: 12, color: Colors.white70),
+                            style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white70),
                           ),
                         ],
                       ),
@@ -67,7 +60,7 @@ class ArithmancerModeSelection extends StatelessWidget {
                   ],
                 ),
               ),
-
+              
               // Mode selection cards
               Expanded(
                 child: Padding(
@@ -78,8 +71,7 @@ class ArithmancerModeSelection extends StatelessWidget {
                       _buildModeCard(
                         context,
                         title: S.of(context)!.arithmancerGameModeNeuralBreach,
-                        subtitle:
-                            S.of(context)!.arithmancerModeNeuralBreachDesc,
+                        subtitle: S.of(context)!.arithmancerModeNeuralBreachDesc,
                         icon: Icons.memory,
                         color: SpaceTheme.alienGreen,
                         onTap: () => _startGame(context, GameMode.vsPrograms),
@@ -97,8 +89,7 @@ class ArithmancerModeSelection extends StatelessWidget {
                       _buildModeCard(
                         context,
                         title: S.of(context)!.arithmancerGameModeNeuralLadder,
-                        subtitle:
-                            S.of(context)!.arithmancerModeNeuralLadderDesc,
+                        subtitle: S.of(context)!.arithmancerModeNeuralLadderDesc,
                         icon: Icons.trending_up,
                         color: SpaceTheme.starYellow,
                         onTap: () => _startGame(context, GameMode.ladder),

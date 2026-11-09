@@ -35,13 +35,7 @@ class _KarteikastenScreenState extends State<KarteikastenScreen> {
 
   List<String> _boxLabels(BuildContext context) {
     final s = S.of(context)!;
-    return [
-      s.flashcardBoxNew,
-      s.flashcardBoxFirstReview,
-      s.flashcardBoxPractice,
-      s.flashcardBoxConfident,
-      s.flashcardBoxMastered
-    ];
+    return [s.flashcardBoxNew, s.flashcardBoxFirstReview, s.flashcardBoxPractice, s.flashcardBoxConfident, s.flashcardBoxMastered];
   }
 
   @override
@@ -94,14 +88,15 @@ class _KarteikastenScreenState extends State<KarteikastenScreen> {
               onWillAcceptWithDetails: (_) => true,
               onAcceptWithDetails: (d) async {
                 AppHaptics.mediumImpact();
-                await context.read<SriService>().moveItemToBox(d.data, boxNum);
+                await context
+                    .read<SriService>()
+                    .moveItemToBox(d.data, boxNum);
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     duration: const Duration(seconds: 2),
-                    content:
-                        Text(S.of(context)!.flashcardBoxMovedToBox(boxNum)),
+                    content: Text(S.of(context)!.flashcardBoxMovedToBox(boxNum)),
                     backgroundColor: boxColor.withValues(alpha: 0.85),
                   ),
                 );
@@ -201,7 +196,8 @@ class _KarteikastenScreenState extends State<KarteikastenScreen> {
         return _DraggableItemCard(
           itemId: item.problemId,
           label: _formatProblem(item.problemId, gp),
-          subtitle: 'EF ${item.easinessFactor.toStringAsFixed(2)} · '
+          subtitle:
+              'EF ${item.easinessFactor.toStringAsFixed(2)} · '
               '${item.successCount}✓ ${item.failureCount}✗',
           currentBox: _selectedBox,
           onMove: (target) => sri.moveItemToBox(item.problemId, target),

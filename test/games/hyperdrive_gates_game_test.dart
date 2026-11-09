@@ -23,8 +23,7 @@ void main() {
       double strength = 150.0,
       double maxDistance = 120.0,
     }) =>
-        GravityField(
-            center: center, strength: strength, maxDistance: maxDistance);
+        GravityField(center: center, strength: strength, maxDistance: maxDistance);
 
     test('returns zero force beyond maxDistance', () {
       final field = makeField();
@@ -88,8 +87,7 @@ void main() {
           Colors.purple);
       expect(PowerUp(position: Offset.zero, type: PowerUpType.extraLife).color,
           Colors.red);
-      expect(
-          PowerUp(position: Offset.zero, type: PowerUpType.magneticField).color,
+      expect(PowerUp(position: Offset.zero, type: PowerUpType.magneticField).color,
           Colors.orange);
       expect(PowerUp(position: Offset.zero, type: PowerUpType.speedBoost).color,
           Colors.green);
@@ -98,8 +96,7 @@ void main() {
 
   group('PowerUp.update physics', () {
     test('moves left by gameSpeed * dt and advances rotation/pulse', () {
-      final p =
-          PowerUp(position: const Offset(500, 200), type: PowerUpType.shield);
+      final p = PowerUp(position: const Offset(500, 200), type: PowerUpType.shield);
       p.update(0.5, 160.0); // dx -= 160 * 0.5 = 80
       expect(p.position.dx, closeTo(420.0, 1e-9));
       expect(p.position.dy, closeTo(200.0, 1e-9));
@@ -108,8 +105,7 @@ void main() {
     });
 
     test('collisionRect is a 40x40 box centered on the current position', () {
-      final p =
-          PowerUp(position: const Offset(300, 150), type: PowerUpType.slowTime);
+      final p = PowerUp(position: const Offset(300, 150), type: PowerUpType.slowTime);
       final rect = p.collisionRect;
       expect(rect.center, const Offset(300, 150));
       expect(rect.width, 40);

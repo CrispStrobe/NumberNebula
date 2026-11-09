@@ -40,9 +40,8 @@ void main() {
     const lit = r"""(?:'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")""";
     final displayed = RegExp(
       r'(?:Text\(\s*(?:const\s+)?|'
-              r'(?:label|title|content|tooltip|semanticLabel|hintText|labelText)'
-              r'\s*:\s*(?:const\s+)?Text\(\s*)($lit)'
-          .replaceAll(r'$lit', lit),
+      r'(?:label|title|content|tooltip|semanticLabel|hintText|labelText)'
+      r'\s*:\s*(?:const\s+)?Text\(\s*)($lit)'.replaceAll(r'$lit', lit),
     );
     // Either branch of a conditional passed straight to Text: the pattern
     // above only sees a literal right after the parenthesis, so

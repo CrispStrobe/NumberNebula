@@ -23,7 +23,7 @@ const Map<String, SkillCategory> gameSkillMap = {
   'kenken': SkillCategory.arithmetic,
   'asteroid_math': SkillCategory.arithmetic,
   'cargo_bay_arranger': SkillCategory.arithmetic,
-
+  
   // Spatial games (use CognitiveProfileService)
   'perspective_puzzle': SkillCategory.spatial3d,
   'block_counter': SkillCategory.spatial3d,

@@ -31,17 +31,18 @@ class _ParentalGateDialogState extends State<ParentalGateDialog> {
     final s = S.of(context)!;
     final userAnswer = int.tryParse(_controller.text);
     if (userAnswer != null && userAnswer == num1 + num2) {
-      widget.onSuccess();
+        widget.onSuccess();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(s.pleaseTryAgain), // Localized
-          backgroundColor: SpaceTheme.rocketRed,
+            content: Text(s.pleaseTryAgain), // Localized
+            backgroundColor: SpaceTheme.rocketRed,
         ),
-      );
-      _controller.clear();
+        );
+        _controller.clear();
     }
-  }
+    }
+
 
   @override
   Widget build(BuildContext context) {
@@ -53,16 +54,14 @@ class _ParentalGateDialogState extends State<ParentalGateDialog> {
         children: [
           Text(
             challenge,
-            style:
-                SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.starYellow),
+            style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.starYellow),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _controller,
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
-            style: SpaceTheme.bodyStyle
-                .copyWith(color: Colors.white, fontSize: 24),
+            style: SpaceTheme.bodyStyle.copyWith(color: Colors.white, fontSize: 24),
             decoration: const InputDecoration(
               hintText: '?',
             ),
@@ -71,14 +70,14 @@ class _ParentalGateDialogState extends State<ParentalGateDialog> {
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(context).pop(), 
             child: Text(s.cancel) // Use existing 'cancel' key
-            ),
+        ),
         ElevatedButton(
             autofocus: true,
             onPressed: _checkAnswer,
             child: Text(s.confirm) // Localized
-            ),
+        ),
       ],
     );
   }

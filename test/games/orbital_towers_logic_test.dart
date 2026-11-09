@@ -226,14 +226,14 @@ void _sightlineTests() {
             final List<int> line;
             switch (parts[0]) {
               case 'top':
-                line =
-                    List.generate(size, (r) => puzzle.solution['r${r}c$idx']!);
+                line = List.generate(
+                    size, (r) => puzzle.solution['r${r}c$idx']!);
               case 'bottom':
                 line = List.generate(
                     size, (r) => puzzle.solution['r${size - 1 - r}c$idx']!);
               case 'left':
-                line =
-                    List.generate(size, (c) => puzzle.solution['r${idx}c$c']!);
+                line = List.generate(
+                    size, (c) => puzzle.solution['r${idx}c$c']!);
               default:
                 line = List.generate(
                     size, (c) => puzzle.solution['r${idx}c${size - 1 - c}']!);

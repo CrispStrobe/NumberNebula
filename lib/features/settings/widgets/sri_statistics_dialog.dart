@@ -39,12 +39,9 @@ class SriStatisticsDialog extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text("${s.sriStatisticsTitle} 🧠",
-                    style: SpaceTheme.headlineStyle),
+                Text("${s.sriStatisticsTitle} 🧠", style: SpaceTheme.headlineStyle),
                 const SizedBox(height: 8),
-                Text(s.sriStatisticsDesc,
-                    style: SpaceTheme.bodyStyle.copyWith(color: Colors.white70),
-                    textAlign: TextAlign.center),
+                Text(s.sriStatisticsDesc, style: SpaceTheme.bodyStyle.copyWith(color: Colors.white70), textAlign: TextAlign.center),
                 const SizedBox(height: 24),
 
                 _buildMasteryMeter(context, masteryPercent),
@@ -52,7 +49,7 @@ class SriStatisticsDialog extends StatelessWidget {
 
                 _buildSummarySection(context, total, mastered, learning),
                 const Divider(color: SpaceTheme.nebulaPurple, height: 32),
-
+                
                 // NEW: The Progress Matrix Section
                 _buildHeatmapSection(context, detailedData),
 
@@ -61,10 +58,8 @@ class SriStatisticsDialog extends StatelessWidget {
                   autofocus: true,
                   onPressed: () => Navigator.of(context).pop(),
                   style: SpaceTheme.primaryButtonStyle.copyWith(
-                    backgroundColor:
-                        WidgetStateProperty.all(SpaceTheme.deepSpace),
-                    side: WidgetStateProperty.all(
-                        const BorderSide(color: SpaceTheme.cosmicPink)),
+                    backgroundColor: WidgetStateProperty.all(SpaceTheme.deepSpace),
+                    side: WidgetStateProperty.all(const BorderSide(color: SpaceTheme.cosmicPink)),
                   ),
                   child: Text(s.close),
                 ),
@@ -92,14 +87,12 @@ class SriStatisticsDialog extends StatelessWidget {
                 value: percent,
                 minHeight: 20,
                 backgroundColor: SpaceTheme.deepSpace,
-                valueColor:
-                    const AlwaysStoppedAnimation<Color>(SpaceTheme.alienGreen),
+                valueColor: const AlwaysStoppedAnimation<Color>(SpaceTheme.alienGreen),
                 borderRadius: BorderRadius.circular(10),
               ),
               Text(
                 '${(percent * 100).toStringAsFixed(0)}%',
-                style: SpaceTheme.titleStyle
-                    .copyWith(color: Colors.white, fontSize: 14),
+                style: SpaceTheme.titleStyle.copyWith(color: Colors.white, fontSize: 14),
               ),
             ],
           ),
@@ -108,29 +101,22 @@ class SriStatisticsDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildSummarySection(
-      BuildContext context, int total, int mastered, int learning) {
+  Widget _buildSummarySection(BuildContext context, int total, int mastered, int learning) {
     return IntrinsicHeight(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildStatItem(context, S.of(context)!.sriTotal, total.toString(),
-              Icons.functions),
-          const VerticalDivider(
-              color: SpaceTheme.nebulaPurple, indent: 8, endIndent: 8),
-          _buildStatItem(context, S.of(context)!.sriMastered,
-              mastered.toString(), Icons.star),
-          const VerticalDivider(
-              color: SpaceTheme.nebulaPurple, indent: 8, endIndent: 8),
-          _buildStatItem(context, S.of(context)!.sriLearning,
-              learning.toString(), Icons.school),
+          _buildStatItem(context, S.of(context)!.sriTotal, total.toString(), Icons.functions),
+          const VerticalDivider(color: SpaceTheme.nebulaPurple, indent: 8, endIndent: 8),
+          _buildStatItem(context, S.of(context)!.sriMastered, mastered.toString(), Icons.star),
+          const VerticalDivider(color: SpaceTheme.nebulaPurple, indent: 8, endIndent: 8),
+          _buildStatItem(context, S.of(context)!.sriLearning, learning.toString(), Icons.school),
         ],
       ),
     );
   }
 
-  Widget _buildStatItem(
-      BuildContext context, String label, String value, IconData icon) {
+  Widget _buildStatItem(BuildContext context, String label, String value, IconData icon) {
     return Expanded(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -138,39 +124,36 @@ class SriStatisticsDialog extends StatelessWidget {
           Icon(icon, color: SpaceTheme.starYellow, size: 24),
           const SizedBox(height: 4),
           Text(value, style: SpaceTheme.headlineStyle.copyWith(fontSize: 20)),
-          Text(label,
-              style: SpaceTheme.bodyStyle
-                  .copyWith(fontSize: 12, color: Colors.white70),
-              textAlign: TextAlign.center),
+          Text(label, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white70), textAlign: TextAlign.center),
         ],
       ),
     );
   }
 
-  Widget _buildHeatmapSection(BuildContext context,
-      Map<MathOperation, Map<NumberRange, OperationStat>> data) {
+  Widget _buildHeatmapSection(BuildContext context, Map<MathOperation, Map<NumberRange, OperationStat>> data) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Icon(Icons.grid_view_sharp,
-                color: SpaceTheme.cosmicPink, size: 20),
+            const Icon(Icons.grid_view_sharp, color: SpaceTheme.cosmicPink, size: 20),
             const SizedBox(width: 8),
             Text(S.of(context)!.sriProgressMatrix,
                 style: SpaceTheme.titleStyle.copyWith(fontSize: 18)),
           ],
         ),
         const SizedBox(height: 8),
-        Text(S.of(context)!.sriProgressMatrixHint,
-            style: SpaceTheme.bodyStyle
-                .copyWith(fontSize: 12, color: Colors.white60)),
+        Text(
+          S.of(context)!.sriProgressMatrixHint,
+          style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white60)
+        ),
         const SizedBox(height: 12),
         ProgressHeatmap(data: data),
       ],
     );
   }
 }
+
 
 /// A specialized widget that renders the progress data as a heatmap.
 class ProgressHeatmap extends StatelessWidget {
@@ -186,24 +169,20 @@ class ProgressHeatmap extends StatelessWidget {
     if (easiness > 0) return SpaceTheme.planetOrange; // More wrong than right
     return Colors.grey.shade800; // No data
   }
-
+  
   Color _getColorForPercentage(double percent) {
     if (percent >= 0.8) return SpaceTheme.alienGreen;
     if (percent >= 0.5) return SpaceTheme.starYellow;
     if (percent > 0) return SpaceTheme.planetOrange;
     return Colors.grey.shade800;
   }
-
+  
   IconData _getIconForOperation(MathOperation op) {
     switch (op) {
-      case MathOperation.addition:
-        return Icons.add;
-      case MathOperation.subtraction:
-        return Icons.remove;
-      case MathOperation.multiplication:
-        return Icons.close;
-      case MathOperation.division:
-        return Icons.percent; // Represents division/fractions
+      case MathOperation.addition: return Icons.add;
+      case MathOperation.subtraction: return Icons.remove;
+      case MathOperation.multiplication: return Icons.close;
+      case MathOperation.division: return Icons.percent; // Represents division/fractions
     }
   }
 
@@ -211,10 +190,8 @@ class ProgressHeatmap extends StatelessWidget {
   Widget build(BuildContext context) {
     final numberRanges = NumberRange.values.toList();
     final operations = [
-      MathOperation.addition,
-      MathOperation.subtraction,
-      MathOperation.multiplication,
-      MathOperation.division
+      MathOperation.addition, MathOperation.subtraction, 
+      MathOperation.multiplication, MathOperation.division
     ];
 
     return Container(
@@ -230,11 +207,8 @@ class ProgressHeatmap extends StatelessWidget {
             children: [
               const SizedBox(width: 40), // Spacer for operation icons
               ...numberRanges.map((range) => Expanded(
-                    child: Center(
-                        child: Text(getNumberRangeLabel(range),
-                            style: SpaceTheme.bodyStyle.copyWith(
-                                fontSize: 12, fontWeight: FontWeight.bold))),
-                  )),
+                child: Center(child: Text(getNumberRangeLabel(range), style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, fontWeight: FontWeight.bold))),
+              )),
             ],
           ),
           const SizedBox(height: 8),
@@ -246,49 +220,38 @@ class ProgressHeatmap extends StatelessWidget {
               child: Row(
                 children: [
                   // Operation Icon (Y-axis label)
-                  SizedBox(
-                      width: 40,
-                      child: Icon(_getIconForOperation(op),
-                          color: Colors.white, size: 20)),
+                  SizedBox(width: 40, child: Icon(_getIconForOperation(op), color: Colors.white, size: 20)),
                   // Heatmap Cells
                   ...numberRanges.map((range) {
                     final stat = data[op]?[range] ?? OperationStat();
                     // MODIFIED: Use the new color function with the averageEasiness value
                     // A cell will only be grey if its `tracked` count is 0.
-                    final color = stat.tracked > 0
-                        ? _getColorForEasiness(stat.averageEasiness)
+                    final color = stat.tracked > 0 
+                        ? _getColorForEasiness(stat.averageEasiness) 
                         : Colors.grey.shade800;
-
+                    
                     return Expanded(
                       child: AspectRatio(
                         aspectRatio: 1.0,
                         child: Container(
                           margin: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
-                              color: color,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: color.withValues(alpha: 0.5),
-                                  width: 1)),
+                            color: color,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: color.withValues(alpha: 0.5), width: 1)
+                          ),
                           child: stat.tracked > 0
-                              ? Center(
-                                  child: Text(
-                                    stat.tracked.toString(),
-                                    style: SpaceTheme.titleStyle.copyWith(
-                                      fontSize: 14,
-                                      color: color == SpaceTheme.starYellow
-                                          ? Colors.black.withValues(alpha: 0.7)
-                                          : Colors.white,
-                                      shadows: [
-                                        Shadow(
-                                            color: Colors.black
-                                                .withValues(alpha: 0.5),
-                                            blurRadius: 2)
-                                      ],
-                                    ),
+                            ? Center(
+                                child: Text(
+                                  stat.tracked.toString(),
+                                  style: SpaceTheme.titleStyle.copyWith(
+                                    fontSize: 14,
+                                    color: color == SpaceTheme.starYellow ? Colors.black.withValues(alpha: 0.7) : Colors.white,
+                                    shadows: [Shadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 2)],
                                   ),
-                                )
-                              : null,
+                                ),
+                              )
+                            : null,
                         ),
                       ),
                     );

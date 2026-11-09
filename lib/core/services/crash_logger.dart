@@ -165,8 +165,8 @@ class CrashLogger {
     for (final line in lines) {
       if (line.trim().isEmpty) continue;
       try {
-        entries
-            .add(CrashEntry.fromJson(jsonDecode(line) as Map<String, dynamic>));
+        entries.add(CrashEntry.fromJson(
+            jsonDecode(line) as Map<String, dynamic>));
       } catch (_) {
         // Skip malformed lines silently.
       }

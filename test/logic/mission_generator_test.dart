@@ -58,8 +58,8 @@ void main() {
                 reason: 'no signature puzzle in $types');
 
             // The tasks' letters reconstruct the codeword exactly.
-            expect(
-                mission.tasks.map((t) => t.letters).join(), mission.codeword);
+            expect(mission.tasks.map((t) => t.letters).join(),
+                mission.codeword);
             for (final task in mission.tasks) {
               expect(task.letters, isNotEmpty);
             }

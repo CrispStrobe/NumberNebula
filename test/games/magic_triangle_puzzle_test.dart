@@ -89,7 +89,8 @@ void main() {
           // Visible + hidden partition the circle indices with no overlap.
           final allIdx = List.generate(p.totalCircles, (i) => i).toSet();
           expect(p.visibleValues.keys.toSet().union(p.hiddenIndices), allIdx);
-          expect(p.visibleValues.keys.toSet().intersection(p.hiddenIndices),
+          expect(
+              p.visibleValues.keys.toSet().intersection(p.hiddenIndices),
               isEmpty);
 
           // Every visible value is one of the puzzle numbers.
@@ -197,7 +198,8 @@ void main() {
       }
 
       // Answer indices are a contiguous 0..hidden-1 range with no gaps/dupes.
-      final answerIdxs = sortedHidden.map(p.getAnswerIndex).toList()..sort();
+      final answerIdxs =
+          sortedHidden.map(p.getAnswerIndex).toList()..sort();
       expect(answerIdxs, List.generate(sortedHidden.length, (i) => i));
 
       // A non-hidden (visible) index returns the sentinel -1.

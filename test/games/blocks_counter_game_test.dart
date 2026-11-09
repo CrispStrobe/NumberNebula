@@ -32,8 +32,7 @@ void main() {
       {'grade': 2, 'level': 20},
     ];
 
-    test('every generated puzzle is internally consistent (200 iterations)',
-        () {
+    test('every generated puzzle is internally consistent (200 iterations)', () {
       for (final params in paramSets) {
         for (int i = 0; i < 40; i++) {
           final puzzle = BlockCountingPuzzle.generate(params);
@@ -51,8 +50,7 @@ void main() {
           expect(puzzle.answerChoices.toSet().length, equals(4),
               reason: 'Choices come from a Set, so all four must be distinct.');
           expect(puzzle.answerChoices, contains(puzzle.correctAnswer),
-              reason:
-                  'The correct answer must be one of the tappable choices.');
+              reason: 'The correct answer must be one of the tappable choices.');
 
           // All choices are positive (the generator clamps to >= 1).
           for (final c in puzzle.answerChoices) {
@@ -83,8 +81,7 @@ void main() {
       }
     });
 
-    test(
-        'block positions are unique and stacks are gapless (no floating blocks)',
+    test('block positions are unique and stacks are gapless (no floating blocks)',
         () {
       // Each (x,z) column must contain a contiguous run y = 0..h-1 with no
       // duplicates and no gaps, so the rendered structure is physically valid.
@@ -134,13 +131,13 @@ void main() {
 
     test('a consistent puzzle color is assigned to all blocks', () {
       for (int i = 0; i < 20; i++) {
-        final blocks = BlockCountingPuzzle.generate({'grade': 3, 'level': 4})
+        final blocks = BlockCountingPuzzle
+            .generate({'grade': 3, 'level': 4})
             .blockStructure
             .blocks;
         final colors = blocks.map((b) => b.color.toARGB32()).toSet();
         expect(colors.length, equals(1),
-            reason:
-                'generate() picks one puzzleColor for the whole structure.');
+            reason: 'generate() picks one puzzleColor for the whole structure.');
       }
     });
   });

@@ -90,13 +90,10 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
           children: [
             const Icon(Icons.lock, size: 64, color: SpaceTheme.starYellow),
             const SizedBox(height: 16),
-            Text(S.of(context)!.parentDashboardPinTitle,
-                style: SpaceTheme.headlineStyle),
+            Text(S.of(context)!.parentDashboardPinTitle, style: SpaceTheme.headlineStyle),
             const SizedBox(height: 8),
             Text(
-              S
-                  .of(context)!
-                  .parentDashboardPinDesc(_kDefaultParentPin.toString()),
+              S.of(context)!.parentDashboardPinDesc(_kDefaultParentPin.toString()),
               textAlign: TextAlign.center,
               style: SpaceTheme.bodyStyle
                   .copyWith(fontSize: 13, color: Colors.white60),
@@ -110,7 +107,8 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                 keyboardType: TextInputType.number,
                 maxLength: 4,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, letterSpacing: 8),
+                style:
+                    const TextStyle(color: Colors.white, letterSpacing: 8),
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                 ],
@@ -154,9 +152,11 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     double bestRatio = -1;
     double worstRatio = 2;
     snapshot.forEach((skill, diffMap) {
-      final attempts = diffMap.values.fold<int>(0, (s, v) => s + v.attempts);
+      final attempts =
+          diffMap.values.fold<int>(0, (s, v) => s + v.attempts);
       if (attempts < 5) return;
-      final successes = diffMap.values.fold<int>(0, (s, v) => s + v.successes);
+      final successes =
+          diffMap.values.fold<int>(0, (s, v) => s + v.successes);
       final ratio = successes / attempts;
       if (ratio > bestRatio) {
         bestRatio = ratio;
@@ -199,8 +199,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
           children: [
             if (cp.totalAttempts == 0)
               _StatLine(
-                  label: S.of(context)!.parentDashboardDataBasis,
-                  value: S.of(context)!.parentDashboardNoData),
+                  label: S.of(context)!.parentDashboardDataBasis, value: S.of(context)!.parentDashboardNoData),
             if (strongest != null)
               _StatLine(
                 label: S.of(context)!.parentDashboardStrongest,
@@ -224,8 +223,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
           children: activeGames.isEmpty
               ? [
                   _StatLine(
-                      label: S.of(context)!.parentDashboardGamesPlayed,
-                      value: S.of(context)!.parentDashboardNone)
+                      label: S.of(context)!.parentDashboardGamesPlayed, value: S.of(context)!.parentDashboardNone)
                 ]
               : [
                   for (final entry in activeGames)
@@ -249,18 +247,13 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
   Widget _buildLearningAdvice(GameProvider gp, SriService sri) {
     final s = S.of(context)!;
     final now = DateTime.now();
-    final recent = gp.roundHistory
-        .where(
-            (r) => !r.playedAt.isBefore(now.subtract(const Duration(days: 7))))
-        .toList();
+    final recent = gp.roundHistory.where((r) => !r.playedAt.isBefore(now.subtract(const Duration(days: 7)))).toList();
     final trends = weeklyTrends(gp.roundHistory, now);
     final improvement = trends.where((t) => t.change >= 0.05).firstOrNull;
     // Suggest a recently difficult game only after repeated measured rounds.
     final groups = <String, List<LearningRound>>{};
     for (final round in recent) {
-      if (round.performance != null &&
-          round.grade == gp.effectiveGrade &&
-          missionGameKeys.contains(round.gameKey)) {
+      if (round.performance != null && round.grade == gp.effectiveGrade && missionGameKeys.contains(round.gameKey)) {
         (groups[round.gameKey] ??= []).add(round);
       }
     }
@@ -268,55 +261,32 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     double lowest = 0.70;
     for (final entry in groups.entries) {
       if (entry.value.length < 3) continue;
-      final mean =
-          entry.value.fold<double>(0, (sum, r) => sum + r.performance!) /
-              entry.value.length;
-      if (mean < lowest) {
-        lowest = mean;
-        practiceGame = entry.key;
-      }
+      final mean = entry.value.fold<double>(0, (sum, r) => sum + r.performance!) / entry.value.length;
+      if (mean < lowest) { lowest = mean; practiceGame = entry.key; }
     }
     final selected = practiceGame;
     return _Section(title: s.learningThisWeek, children: [
       Text(s.learningRounds(recent.length), style: SpaceTheme.bodyStyle),
       const SizedBox(height: 8),
-      Text(
-          improvement == null
-              ? s.learningTrendNeedsData
-              : s.learningImproved(
-                  gameTitleFor(s, improvement.gameKey),
-                  improvement.difficulty,
-                  (improvement.change * 100).round(),
-                  improvement.recentAttempts,
-                  improvement.previousAttempts),
-          style: SpaceTheme.bodyStyle),
+      Text(improvement == null ? s.learningTrendNeedsData :
+        s.learningImproved(gameTitleFor(s, improvement.gameKey), improvement.difficulty,
+          (improvement.change * 100).round(), improvement.recentAttempts, improvement.previousAttempts),
+        style: SpaceTheme.bodyStyle),
       const SizedBox(height: 16),
       Text(s.learningNextPractice, style: SpaceTheme.titleStyle),
       if (sri.getAvailableReviewCount() > 0) ...[
-        Text(s.learningReviewReason(sri.getAvailableReviewCount()),
-            style: SpaceTheme.bodyStyle),
-        TextButton.icon(
-            onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const KarteikastenScreen())),
-            icon: const Icon(Icons.menu_book),
-            label: Text(s.learningStartPractice)),
+        Text(s.learningReviewReason(sri.getAvailableReviewCount()), style: SpaceTheme.bodyStyle),
+        TextButton.icon(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const KarteikastenScreen())),
+          icon: const Icon(Icons.menu_book), label: Text(s.learningStartPractice)),
       ] else if (selected != null) ...[
-        Text(
-            s.learningPracticeReason(
-                gameTitleFor(s, selected), groups[selected]!.length),
-            style: SpaceTheme.bodyStyle),
-        TextButton.icon(
-            onPressed: () {
-              final builder = gameBuilderFor(selected);
-              if (builder == null) return;
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => builder(
-                      gp.effectiveGrade, gp.gameProgress[selected] ?? 1)));
-            },
-            icon: const Icon(Icons.play_arrow),
-            label: Text(s.learningStartPractice)),
-      ] else
-        Text(s.learningExploreReason, style: SpaceTheme.bodyStyle),
+        Text(s.learningPracticeReason(gameTitleFor(s, selected), groups[selected]!.length), style: SpaceTheme.bodyStyle),
+        TextButton.icon(onPressed: () {
+          final builder = gameBuilderFor(selected);
+          if (builder == null) return;
+          Navigator.of(context).push(MaterialPageRoute(builder: (_) => builder(gp.effectiveGrade,
+            gp.gameProgress[selected] ?? 1)));
+        }, icon: const Icon(Icons.play_arrow), label: Text(s.learningStartPractice)),
+      ] else Text(s.learningExploreReason, style: SpaceTheme.bodyStyle),
     ]);
   }
 
@@ -340,8 +310,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                   keyboardType: TextInputType.number,
                   maxLength: 4,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(
-                      labelText: S.of(context)!.parentDashboardNewPin),
+                  decoration: InputDecoration(labelText: S.of(context)!.parentDashboardNewPin),
                 ),
                 TextField(
                   controller: confirmController,
@@ -349,9 +318,8 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                   keyboardType: TextInputType.number,
                   maxLength: 4,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(
-                      labelText: S.of(context)!.parentDashboardConfirm,
-                      errorText: err),
+                  decoration:
+                      InputDecoration(labelText: S.of(context)!.parentDashboardConfirm, errorText: err),
                 ),
               ],
             ),
@@ -368,8 +336,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                     return;
                   }
                   if (pinController.text != confirmController.text) {
-                    setSt(
-                        () => err = S.of(context)!.parentDashboardPinMismatch);
+                    setSt(() => err = S.of(context)!.parentDashboardPinMismatch);
                     return;
                   }
                   Navigator.pop(context, pinController.text);
@@ -409,6 +376,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
   }
 
   String _gameLabel(String key) => gameTitleFor(S.of(context)!, key);
+
 }
 
 class _Section extends StatelessWidget {

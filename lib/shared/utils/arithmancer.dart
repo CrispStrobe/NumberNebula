@@ -253,14 +253,12 @@ class MathematicalEnemy {
       int rightDamage = takeDamage(result.rightResult!, game);
       if (game.verbose) print("🎯 [takeDamage] Right damage: $rightDamage");
       int totalDamage = leftDamage + rightDamage;
-      if (game.verbose)
-        print("🎯 [takeDamage] Total chained damage: $totalDamage");
+      if (game.verbose) print("🎯 [takeDamage] Total chained damage: $totalDamage");
       // DON'T subtract health here - already done in recursive calls
       return totalDamage;
     }
 
-    if (game.verbose)
-      print("🎯 [takeDamage] Processing SINGLE result: ${result.value}");
+    if (game.verbose) print("🎯 [takeDamage] Processing SINGLE result: ${result.value}");
 
     // Original single-result logic
     int baseDamage = result.damage;

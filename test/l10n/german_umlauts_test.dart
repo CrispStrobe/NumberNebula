@@ -111,6 +111,7 @@ void main() {
         r'Sensor|Radar|Quiz|Tempo|Basis|Prozent|Faktor|Minute|Sekunde)$',
         caseSensitive: false);
 
+
     // Entries that must read the same in both languages, with the reason.
     const identicalOnPurpose = <String>{
       // A postal address is not translated; it has to match the real one.

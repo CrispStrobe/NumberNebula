@@ -1,6 +1,5 @@
 import '../services/molecule_level_data.dart';
 export '../services/molecule_level_data.dart';
-
 /// Level data for the Quantum Molecule Builder (Atomiks) game.
 ///
 /// The 30 levels live in assets/data/molecule_levels.json with each
@@ -8,6 +7,7 @@ export '../services/molecule_level_data.dart';
 /// expands them back into the `{'type': …, 'index': …}` maps
 /// AtomixLevel.fromMap reads. This used to be a 474 KB Dart literal compiled
 /// into the game.
+
 
 import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 

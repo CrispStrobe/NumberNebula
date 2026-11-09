@@ -18,7 +18,7 @@ class ImprintDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = S.of(context)!;
-
+    
     return SimpleDialog(
       backgroundColor: SpaceTheme.deepSpace,
       title: Text(
@@ -36,15 +36,14 @@ class ImprintDialog extends StatelessWidget {
               children: [
                 _buildSectionTitle(s.imprintServiceProvider),
                 _buildSectionText(s.imprintProviderAddress),
-
+                
                 const SizedBox(height: 16),
                 _buildSectionTitle(s.imprintContact),
                 _buildSectionText(s.imprintContactDetails),
 
                 const SizedBox(height: 16),
                 _buildSectionTitle(s.imprintContentResponsible),
-                _buildSectionText(
-                    s.imprintProviderAddress), // Assumes same address
+                _buildSectionText(s.imprintProviderAddress), // Assumes same address
 
                 const SizedBox(height: 16),
                 _buildSectionTitle(s.imprintDisclaimer),
@@ -53,8 +52,7 @@ class ImprintDialog extends StatelessWidget {
                 const SizedBox(height: 24),
                 Center(
                   child: TextButton(
-                    onPressed: () => _launchURL(
-                        'https://www.crispstro.be'), // URL remains hard-coded
+                    onPressed: () => _launchURL('https://www.crispstro.be'), // URL remains hard-coded
                     child: Text(
                       s.imprintWebsite, // Text is localized
                       style: SpaceTheme.bodyStyle.copyWith(
@@ -65,7 +63,7 @@ class ImprintDialog extends StatelessWidget {
                     ),
                   ),
                 ),
-
+                
                 const SizedBox(height: 16),
                 Center(
                   child: ElevatedButton(
@@ -95,9 +93,9 @@ class ImprintDialog extends StatelessWidget {
       padding: const EdgeInsets.only(top: 4.0),
       child: Text(
         text,
-        style:
-            SpaceTheme.bodyStyle.copyWith(color: Colors.white70, fontSize: 14),
+        style: SpaceTheme.bodyStyle.copyWith(color: Colors.white70, fontSize: 14),
       ),
     );
   }
 }
+

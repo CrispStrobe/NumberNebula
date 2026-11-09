@@ -31,7 +31,8 @@ void main() {
     expect(usedKeys, isNotEmpty,
         reason: 'No gameType: literals found in lib/ — regex drifted?');
 
-    final missing = usedKeys.where((k) => !gameSkillMap.containsKey(k)).toSet();
+    final missing =
+        usedKeys.where((k) => !gameSkillMap.containsKey(k)).toSet();
     expect(missing, isEmpty,
         reason: 'gameType key(s) used at call sites but not in gameSkillMap: '
             '$missing. recordLevelWin will silently return false and '

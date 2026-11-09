@@ -60,7 +60,8 @@ void main() {
   });
 
   group('AlienTribunalLogic.generate statement consistency', () {
-    test('statements are consistent with the generators own assignment', () {
+    test('statements are consistent with the generators own assignment',
+        () {
       for (int i = 0; i < 5; i++) {
         final puzzle = AlienTribunalLogic.generate({
           'grade': 3,
@@ -77,8 +78,7 @@ void main() {
           final person = puzzle.people[j];
           // A truth-teller's claim holds; a liar's does not.
           expect(person.claimHolds(roles), person.isTruthTeller,
-              reason:
-                  '${person.name} (${person.isTruthTeller ? "truth-teller" : "liar"}) '
+              reason: '${person.name} (${person.isTruthTeller ? "truth-teller" : "liar"}) '
                   'made a claim inconsistent with their role');
         }
       }
@@ -134,7 +134,8 @@ void main() {
           'difficulty': _config(grade: 2, level: 3),
         });
 
-        final truthTellers = puzzle.people.where((p) => p.isTruthTeller).length;
+        final truthTellers =
+            puzzle.people.where((p) => p.isTruthTeller).length;
         final liars = puzzle.people.where((p) => !p.isTruthTeller).length;
 
         expect(truthTellers, greaterThanOrEqualTo(1));
@@ -177,25 +178,15 @@ void main() {
         personCount: 3,
         people: [
           TribunalPerson(
-              name: names[0],
-              isTruthTeller: true,
-              statement: '',
-              targetIndex: 1,
-              claimsTruthTeller: true),
+            name: names[0], isTruthTeller: true, statement: '',
+            targetIndex: 1, claimsTruthTeller: true),
           TribunalPerson(
-              name: names[1],
-              isTruthTeller: true,
-              statement: '',
-              targetIndex: 0,
-              claimsTruthTeller: true),
+            name: names[1], isTruthTeller: true, statement: '',
+            targetIndex: 0, claimsTruthTeller: true),
           TribunalPerson(
-              name: names[2],
-              isTruthTeller: false,
-              statement: '',
-              kind: TribunalClaimKind.count,
-              targetIndex: -1,
-              claimsTruthTeller: false,
-              countValue: 3),
+            name: names[2], isTruthTeller: false, statement: '',
+            kind: TribunalClaimKind.count, targetIndex: -1,
+            claimsTruthTeller: false, countValue: 3),
         ],
       );
 
@@ -211,23 +202,14 @@ void main() {
         personCount: 3,
         people: [
           TribunalPerson(
-              name: 'A',
-              isTruthTeller: true,
-              statement: '',
-              targetIndex: 2,
-              claimsTruthTeller: true),
+            name: 'A', isTruthTeller: true, statement: '',
+            targetIndex: 2, claimsTruthTeller: true),
           TribunalPerson(
-              name: 'B',
-              isTruthTeller: false,
-              statement: '',
-              targetIndex: 0,
-              claimsTruthTeller: false),
+            name: 'B', isTruthTeller: false, statement: '',
+            targetIndex: 0, claimsTruthTeller: false),
           TribunalPerson(
-              name: 'C',
-              isTruthTeller: true,
-              statement: '',
-              targetIndex: 1,
-              claimsTruthTeller: false),
+            name: 'C', isTruthTeller: true, statement: '',
+            targetIndex: 1, claimsTruthTeller: false),
         ],
       );
 
@@ -247,8 +229,8 @@ void main() {
           'level': 3,
           'difficulty': _config(grade: 2, level: 3),
         });
-        patterns
-            .add(puzzle.people.map((p) => p.isTruthTeller ? 'T' : 'L').join());
+        patterns.add(
+            puzzle.people.map((p) => p.isTruthTeller ? 'T' : 'L').join());
       }
 
       // 3 delegates allow 6 mixed arrangements; 60 draws should hit them all.

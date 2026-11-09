@@ -134,8 +134,7 @@ void main() {
       expect(p.opacity, inInclusiveRange(0.0, 1.0));
     });
 
-    test('factory particles have positive size and life and correct colors',
-        () {
+    test('factory particles have positive size and life and correct colors', () {
       const origin = Offset(100, 100);
       final success = SignalParticle.success(origin);
       final warning = SignalParticle.warning(origin);

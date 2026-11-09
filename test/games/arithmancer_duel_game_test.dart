@@ -79,8 +79,7 @@ void main() {
     addTearDown(tester.view.reset);
   }
 
-  testWidgets(
-      'builds its first frame in vsPrograms mode inside the real '
+  testWidgets('builds its first frame in vsPrograms mode inside the real '
       'provider tree without throwing', (tester) async {
     useLargeSurface(tester);
     await tester.pumpWidget(buildHarness(GameMode.vsPrograms));

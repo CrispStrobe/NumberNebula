@@ -148,8 +148,9 @@ void main() {
       );
 
       // Mark a non-energy cell instead
-      final nonEnergy =
-          puzzle.allCells.where((c) => !puzzle.energyCells.contains(c)).toSet();
+      final nonEnergy = puzzle.allCells
+          .where((c) => !puzzle.energyCells.contains(c))
+          .toSet();
       if (nonEnergy.isNotEmpty) {
         final wrongMarked = Set<HexCoord>.from(puzzle.energyCells);
         wrongMarked.remove(wrongMarked.first);

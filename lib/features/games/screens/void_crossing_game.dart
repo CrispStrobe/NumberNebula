@@ -41,10 +41,7 @@ class VoidCrossingGame extends StatefulWidget {
 }
 
 class _VoidCrossingGameState extends State<VoidCrossingGame>
-    with
-        TickerProviderStateMixin,
-        GameAnimationsMixin<VoidCrossingGame>,
-        PuzzleSessionMixin<VoidCrossingGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<VoidCrossingGame>, PuzzleSessionMixin<VoidCrossingGame> {
   bool _sessionReady = false;
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
@@ -52,15 +49,10 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     updateOneShotMotion(_shuttleController, reduced,
         duration: const Duration(milliseconds: 1200));
   }
-
-  @override
-  String get sessionGameKey => 'void_crossing';
-  @override
-  int get sessionGrade => widget.grade;
-  @override
-  int get sessionLevel => widget.level;
-  @override
-  Map<String, dynamic>? capturePuzzleSession() {
+  @override String get sessionGameKey => 'void_crossing';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
     if (!_sessionReady || _isAnimating || _gameOver) return null;
     return {
       '_currentLevel': _currentLevel,
@@ -68,26 +60,16 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
       '_gameState': (_gameState?.toJson())
     };
   }
-
-  @override
-  void applyPuzzleSession(Map<String, dynamic> state) {
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
     _cancelRoundEffects();
     _currentLevel = state["_currentLevel"] as int;
-    _puzzle = (state["_puzzle"] == null
-        ? null
-        : VoidCrossingPuzzle.fromJson(
-            Map<String, dynamic>.from(state["_puzzle"] as Map)));
-    _gameState = (state["_gameState"] == null
-        ? null
-        : VoidCrossingGameState.fromJson(
-            Map<String, dynamic>.from(state["_gameState"] as Map)));
+    _puzzle = (state["_puzzle"] == null ? null : VoidCrossingPuzzle.fromJson(Map<String, dynamic>.from(state["_puzzle"] as Map)));
+    _gameState = (state["_gameState"] == null ? null : VoidCrossingGameState.fromJson(Map<String, dynamic>.from(state["_gameState"] as Map)));
     _optimalMoves = _puzzle == null ? 0 : VoidCrossingLogic.solve(_puzzle!);
     _clearRoundWarnings();
     successController.reset();
-    _gameOver = false;
-    _isAnimating = false;
+    _gameOver = false; _isAnimating = false;
   }
-
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
@@ -134,9 +116,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
       vsync: this,
     )..repeat();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _restoreOrGenerate();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -207,8 +187,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
   void _generatePuzzle() {
     _cancelRoundEffects();
     beginPuzzleSession();
-    final puzzle =
-        VoidCrossingLogic.generatePuzzle(widget.grade, _currentLevel);
+    final puzzle = VoidCrossingLogic.generatePuzzle(widget.grade, _currentLevel);
     _optimalMoves = VoidCrossingLogic.solve(puzzle);
     setState(() {
       _puzzle = puzzle;
@@ -218,8 +197,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
       _gameOver = false;
     });
     if (kDebugMode) {
-      debugPrint(
-          '🚀 [VoidCrossing] Puzzle: ${puzzle.entities.length} entities, '
+      debugPrint('🚀 [VoidCrossing] Puzzle: ${puzzle.entities.length} entities, '
           'boat=${puzzle.boatCapacity}, optimal=$_optimalMoves, '
           'max=${puzzle.maxMoves}');
     }
@@ -283,8 +261,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
       return;
     }
     final remaining = Set<String>.from(state.currentBank);
-    final conflict =
-        VoidCrossingLogic.findConflict(remaining, puzzle.conflicts);
+    final conflict = VoidCrossingLogic.findConflict(remaining, puzzle.conflicts);
     if (conflict != null) {
       _liveConflictIds = {conflict.entityA, conflict.entityB};
     } else {
@@ -353,14 +330,16 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-          skillLevel: widget.grade,
+      skillLevel: widget.grade,
           gameType: 'void_crossing',
           difficulty: _currentLevel,
           score: score,
-          performance: Perf.fromMoves(_gameState!.movesTaken, _optimalMoves),
-          movesUsed: _gameState!.movesTaken,
-          optimalMoves: _optimalMoves,
-        ));
+          performance:
+              Perf.fromMoves(_gameState!.movesTaken, _optimalMoves),
+
+      movesUsed: _gameState!.movesTaken,
+      optimalMoves: _optimalMoves,
+    ));
     successController.forward(from: 0.0);
 
     if (mounted) {
@@ -378,7 +357,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     AppHaptics.heavyImpact();
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-          skillLevel: widget.grade,
+      skillLevel: widget.grade,
           gameType: 'void_crossing',
           difficulty: _currentLevel,
           progress: _puzzle == null || _puzzle!.entities.isEmpty
@@ -433,24 +412,15 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
   String _entityName(String id) {
     final s = S.of(context)!;
     switch (id) {
-      case 'zorblex':
-        return s.voidCrossingZorblex;
-      case 'glimbit':
-        return s.voidCrossingGlimbit;
-      case 'star_moss':
-        return s.voidCrossingStarMoss;
-      case 'kraxxon':
-        return s.voidCrossingKraxxon;
-      case 'lumifae':
-        return s.voidCrossingLumifae;
-      case 'void_crab':
-        return s.voidCrossingVoidCrab;
-      case 'nebula_seed':
-        return s.voidCrossingNebulaSeed;
-      case 'pyrowyrm':
-        return s.voidCrossingPyrowyrm;
-      default:
-        return id;
+      case 'zorblex': return s.voidCrossingZorblex;
+      case 'glimbit': return s.voidCrossingGlimbit;
+      case 'star_moss': return s.voidCrossingStarMoss;
+      case 'kraxxon': return s.voidCrossingKraxxon;
+      case 'lumifae': return s.voidCrossingLumifae;
+      case 'void_crab': return s.voidCrossingVoidCrab;
+      case 'nebula_seed': return s.voidCrossingNebulaSeed;
+      case 'pyrowyrm': return s.voidCrossingPyrowyrm;
+      default: return id;
     }
   }
 
@@ -458,8 +428,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady)
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (_puzzle == null || _gameState == null) {
       return Scaffold(
         body: SpaceBackground(
@@ -634,11 +603,13 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     final s = S.of(context)!;
     final hasLiveConflict = isActive && _liveConflictIds.isNotEmpty;
 
-    final stationLabel =
-        isLeft ? s.voidCrossingStationAlpha : s.voidCrossingStationOmega;
+    final stationLabel = isLeft
+        ? s.voidCrossingStationAlpha
+        : s.voidCrossingStationOmega;
 
     // On the active station, also show shuttle passengers as ghosts
-    final ghostIds = isActive ? state.onShuttle.toList() : <String>[];
+    final ghostIds =
+        isActive ? state.onShuttle.toList() : <String>[];
 
     return AnimatedBuilder(
       animation: glowAnimation,
@@ -651,7 +622,8 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: hasLiveConflict
-                  ? SpaceTheme.rocketRed.withValues(alpha: glowAnimation.value)
+                  ? SpaceTheme.rocketRed
+                      .withValues(alpha: glowAnimation.value)
                   : isActive
                       ? SpaceTheme.alienGreen
                           .withValues(alpha: glowAnimation.value)
@@ -669,7 +641,8 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
                 : isActive
                     ? [
                         BoxShadow(
-                          color: SpaceTheme.alienGreen.withValues(alpha: 0.2),
+                          color:
+                              SpaceTheme.alienGreen.withValues(alpha: 0.2),
                           blurRadius: 12,
                           spreadRadius: 2,
                         ),
@@ -717,8 +690,8 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
                     children: [
                       // Solid: creatures remaining on station
                       ...stationEntities.map((id) {
-                        final isConflicting =
-                            isActive && _liveConflictIds.contains(id);
+                        final isConflicting = isActive &&
+                            _liveConflictIds.contains(id);
                         return _buildEntityChip(
                           id,
                           tappable: isActive,
@@ -806,9 +779,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
                       ? displayColor.withValues(alpha: 0.3)
                       : displayColor.withValues(alpha: tappable ? 0.8 : 0.4),
               width: isConflicting ? 2.5 : 1.5,
-              strokeAlign: isGhost
-                  ? BorderSide.strokeAlignInside
-                  : BorderSide.strokeAlignCenter,
+              strokeAlign: isGhost ? BorderSide.strokeAlignInside : BorderSide.strokeAlignCenter,
             ),
             boxShadow: [
               if (isConflicting)
@@ -909,7 +880,8 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: SpaceTheme.rocketRed.withValues(alpha: 0.2),
+                        color:
+                            SpaceTheme.rocketRed.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: SpaceTheme.rocketRed),
                       ),
@@ -964,7 +936,8 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
 
   /// "Seats: [chair][chair-outline]" -- how many the shuttle has and how many
   /// are still free, at a glance.
-  Widget _buildSeatRow(VoidCrossingGameState state, VoidCrossingPuzzle puzzle) {
+  Widget _buildSeatRow(
+    VoidCrossingGameState state, VoidCrossingPuzzle puzzle) {
     final s = S.of(context)!;
     final taken = state.onShuttle.length;
     return Semantics(
@@ -1106,7 +1079,8 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
                   Wrap(
                     spacing: 4,
                     children: state.onShuttle.map((id) {
-                      final canTap = !_isAnimating && !_gameOver;
+                      final canTap =
+                          !_isAnimating && !_gameOver;
                       return GestureDetector(
                         onTap: canTap ? () => _tapEntity(id) : null,
                         child: Container(
@@ -1116,12 +1090,14 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
                                 .withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: _entityColors[id] ?? SpaceTheme.moonSilver,
+                              color:
+                                  _entityColors[id] ?? SpaceTheme.moonSilver,
                             ),
                           ),
                           child: Icon(
                             _entityIcons[id] ?? Icons.help_outline,
-                            color: _entityColors[id] ?? SpaceTheme.moonSilver,
+                            color:
+                                _entityColors[id] ?? SpaceTheme.moonSilver,
                             size: 20,
                           ),
                         ),
@@ -1148,7 +1124,8 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.9),
         border: Border(
-          top: BorderSide(color: SpaceTheme.moonSilver.withValues(alpha: 0.3)),
+          top: BorderSide(
+              color: SpaceTheme.moonSilver.withValues(alpha: 0.3)),
         ),
       ),
       child: Column(
@@ -1168,10 +1145,8 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
             alignment: WrapAlignment.center,
             children: puzzle.conflicts.map((rule) {
               final isActive = _activeConflict == rule;
-              final colorA =
-                  _entityColors[rule.entityA] ?? SpaceTheme.moonSilver;
-              final colorB =
-                  _entityColors[rule.entityB] ?? SpaceTheme.moonSilver;
+              final colorA = _entityColors[rule.entityA] ?? SpaceTheme.moonSilver;
+              final colorB = _entityColors[rule.entityB] ?? SpaceTheme.moonSilver;
               return Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -1247,9 +1222,8 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            RoundSummary(gameKey: 'void_crossing'),
-            const Icon(Icons.celebration,
-                size: 64, color: SpaceTheme.starYellow),
+                  RoundSummary(gameKey: 'void_crossing'),
+            const Icon(Icons.celebration, size: 64, color: SpaceTheme.starYellow),
             const SizedBox(height: 16),
             Text(
               s.voidCrossingWin,
@@ -1315,7 +1289,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            RoundSummary(gameKey: 'void_crossing'),
+                  RoundSummary(gameKey: 'void_crossing'),
             const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(
@@ -1377,8 +1351,8 @@ class _VoidStarsPainter extends CustomPainter {
       final baseY = rng.nextDouble() * size.height;
       final y = (baseY + progress * size.height * 0.3) % size.height;
       final radius = rng.nextDouble() * 1.5 + 0.5;
-      final alpha =
-          (math.sin(progress * math.pi * 2 + i) * 0.3 + 0.7).clamp(0.2, 1.0);
+      final alpha = (math.sin(progress * math.pi * 2 + i) * 0.3 + 0.7)
+          .clamp(0.2, 1.0);
 
       paint.color = Colors.white.withValues(alpha: alpha);
       canvas.drawCircle(Offset(x, y), radius, paint);

@@ -10,7 +10,7 @@ class SpaceLoadingScreen extends StatefulWidget {
   final String? message;
   final VoidCallback? onTimeout;
   final Duration timeout;
-
+  
   const SpaceLoadingScreen({
     super.key,
     this.message,
@@ -24,33 +24,34 @@ class SpaceLoadingScreen extends StatefulWidget {
 
 class _SpaceLoadingScreenState extends State<SpaceLoadingScreen>
     with TickerProviderStateMixin {
+  
   late AnimationController _rocketController;
   late AnimationController _orbitsController;
   late AnimationController _starsController;
-
+  
   late Animation<double> _rocketAnimation;
   late Animation<double> _orbitsAnimation;
   late Animation<double> _starsAnimation;
-
+  
   @override
   void initState() {
     super.initState();
-
+    
     _rocketController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat(reverse: true);
-
+    
     _orbitsController = AnimationController(
       duration: const Duration(seconds: 4),
       vsync: this,
     )..repeat();
-
+    
     _starsController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat(reverse: true);
-
+    
     _rocketAnimation = Tween<double>(
       begin: -10.0,
       end: 10.0,
@@ -58,12 +59,12 @@ class _SpaceLoadingScreenState extends State<SpaceLoadingScreen>
       parent: _rocketController,
       curve: Curves.easeInOut,
     ));
-
+    
     _orbitsAnimation = Tween<double>(
       begin: 0.0,
       end: 2 * math.pi,
     ).animate(_orbitsController);
-
+    
     _starsAnimation = Tween<double>(
       begin: 0.5,
       end: 1.0,
@@ -71,7 +72,7 @@ class _SpaceLoadingScreenState extends State<SpaceLoadingScreen>
       parent: _starsController,
       curve: Curves.easeInOut,
     ));
-
+    
     // Set timeout
     Future.delayed(widget.timeout, () {
       if (mounted && widget.onTimeout != null) {
@@ -79,7 +80,7 @@ class _SpaceLoadingScreenState extends State<SpaceLoadingScreen>
       }
     });
   }
-
+  
   @override
   void dispose() {
     _rocketController.dispose();
@@ -110,7 +111,7 @@ class _SpaceLoadingScreenState extends State<SpaceLoadingScreen>
                 },
               ),
             ),
-
+            
             // Main Loading Content
             Center(
               child: Column(
@@ -136,7 +137,7 @@ class _SpaceLoadingScreenState extends State<SpaceLoadingScreen>
                             );
                           },
                         ),
-
+                        
                         // Floating Rocket
                         AnimatedBuilder(
                           animation: _rocketAnimation,
@@ -162,9 +163,9 @@ class _SpaceLoadingScreenState extends State<SpaceLoadingScreen>
                       ],
                     ),
                   ),
-
+                  
                   const SizedBox(height: 40),
-
+                  
                   // Loading Message
                   Text(
                     // FIX: This now works because the MaterialApp provides the S delegate.
@@ -172,9 +173,9 @@ class _SpaceLoadingScreenState extends State<SpaceLoadingScreen>
                     style: SpaceTheme.titleStyle.copyWith(fontSize: 20),
                     textAlign: TextAlign.center,
                   ),
-
+                  
                   const SizedBox(height: 20),
-
+                  
                   // Progress Indicator
                   const SizedBox(
                     width: 200,
@@ -185,9 +186,9 @@ class _SpaceLoadingScreenState extends State<SpaceLoadingScreen>
                       ),
                     ),
                   ),
-
+                  
                   const SizedBox(height: 16),
-
+                  
                   Text(
                     // FIX: This also works now.
                     S.of(context)!.preparingMission,
@@ -210,7 +211,7 @@ class SpaceErrorScreen extends StatelessWidget {
   final VoidCallback? onRetry;
   final VoidCallback? onBack;
   final IconData? errorIcon;
-
+  
   const SpaceErrorScreen({
     super.key,
     required this.title,
@@ -250,27 +251,27 @@ class SpaceErrorScreen extends StatelessWidget {
                       color: SpaceTheme.rocketRed,
                     ),
                   ),
-
+                  
                   const SizedBox(height: 24),
-
+                  
                   // Error Title
                   Text(
                     title,
                     style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
                     textAlign: TextAlign.center,
                   ),
-
+                  
                   const SizedBox(height: 16),
-
+                  
                   // Error Message
                   Text(
                     message,
                     style: SpaceTheme.bodyStyle.copyWith(fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
-
+                  
                   const SizedBox(height: 32),
-
+                  
                   // Action Buttons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -284,6 +285,7 @@ class SpaceErrorScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 16),
                       ],
+                      
                       if (onRetry != null)
                         ElevatedButton.icon(
                           onPressed: onRetry,
@@ -309,15 +311,14 @@ class SpaceDialog extends StatelessWidget {
   final String? content;
   final List<Widget>? actions;
   final Widget? customContent;
-
+  
   const SpaceDialog({
     super.key,
     required this.title,
     this.content,
     this.actions,
     this.customContent,
-  }) : assert(content != null || customContent != null,
-            'Either content or customContent must be provided.');
+   }) : assert(content != null || customContent != null, 'Either content or customContent must be provided.');
 
   @override
   Widget build(BuildContext context) {
@@ -408,7 +409,7 @@ class SpaceSnackBar {
       ),
     );
   }
-
+  
   static void showSuccess(BuildContext context, String message) {
     show(
       context,
@@ -417,7 +418,7 @@ class SpaceSnackBar {
       icon: Icons.check_circle,
     );
   }
-
+  
   static void showError(BuildContext context, String message) {
     show(
       context,
@@ -426,7 +427,7 @@ class SpaceSnackBar {
       icon: Icons.error,
     );
   }
-
+  
   static void showWarning(BuildContext context, String message) {
     show(
       context,
@@ -435,7 +436,7 @@ class SpaceSnackBar {
       icon: Icons.warning,
     );
   }
-
+  
   static void showInfo(BuildContext context, String message) {
     show(
       context,
@@ -466,7 +467,7 @@ class SpaceNavigation {
       ),
     );
   }
-
+  
   static Future<T?> slideTransition<T>(
     BuildContext context,
     Widget destination, {
@@ -492,7 +493,7 @@ class SpaceNavigation {
       ),
     );
   }
-
+  
   static Future<T?> scaleTransition<T>(
     BuildContext context,
     Widget destination, {
@@ -527,25 +528,25 @@ class InputValidator {
     }
     return null;
   }
-
+  
   static String? validateNumber(String? value, {int? min, int? max}) {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter a number';
     }
-
+    
     final number = int.tryParse(value);
     if (number == null) {
       return 'Please enter a valid number';
     }
-
+    
     if (min != null && number < min) {
       return 'Number must be at least $min';
     }
-
+    
     if (max != null && number > max) {
       return 'Number must be at most $max';
     }
-
+    
     return null;
   }
 }
@@ -553,7 +554,7 @@ class InputValidator {
 // Custom Painters for Loading Screen
 class LoadingStarsPainter extends CustomPainter {
   final double animation;
-
+  
   LoadingStarsPainter({required this.animation});
 
   @override
@@ -561,14 +562,14 @@ class LoadingStarsPainter extends CustomPainter {
     final paint = Paint()
       ..color = SpaceTheme.starYellow.withValues(alpha: animation)
       ..style = PaintingStyle.fill;
-
+    
     final random = math.Random(42);
-
+    
     for (int i = 0; i < 50; i++) {
       final x = random.nextDouble() * size.width;
       final y = random.nextDouble() * size.height;
       final starSize = random.nextDouble() * 2 + 1;
-
+      
       canvas.drawCircle(
         Offset(x, y),
         starSize * animation,
@@ -593,9 +594,9 @@ class OrbitPainter extends CustomPainter {
       ..color = SpaceTheme.alienGreen.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
-
+    
     final center = Offset(size.width / 2, size.height / 2);
-
+    
     // Draw multiple orbit rings
     for (int i = 1; i <= 3; i++) {
       canvas.drawCircle(center, 30.0 * i, paint);
@@ -610,11 +611,11 @@ class OrbitPainter extends CustomPainter {
 class PerformanceTracker {
   static final Map<String, DateTime> _startTimes = {};
   static final Map<String, List<Duration>> _durations = {};
-
+  
   static void startTracking(String operation) {
     _startTimes[operation] = DateTime.now();
   }
-
+  
   static void endTracking(String operation) {
     final startTime = _startTimes[operation];
     if (startTime != null) {
@@ -623,25 +624,23 @@ class PerformanceTracker {
       _startTimes.remove(operation);
     }
   }
-
+  
   static Duration? getAverageDuration(String operation) {
     final durations = _durations[operation];
     if (durations == null || durations.isEmpty) return null;
-
+    
     final total = durations.fold(
       Duration.zero,
       (prev, duration) => prev + duration,
     );
-
+    
     return Duration(microseconds: total.inMicroseconds ~/ durations.length);
   }
-
+  
   static void logPerformance() {
     _durations.forEach((operation, durations) {
       final avg = getAverageDuration(operation);
-      if (kDebugMode)
-        debugPrint(
-            '$operation: avg ${avg?.inMilliseconds}ms (${durations.length} samples)');
+      if (kDebugMode) debugPrint('$operation: avg ${avg?.inMilliseconds}ms (${durations.length} samples)');
     });
   }
 }

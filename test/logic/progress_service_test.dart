@@ -75,7 +75,8 @@ void main() {
     expect(fresh.divisionSymbol, ':');
   });
 
-  test('loadProgress with no saved data leaves provider at defaults', () async {
+  test('loadProgress with no saved data leaves provider at defaults',
+      () async {
     final service = ProgressService();
     final fresh = makeProvider();
 
@@ -87,7 +88,8 @@ void main() {
     expect(fresh.gameProgress, isEmpty);
   });
 
-  test('gameProgress map and achievements survive the round-trip', () async {
+  test('gameProgress map and achievements survive the round-trip',
+      () async {
     final service = ProgressService();
 
     final source = makeProvider();

@@ -18,8 +18,7 @@ class ArithmancerVictoryDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      scrollable: true,
+    return AlertDialog(scrollable: true,
       backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
@@ -27,23 +26,19 @@ class ArithmancerVictoryDialog extends StatelessWidget {
       ),
       title: Row(
         children: [
-          const Icon(Icons.military_tech,
-              color: SpaceTheme.starYellow, size: 30),
+
+          const Icon(Icons.military_tech, color: SpaceTheme.starYellow, size: 30),
           const SizedBox(width: 10),
           Text(
             S.of(context)!.arithmancerVictoryTitle,
-            style:
-                SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.alienGreen),
+            style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.alienGreen),
           ),
         ],
       ),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        const RoundSummary(gameKey: 'arithmancer_duel'),
-        Text(
-          S.of(context)!.arithmancerVictoryDesc(score),
-          style: SpaceTheme.bodyStyle,
-        )
-      ]),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [const RoundSummary(gameKey: 'arithmancer_duel'), Text(
+        S.of(context)!.arithmancerVictoryDesc(score),
+        style: SpaceTheme.bodyStyle,
+      )]),
       actions: [
         TextButton(
           autofocus: true,
@@ -85,8 +80,7 @@ class ArithmancerLadderStepDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      scrollable: true,
+    return AlertDialog(scrollable: true,
       backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
@@ -94,23 +88,19 @@ class ArithmancerLadderStepDialog extends StatelessWidget {
       ),
       title: Row(
         children: [
+
           const Icon(Icons.trending_up, color: SpaceTheme.starYellow, size: 30),
           const SizedBox(width: 10),
           Text(
             S.of(context)!.arithmancerLadderProgressTitle,
-            style:
-                SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.starYellow),
+            style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.starYellow),
           ),
         ],
       ),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        const RoundSummary(gameKey: 'arithmancer_duel'),
-        Text(
-          S.of(context)!.arithmancerLadderProgressDesc(
-              ladderProgress + 1, totalLadderSteps),
-          style: SpaceTheme.bodyStyle,
-        )
-      ]),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [const RoundSummary(gameKey: 'arithmancer_duel'), Text(
+        S.of(context)!.arithmancerLadderProgressDesc(ladderProgress + 1, totalLadderSteps),
+        style: SpaceTheme.bodyStyle,
+      )]),
       actions: [
         TextButton(
           autofocus: true,
@@ -140,8 +130,7 @@ class ArithmancerLadderCompleteDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      scrollable: true,
+    return AlertDialog(scrollable: true,
       backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
@@ -149,23 +138,19 @@ class ArithmancerLadderCompleteDialog extends StatelessWidget {
       ),
       title: Row(
         children: [
-          const Icon(Icons.emoji_events,
-              color: SpaceTheme.starYellow, size: 30),
+
+          const Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: 30),
           const SizedBox(width: 10),
           Text(
             S.of(context)!.arithmancerLadderChampionTitle,
-            style:
-                SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.alienGreen),
+            style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.alienGreen),
           ),
         ],
       ),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        const RoundSummary(gameKey: 'arithmancer_duel'),
-        Text(
-          S.of(context)!.arithmancerLadderChampionDesc(score),
-          style: SpaceTheme.bodyStyle,
-        )
-      ]),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [const RoundSummary(gameKey: 'arithmancer_duel'), Text(
+        S.of(context)!.arithmancerLadderChampionDesc(score),
+        style: SpaceTheme.bodyStyle,
+      )]),
       actions: [
         TextButton(
           autofocus: true,
@@ -195,8 +180,7 @@ class ArithmancerDefeatDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      scrollable: true,
+    return AlertDialog(scrollable: true,
       backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
@@ -204,22 +188,19 @@ class ArithmancerDefeatDialog extends StatelessWidget {
       ),
       title: Row(
         children: [
+
           const Icon(Icons.warning, color: SpaceTheme.rocketRed, size: 30),
           const SizedBox(width: 10),
           Text(
             S.of(context)!.arithmancerDefeatTitle,
-            style:
-                SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+            style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
           ),
         ],
       ),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        const RoundSummary(gameKey: 'arithmancer_duel'),
-        Text(
-          S.of(context)!.arithmancerDefeatDesc,
-          style: SpaceTheme.bodyStyle,
-        )
-      ]),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [const RoundSummary(gameKey: 'arithmancer_duel'), Text(
+        S.of(context)!.arithmancerDefeatDesc,
+        style: SpaceTheme.bodyStyle,
+      )]),
       actions: [
         TextButton(
           autofocus: true,

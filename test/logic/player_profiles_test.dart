@@ -126,24 +126,15 @@ void main() {
     expect(gp.grade, 3);
     expect(DifficultyManager.getDifficulty(gp, 1).grade, 3);
   });
-  test(
-      'first-load asynchronous saves cannot overwrite the final round snapshot',
-      () async {
+  test('first-load asynchronous saves cannot overwrite the final round snapshot', () async {
     final progress = ProgressService();
-    final gp = GameProvider(
-        progressService: progress,
-        sriService: SriService(),
-        cognitiveProfileService: CognitiveProfileService());
-    gp.reportOutcome(GameOutcome.win(
-        gameType: 'star_forge', difficulty: 1, score: 125, performance: .9));
+    final gp = GameProvider(progressService: progress, sriService: SriService(), cognitiveProfileService: CognitiveProfileService());
+    gp.reportOutcome(GameOutcome.win(gameType: 'star_forge', difficulty: 1, score: 125, performance: .9));
     await ProfilePreferences.flushWrites();
-    final reopened = GameProvider(
-        progressService: progress,
-        sriService: SriService(),
-        cognitiveProfileService: CognitiveProfileService());
+    final reopened = GameProvider(progressService: progress, sriService: SriService(), cognitiveProfileService: CognitiveProfileService());
     await progress.loadProgress(reopened);
-    expect(reopened.score, 125);
-    expect(reopened.bestStars['star_forge'], 3);
+    expect(reopened.score, 125); expect(reopened.bestStars['star_forge'], 3);
     expect(reopened.roundHistory, hasLength(1));
   });
+
 }

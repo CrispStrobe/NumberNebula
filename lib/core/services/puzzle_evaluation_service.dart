@@ -97,8 +97,9 @@ class PuzzleEvaluationService {
   }
 
   /// Export all evaluations as pretty JSON.
-  String exportJson() => const JsonEncoder.withIndent('  ')
-      .convert(_evals.map((e) => e.toJson()).toList());
+  String exportJson() =>
+      const JsonEncoder.withIndent('  ')
+          .convert(_evals.map((e) => e.toJson()).toList());
 
   /// Get evaluations for a specific game type.
   List<PuzzleEval> forGame(String gameType) =>

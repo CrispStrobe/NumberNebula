@@ -31,8 +31,7 @@ void main() {
     test('kenken thresholds: [300, 800, 1200]', () {
       // kStarThresholds['kenken'] = [300, 800, 1200]
       expect(scoreToStars('kenken', 100, true), 1); // below 300
-      expect(scoreToStars('kenken', 300, true),
-          1); // at 1-star min but below 2-star
+      expect(scoreToStars('kenken', 300, true), 1); // at 1-star min but below 2-star
       expect(scoreToStars('kenken', 799, true), 1); // just below 2-star
       expect(scoreToStars('kenken', 800, true), 2); // exactly 2-star
       expect(scoreToStars('kenken', 1199, true), 2); // just below 3-star

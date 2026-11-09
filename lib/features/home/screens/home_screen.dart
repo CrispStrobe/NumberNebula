@@ -34,13 +34,14 @@ class HomeScreen extends StatefulWidget {
   void _showDebugPanel(BuildContext context) {
     if (!kDebugMode) return;
     showDialog(
-      context: context,
-      builder: (context) => const DebugPanel(),
+        context: context,
+        builder: (context) => const DebugPanel(),
     );
   }
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
@@ -62,9 +63,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(Localizations.localeOf(context).languageCode == 'de'
-              ? 'Der Lernpfad konnte nicht geöffnet werden. Bitte versuche es erneut.'
-              : 'The learning path could not be opened. Please try again.'),
+        content: Text(Localizations.localeOf(context).languageCode == 'de'
+            ? 'Der Lernpfad konnte nicht geöffnet werden. Bitte versuche es erneut.'
+            : 'The learning path could not be opened. Please try again.'),
         ));
       }
     } finally {
@@ -73,21 +74,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildKompassButton() => Padding(
-        padding: const EdgeInsets.only(top: 12),
-        child: OutlinedButton.icon(
-          key: const ValueKey('open-kompass'),
-          onPressed: _openingKompass ? null : _openKompass,
-          icon: const Icon(Icons.explore_outlined),
-          label: Text(Localizations.localeOf(context).languageCode == 'de'
-              ? 'KOMPASS 4 · Mathematik'
-              : 'KOMPASS 4 · Mathematics'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.white,
-            side: const BorderSide(color: SpaceTheme.starYellow),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          ),
-        ),
-      );
+    padding: const EdgeInsets.only(top: 12),
+    child: OutlinedButton.icon(
+      key: const ValueKey('open-kompass'),
+      onPressed: _openingKompass ? null : _openKompass,
+      icon: const Icon(Icons.explore_outlined),
+      label: Text(Localizations.localeOf(context).languageCode == 'de'
+          ? 'KOMPASS 4 · Mathematik' : 'KOMPASS 4 · Mathematics'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.white,
+        side: const BorderSide(color: SpaceTheme.starYellow),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      ),
+    ),
+  );
 
   @override
   void initState() {
@@ -194,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               children: [
                 _buildHeader(),
                 // A bit of spacing to ensure header doesn't touch the main content.
-                const SizedBox(height: 16),
+                const SizedBox(height: 16), 
                 Expanded(
                   // FIX: The Center widget was removed.
                   // Expanded now directly constrains its child, forcing the
@@ -213,48 +213,48 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildHeader() {
     return Wrap(
-      key: const ValueKey('home-header'),
-      alignment: WrapAlignment.spaceBetween,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 16,
-      runSpacing: 12,
-      children: [
+        key: const ValueKey('home-header'),
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 16,
+        runSpacing: 12,
+        children: [
         GestureDetector(
-          onTap: () {
+            onTap: () {
             _debugResetTimer?.cancel();
 
             setState(() {
-              _debugTapCount++;
+                _debugTapCount++;
             });
 
             if (_debugTapCount >= 7) {
-              context.read<DebugProvider>().enableDebugMenu();
-              ScaffoldMessenger.of(context).showSnackBar(
+                context.read<DebugProvider>().enableDebugMenu();
+                ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(S.of(context)!.debugModeEnabled),
-                  backgroundColor: SpaceTheme.alienGreen,
+                    content: Text(S.of(context)!.debugModeEnabled),
+                    backgroundColor: SpaceTheme.alienGreen,
                 ),
-              );
-              setState(() {
-                _debugTapCount = 0;
-              });
-            } else {
-              _debugResetTimer = Timer(const Duration(seconds: 2), () {
+                );
                 setState(() {
-                  _debugTapCount = 0;
+                _debugTapCount = 0;
                 });
-              });
+            } else {
+                _debugResetTimer = Timer(const Duration(seconds: 2), () {
+                setState(() {
+                    _debugTapCount = 0;
+                });
+                });
             }
-          },
-          child: FadeTransition(
+            },
+            child: FadeTransition(
             opacity: _fadeAnimation,
             child: Text(
-              S.of(context)!.appTitle,
-              style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
+                S.of(context)!.appTitle,
+                style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
             ),
-          ),
+            ),
         ),
-
+        
         // --- UPDATED ROW ---
         Wrap(
           key: const ValueKey('home-toolbar'),
@@ -315,8 +315,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 8),
                               decoration: BoxDecoration(
-                                color:
-                                    SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                                color: SpaceTheme.deepSpace
+                                    .withValues(alpha: 0.8),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                     color: SpaceTheme.rocketRed
@@ -367,38 +367,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     padding: const EdgeInsets.all(12),
                   ),
                 );
-                return due > 0 ? Badge.count(count: due, child: btn) : btn;
+                return due > 0
+                    ? Badge.count(count: due, child: btn)
+                    : btn;
               },
             ),
             Consumer<PlayerProfileService>(builder: (context, players, _) {
               final s = S.of(context)!;
-              final name = players.active.name.isEmpty
-                  ? s.originalPlayer
-                  : players.active.name;
+              final name = players.active.name.isEmpty ? s.originalPlayer : players.active.name;
               return PopupMenuButton<String>(
                 tooltip: '${s.playersTitle}: $name',
-                onSelected: (value) => Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (_) => value == 'players'
-                            ? const PlayerProfilesScreen()
-                            : const SavedPuzzlesScreen())),
+                onSelected: (value) => Navigator.of(context).push(MaterialPageRoute(builder: (_) =>
+                  value == 'players' ? const PlayerProfilesScreen() : const SavedPuzzlesScreen())),
                 itemBuilder: (_) => [
-                  PopupMenuItem(
-                      value: 'players',
-                      child: Text('${s.playersTitle}: $name')),
-                  PopupMenuItem(
-                      value: 'puzzles', child: Text(s.savedPuzzlesTitle)),
+                  PopupMenuItem(value: 'players', child: Text('${s.playersTitle}: $name')),
+                  PopupMenuItem(value: 'puzzles', child: Text(s.savedPuzzlesTitle)),
                 ],
-                child: SizedBox(
-                    width: 56,
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
-                      const Icon(Icons.people_alt_outlined,
-                          color: Colors.white),
-                      Text(name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: SpaceTheme.bodyStyle.copyWith(fontSize: 10)),
-                    ])),
+                child: SizedBox(width: 56, child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.people_alt_outlined, color: Colors.white),
+                  Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 10)),
+                ])),
               );
             }),
             // Cognitive profile shortcut
@@ -408,7 +397,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   builder: (_) => const CognitiveProfileScreen(),
                 ));
               },
-              icon: const Icon(Icons.psychology, color: Colors.white, size: 24),
+              icon: const Icon(Icons.psychology,
+                  color: Colors.white, size: 24),
               tooltip: 'Cognitive profile',
               style: IconButton.styleFrom(
                 backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
@@ -419,19 +409,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               onPressed: _navigateToSettings,
               tooltip: S.of(context)!.settings,
               icon: const Icon(
-                Icons.settings,
-                color: Colors.white,
-                size: 28,
+              Icons.settings,
+              color: Colors.white,
+              size: 28,
               ),
               style: IconButton.styleFrom(
-                backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-                padding: const EdgeInsets.all(12),
+              backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+              padding: const EdgeInsets.all(12),
               ),
             ),
           ],
         ),
         // --- END UPDATED ROW ---
-      ],
+        ],
     );
   }
 
@@ -439,174 +429,168 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenWidth < 800 || screenHeight < 500;
-
+    
     return Row(
       children: [
         // LEFT SIDE - Better flex distribution
         Expanded(
-            flex: isSmallScreen ? 4 : 5, // More space on larger screens
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: AnimatedLogo(
-                        size: isSmallScreen
-                            ? 80
-                            : 180), // Larger logo on big screens
-                  ),
-                  // Show welcome text on larger screens
-                  if (!isSmallScreen) ...[
-                    const SizedBox(height: 24),
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Text(
-                          S.of(context)!.welcome,
-                          style:
-                              SpaceTheme.headlineStyle.copyWith(fontSize: 28),
-                          textAlign: TextAlign.center,
-                        ),
+          flex: isSmallScreen ? 4 : 5, // More space on larger screens
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: AnimatedLogo(size: isSmallScreen ? 80 : 180), // Larger logo on big screens
+                ),
+                // Show welcome text on larger screens
+                if (!isSmallScreen) ...[
+                  const SizedBox(height: 24),
+                  SlideTransition(
+                    position: _slideAnimation,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Text(
+                        S.of(context)!.welcome,
+                        style: SpaceTheme.headlineStyle.copyWith(fontSize: 28),
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                  ],
-                  SizedBox(height: isSmallScreen ? 8 : 32),
-                  SlideTransition(
-                    position: _slideAnimation,
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: const CompactGradeSelector(),
-                    ),
                   ),
-                  SizedBox(height: isSmallScreen ? 6 : 32),
-                  SlideTransition(
-                    position: _slideAnimation,
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: _buildMissionsButton(isSmallScreen),
-                    ),
-                  ),
-                  SizedBox(height: isSmallScreen ? 6 : 12),
-                  SlideTransition(
-                    position: _slideAnimation,
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: _buildStartButton(isSmallScreen),
-                    ),
-                  ),
-                  _buildKompassButton(),
                 ],
-              ), // Column
-            ) // SingleChildScrollView
-            ),
-
-        SizedBox(
-            width: isSmallScreen ? 6 : 32), // More spacing on larger screens
-
+                SizedBox(height: isSmallScreen ? 8 : 32),
+                SlideTransition(
+                  position: _slideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: const CompactGradeSelector(),
+                  ),
+                ),
+                SizedBox(height: isSmallScreen ? 6 : 32),
+                SlideTransition(
+                  position: _slideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: _buildMissionsButton(isSmallScreen),
+                  ),
+                ),
+                SizedBox(height: isSmallScreen ? 6 : 12),
+                SlideTransition(
+                  position: _slideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: _buildStartButton(isSmallScreen),
+                  ),
+                ),
+                _buildKompassButton(),
+              ],
+            ), // Column
+          ) // SingleChildScrollView
+        ),
+        
+        SizedBox(width: isSmallScreen ? 6 : 32), // More spacing on larger screens
+        
         // RIGHT SIDE - Adjust flex for larger screens
         Expanded(
-            flex: isSmallScreen ? 3 : 4, // Better ratio for larger screens
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SlideTransition(
-                    position: _slideAnimation,
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: CompactStatsCard(isSmallScreen: isSmallScreen),
-                    ),
+          flex: isSmallScreen ? 3 : 4, // Better ratio for larger screens
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SlideTransition(
+                  position: _slideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: CompactStatsCard(isSmallScreen: isSmallScreen),
                   ),
-                  SizedBox(
-                      height: isSmallScreen
-                          ? 4
-                          : 20), // More spacing on larger screens
-                  SlideTransition(
-                    position: _slideAnimation,
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: CompactAchievementsPreview(
-                          isSmallScreen: isSmallScreen),
-                    ),
+                ),
+                SizedBox(height: isSmallScreen ? 4 : 20), // More spacing on larger screens
+                SlideTransition(
+                  position: _slideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: CompactAchievementsPreview(isSmallScreen: isSmallScreen),
                   ),
-                ],
-              ), // Column
-            ) // SingleChildScrollView(
-            ),
+                ),
+              ],
+            ), // Column
+          ) // SingleChildScrollView(
+        ),
       ],
     );
   }
 
   Widget _buildPortraitLayout() {
-    return SingleChildScrollView(
-        child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
+    return SingleChildScrollView(child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
         FadeTransition(
-          opacity: _fadeAnimation,
-          child: const AnimatedLogo(),
+            opacity: _fadeAnimation,
+            child: const AnimatedLogo(),
         ),
         const SizedBox(height: 16),
         SlideTransition(
-          position: _slideAnimation,
-          child: FadeTransition(
+            position: _slideAnimation,
+            child: FadeTransition(
             opacity: _fadeAnimation,
             child: Text(
-              S.of(context)!.welcome,
-              style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
-              textAlign: TextAlign.center,
+                S.of(context)!.welcome,
+                style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
+                textAlign: TextAlign.center,
             ),
-          ),
+            ),
         ),
+
         const SizedBox(height: 24),
+
         SlideTransition(
-          position: _slideAnimation,
-          child: FadeTransition(
+            position: _slideAnimation,
+            child: FadeTransition(
             opacity: _fadeAnimation,
             child: const CompactStatsCard(),
-          ),
+            ),
         ),
         const SizedBox(height: 16),
         SlideTransition(
-          position: _slideAnimation,
-          child: FadeTransition(
+            position: _slideAnimation,
+            child: FadeTransition(
             opacity: _fadeAnimation,
             child: const CompactAchievementsPreview(),
-          ),
+            ),
         ),
         const SizedBox(height: 16),
         SlideTransition(
-          position: _slideAnimation,
-          child: FadeTransition(
+            position: _slideAnimation,
+            child: FadeTransition(
             opacity: _fadeAnimation,
             child: const CompactGradeSelector(),
-          ),
+            ),
         ),
+
         const SizedBox(height: 24),
+
         SlideTransition(
-          position: _slideAnimation,
-          child: FadeTransition(
+            position: _slideAnimation,
+            child: FadeTransition(
             opacity: _fadeAnimation,
             child: _buildMissionsButton(false),
-          ),
+            ),
         ),
         const SizedBox(height: 12),
         SlideTransition(
-          position: _slideAnimation,
-          child: FadeTransition(
+            position: _slideAnimation,
+            child: FadeTransition(
             opacity: _fadeAnimation,
             child: _buildStartButton(false),
-          ),
+            ),
         ),
         _buildKompassButton(),
-      ],
+        ],
     ));
-  }
+    }
 
   Widget _buildMissionsButton(bool isSmallScreen) {
     return Container(
@@ -662,8 +646,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   child: Text(
                     S.of(context)!.missionHubTitle,
                     textAlign: TextAlign.center,
-                    style: SpaceTheme.buttonStyle
-                        .copyWith(fontSize: isSmallScreen ? 11 : 14),
+                    style: SpaceTheme.buttonStyle.copyWith(
+                        fontSize: isSmallScreen ? 11 : 14),
                   ),
                 ),
               ],
@@ -679,9 +663,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       // REMOVED: The fixed 'height' property which prevented the button from growing.
       constraints: BoxConstraints(
         maxWidth: isSmallScreen ? 180 : 300,
-        minHeight: isSmallScreen
-            ? 48
-            : 60, // Use minHeight to ensure a good minimum size.
+        minHeight: isSmallScreen ? 48 : 60, // Use minHeight to ensure a good minimum size.
       ),
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
@@ -722,10 +704,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 Flexible(
                   child: Text(
                     S.of(context)!.startAdventure,
-                    textAlign:
-                        TextAlign.center, // Center the text for a cleaner look.
-                    style: SpaceTheme.buttonStyle
-                        .copyWith(fontSize: isSmallScreen ? 12 : 16),
+                    textAlign: TextAlign.center, // Center the text for a cleaner look.
+                    style: SpaceTheme.buttonStyle.copyWith(
+                        fontSize: isSmallScreen ? 12 : 16),
                     // REMOVED: maxLines and overflow properties to allow text wrapping.
                   ),
                 ),
@@ -741,7 +722,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 // Updated AnimatedLogo with size parameter
 class AnimatedLogo extends StatefulWidget {
   final double size;
-
+  
   const AnimatedLogo({super.key, this.size = 150});
 
   @override
@@ -750,18 +731,19 @@ class AnimatedLogo extends StatefulWidget {
 
 class _AnimatedLogoState extends State<AnimatedLogo>
     with SingleTickerProviderStateMixin {
+  
   late AnimationController _controller;
   late Animation<double> _animation;
-
+  
   @override
   void initState() {
     super.initState();
-
+    
     _controller = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat(reverse: true);
-
+    
     _animation = Tween<double>(
       begin: 0.9,
       end: 1.1,
@@ -770,7 +752,7 @@ class _AnimatedLogoState extends State<AnimatedLogo>
       curve: Curves.easeInOut,
     ));
   }
-
+  
   @override
   void dispose() {
     _controller.dispose();
@@ -818,7 +800,7 @@ class _AnimatedLogoState extends State<AnimatedLogo>
 // Updated CompactStatsCard with responsive sizing
 class CompactStatsCard extends StatelessWidget {
   final bool isSmallScreen;
-
+  
   const CompactStatsCard({super.key, this.isSmallScreen = false});
 
   @override
@@ -826,8 +808,7 @@ class CompactStatsCard extends StatelessWidget {
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
         return Container(
-          padding: EdgeInsets.all(
-              isSmallScreen ? 8 : 20), // More padding on large screens
+          padding: EdgeInsets.all(isSmallScreen ? 8 : 20), // More padding on large screens
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
@@ -837,8 +818,7 @@ class CompactStatsCard extends StatelessWidget {
                 Color(0xFF1E2235),
               ],
             ),
-            borderRadius: BorderRadius.circular(
-                isSmallScreen ? 8 : 16), // Larger radius on big screens
+            borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 16), // Larger radius on big screens
             boxShadow: const [
               BoxShadow(
                 color: Colors.black26,
@@ -863,9 +843,7 @@ class CompactStatsCard extends StatelessWidget {
                     child: Text(
                       S.of(context)!.progress,
                       style: TextStyle(
-                        fontSize: isSmallScreen
-                            ? 10
-                            : 16, // Larger text on big screens
+                        fontSize: isSmallScreen ? 10 : 16, // Larger text on big screens
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
@@ -873,7 +851,9 @@ class CompactStatsCard extends StatelessWidget {
                   ),
                 ],
               ),
+              
               SizedBox(height: isSmallScreen ? 4 : 12),
+              
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -900,7 +880,7 @@ class CompactStatsCard extends StatelessWidget {
       },
     );
   }
-
+  
   Widget _buildCompactStatItem({
     required IconData icon,
     required String value,
@@ -922,7 +902,9 @@ class CompactStatsCard extends StatelessWidget {
             size: isSmallScreen ? 10 : 16, // Larger icons on big screens
           ),
         ),
+        
         const SizedBox(height: 4),
+        
         Text(
           value,
           style: TextStyle(
@@ -939,27 +921,18 @@ class CompactStatsCard extends StatelessWidget {
 // Updated CompactAchievementsPreview with responsive sizing
 class CompactAchievementsPreview extends StatelessWidget {
   final bool isSmallScreen;
-
+  
   const CompactAchievementsPreview({super.key, this.isSmallScreen = false});
 
   AchievementUIData _getAchievementUIData(BuildContext context, String id) {
     final s = S.of(context)!;
     switch (id) {
       case 'first_century':
-        return AchievementUIData(
-            title: s.achievementFirstCenturyTitle,
-            description: s.achievementFirstCenturyDesc,
-            icon: '💯');
+        return AchievementUIData(title: s.achievementFirstCenturyTitle, description: s.achievementFirstCenturyDesc, icon: '💯');
       case 'score_master':
-        return AchievementUIData(
-            title: s.achievementScoreMasterTitle,
-            description: s.achievementScoreMasterDesc,
-            icon: '⭐');
+        return AchievementUIData(title: s.achievementScoreMasterTitle, description: s.achievementScoreMasterDesc, icon: '⭐');
       default:
-        return AchievementUIData(
-            title: s.achievementFirstCenturyTitle,
-            description: s.achievementFirstCenturyDesc,
-            icon: '💯');
+        return AchievementUIData(title: s.achievementFirstCenturyTitle, description: s.achievementFirstCenturyDesc, icon: '💯');
     }
   }
 
@@ -967,7 +940,7 @@ class CompactAchievementsPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
-        final achievements = gameProvider.achievements.take(2).toList();
+        final achievements = gameProvider.achievements.take(2).toList(); 
 
         return Container(
           padding: EdgeInsets.all(isSmallScreen ? 6 : 8), // Reduced padding
@@ -1007,8 +980,8 @@ class CompactAchievementsPreview extends StatelessWidget {
                       S.of(context)!.achievements,
                       textAlign: TextAlign.center,
                       style: SpaceTheme.titleStyle.copyWith(
-                          fontSize: isSmallScreen ? 8 : 12 // Smaller text
-                          ),
+                        fontSize: isSmallScreen ? 8 : 12 // Smaller text
+                      ),
                     ),
                   ),
                 ],
@@ -1017,35 +990,28 @@ class CompactAchievementsPreview extends StatelessWidget {
               if (achievements.isEmpty)
                 Text(
                   S.of(context)!.playToUnlock,
-                  style: SpaceTheme.bodyStyle
-                      .copyWith(fontSize: isSmallScreen ? 6 : 9 // Smaller text
-                          ),
+                  style: SpaceTheme.bodyStyle.copyWith(
+                    fontSize: isSmallScreen ? 6 : 9 // Smaller text
+                  ),
                   textAlign: TextAlign.center,
                 )
               else
                 Column(
-                  mainAxisSize:
-                      MainAxisSize.min, // FIX: Prevent taking extra space
+                  mainAxisSize: MainAxisSize.min, // FIX: Prevent taking extra space
                   children: achievements.map((achievement) {
-                    final uiData =
-                        _getAchievementUIData(context, achievement.id);
+                    final uiData = _getAchievementUIData(context, achievement.id);
                     return Padding(
-                      padding:
-                          const EdgeInsets.only(bottom: 2), // Minimal spacing
+                      padding: const EdgeInsets.only(bottom: 2), // Minimal spacing
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize:
-                            MainAxisSize.min, // FIX: Prevent taking extra space
+                        mainAxisSize: MainAxisSize.min, // FIX: Prevent taking extra space
                         children: [
                           Text(
                             uiData.icon,
-                            style: TextStyle(
-                                fontSize:
-                                    isSmallScreen ? 8 : 10), // Smaller emoji
+                            style: TextStyle(fontSize: isSmallScreen ? 8 : 10), // Smaller emoji
                           ),
                           const SizedBox(width: 2), // Minimal spacing
-                          Flexible(
-                            // Use Flexible instead of Expanded
+                          Flexible( // Use Flexible instead of Expanded
                             child: Text(
                               uiData.title,
                               style: SpaceTheme.bodyStyle.copyWith(
@@ -1082,7 +1048,7 @@ class AchievementUIData {
   });
 }
 
-// COMPACT Grade Selector - Smaller version
+// COMPACT Grade Selector - Smaller version  
 class CompactGradeSelector extends StatelessWidget {
   const CompactGradeSelector({super.key});
 
@@ -1124,8 +1090,7 @@ class CompactGradeSelector extends StatelessWidget {
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
-                      S.of(context)!.gradeN(
-                          gameProvider.grade), // Use gradeN for localization
+                      S.of(context)!.gradeN(gameProvider.grade), // Use gradeN for localization
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 16, // Smaller text
@@ -1136,9 +1101,9 @@ class CompactGradeSelector extends StatelessWidget {
                   ),
                 ],
               ),
-
+              
               const SizedBox(height: 12), // Less spacing
-
+              
               // Compact grade selector row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1151,8 +1116,7 @@ class CompactGradeSelector extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
-                      constraints:
-                          const BoxConstraints(minWidth: 48, minHeight: 48),
+                      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         gradient: isSelected
@@ -1168,20 +1132,17 @@ class CompactGradeSelector extends StatelessWidget {
                                   Color(0xFF16213E), // nebulaPurple
                                 ],
                               ),
-                        borderRadius:
-                            BorderRadius.circular(10), // Smaller radius
+                        borderRadius: BorderRadius.circular(10), // Smaller radius
                         border: Border.all(
                           color: isSelected
                               ? const Color(0xFFFFD700) // starYellow
-                              : const Color(0xFFC0C0C0)
-                                  .withValues(alpha: 0.3), // moonSilver
+                              : const Color(0xFFC0C0C0).withValues(alpha: 0.3), // moonSilver
                           width: 1, // Thinner border
                         ),
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: const Color(0xFFFFD700)
-                                      .withValues(alpha: 0.5),
+                                  color: const Color(0xFFFFD700).withValues(alpha: 0.5),
                                   blurRadius: 8,
                                   spreadRadius: 1,
                                 ),

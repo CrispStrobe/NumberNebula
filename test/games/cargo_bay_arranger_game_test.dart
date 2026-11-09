@@ -74,7 +74,8 @@ void main() {
           }
 
           // At least one filled cell — pieces are never empty.
-          final hasFilled = piece.shape.any((row) => row.any((cell) => cell));
+          final hasFilled =
+              piece.shape.any((row) => row.any((cell) => cell));
           expect(hasFilled, isTrue, reason: 'generated an empty piece');
         }
       }
@@ -167,12 +168,12 @@ void main() {
 
   group('painters shouldRepaint', () {
     test('CargoBayPainter repaints only when pulse changes', () {
-      final a =
-          CargoBayPainter(pulseIntensity: 0.5, gameWon: false, gameLost: false);
-      final same =
-          CargoBayPainter(pulseIntensity: 0.5, gameWon: true, gameLost: true);
-      final diff =
-          CargoBayPainter(pulseIntensity: 0.9, gameWon: false, gameLost: false);
+      final a = CargoBayPainter(
+          pulseIntensity: 0.5, gameWon: false, gameLost: false);
+      final same = CargoBayPainter(
+          pulseIntensity: 0.5, gameWon: true, gameLost: true);
+      final diff = CargoBayPainter(
+          pulseIntensity: 0.9, gameWon: false, gameLost: false);
       expect(a.shouldRepaint(same), isFalse);
       expect(a.shouldRepaint(diff), isTrue);
     });

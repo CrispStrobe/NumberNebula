@@ -19,18 +19,18 @@
 //   6.0 (Hard+):    37-44 moves → Grade 3 L20, Grade 4 L10-17
 //   7.0 (Expert):   45+ moves   → Grade 4, Levels 18-20
 
+
 import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 
+
 import '../services/gridlock_level_data.dart';
-export '../services/gridlock_level_data.dart'
-    show GridlockPuzzleData, shipsFromBoard;
+export '../services/gridlock_level_data.dart' show GridlockPuzzleData, shipsFromBoard;
 
 const String gridlockPuzzlesAsset = 'assets/puzzles/gridlock_puzzles.json';
 
 class GridlockPuzzleDatabase extends GridlockLevelDatabase {
-  GridlockPuzzleDatabase(super.puzzles);
-  factory GridlockPuzzleDatabase.fromJson(String source) =>
-      GridlockPuzzleDatabase(GridlockLevelDatabase.fromJson(source).puzzles);
+ GridlockPuzzleDatabase(super.puzzles);
+ factory GridlockPuzzleDatabase.fromJson(String source) => GridlockPuzzleDatabase(GridlockLevelDatabase.fromJson(source).puzzles);
   static Future<GridlockPuzzleDatabase>? _cached;
 
   /// Loads the bundled database once and reuses it for later games.
@@ -43,4 +43,5 @@ class GridlockPuzzleDatabase extends GridlockLevelDatabase {
       throw e;
     });
   }
+
 }

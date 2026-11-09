@@ -73,7 +73,7 @@ class GradeSelector extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [3, 4, 5, 6].map((grade) {
                   final isSelected = gameProvider.grade == grade;
-
+                  
                   return GestureDetector(
                     onTap: () => gameProvider.setGrade(grade),
                     child: AnimatedContainer(
@@ -98,15 +98,13 @@ class GradeSelector extends StatelessWidget {
                         border: Border.all(
                           color: isSelected
                               ? const Color(0xFFFFD700) // starYellow
-                              : const Color(0xFFC0C0C0)
-                                  .withValues(alpha: 0.3), // moonSilver
+                              : const Color(0xFFC0C0C0).withValues(alpha: 0.3), // moonSilver
                           width: 2,
                         ),
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: const Color(0xFFFFD700)
-                                      .withValues(alpha: 0.5),
+                                  color: const Color(0xFFFFD700).withValues(alpha: 0.5),
                                   blurRadius: 10,
                                   spreadRadius: 2,
                                 ),
@@ -129,8 +127,7 @@ class GradeSelector extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                _getGradeDescription(
-                    context, gameProvider.grade), // Call the method here
+                _getGradeDescription(context, gameProvider.grade), // Call the method here
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.white70,

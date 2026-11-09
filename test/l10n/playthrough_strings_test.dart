@@ -11,8 +11,7 @@ void main() {
     final s = await S.delegate.load(const Locale('en'));
     expect(s.starForgeMovesLeft(1), '1 move left');
     expect(s.starForgeMovesLeft(4), '4 moves left');
-    expect(s.cubeScannerWhyHiddenFace(5, 2),
-        'Opposite faces add up to 7: 7 − 5 = 2.');
+    expect(s.cubeScannerWhyHiddenFace(5, 2), 'Opposite faces add up to 7: 7 − 5 = 2.');
     expect(s.cubeScannerWhyHiddenSum(12, 9), contains('21 − 12 = 9'));
   });
 

@@ -31,8 +31,7 @@ const Set<String> registeredProviders = {
 };
 
 void main() {
-  test(
-      'every context.read<T>() / context.watch<T>() / Consumer<T> '
+  test('every context.read<T>() / context.watch<T>() / Consumer<T> '
       'type is in the registered provider tree', () {
     final regex = RegExp(
       r'(?:context\.(?:read|watch)|Consumer|Selector(?:\d+)?)<(\w+)>',
@@ -53,8 +52,9 @@ void main() {
     expect(consumedTypes, isNotEmpty,
         reason: 'No provider consumers found in lib/ — regex drifted?');
 
-    final unregistered =
-        consumedTypes.where((t) => !registeredProviders.contains(t)).toSet();
+    final unregistered = consumedTypes
+        .where((t) => !registeredProviders.contains(t))
+        .toSet();
     expect(unregistered, isEmpty,
         reason: 'Type(s) consumed via Provider but not registered in '
             'lib/main.dart: $unregistered. Either register them in the '

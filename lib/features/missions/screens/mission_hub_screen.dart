@@ -32,8 +32,8 @@ class MissionHubScreen extends StatelessWidget {
                 child: Row(
                   children: [
                     IconButton(
-                      icon:
-                          const Icon(Icons.arrow_back_ios, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back_ios,
+                          color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),
                     const SizedBox(width: 8),
@@ -61,7 +61,9 @@ class MissionHubScreen extends StatelessWidget {
                         const SizedBox(height: 24),
 
                         Text(
-                          hasActive ? s.missionHubResume : s.missionHubStart,
+                          hasActive
+                              ? s.missionHubResume
+                              : s.missionHubStart,
                           style: SpaceTheme.titleStyle,
                           textAlign: TextAlign.center,
                         ),
@@ -92,8 +94,8 @@ class MissionHubScreen extends StatelessWidget {
                                 _confirmAbandon(context, missionProvider),
                             child: Text(
                               s.missionHubAbandon,
-                              style:
-                                  const TextStyle(color: SpaceTheme.rocketRed),
+                              style: const TextStyle(
+                                  color: SpaceTheme.rocketRed),
                             ),
                           ),
                         ] else ...[
@@ -118,13 +120,13 @@ class MissionHubScreen extends StatelessWidget {
     );
   }
 
-  void _startNewMission(BuildContext context, MissionProvider provider) async {
+  void _startNewMission(
+      BuildContext context, MissionProvider provider) async {
     final gp = context.read<GameProvider>();
     final locale = Localizations.localeOf(context).languageCode;
     final grade = gp.effectiveGrade;
     // Fallback level for games the player has never opened.
-    final level =
-        gp.score > 0 ? ((gp.score / 500) + 1).clamp(1, 20).toInt() : 1;
+    final level = gp.score > 0 ? ((gp.score / 500) + 1).clamp(1, 20).toInt() : 1;
 
     await provider.startMission(
       grade: grade,
@@ -148,7 +150,8 @@ class MissionHubScreen extends StatelessWidget {
     );
   }
 
-  void _confirmAbandon(BuildContext context, MissionProvider provider) {
+  void _confirmAbandon(
+      BuildContext context, MissionProvider provider) {
     final s = S.of(context)!;
     showDialog(
       context: context,
@@ -163,7 +166,8 @@ class MissionHubScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(s.missionHubAbandonConfirm,
-                  style: SpaceTheme.titleStyle, textAlign: TextAlign.center),
+                  style: SpaceTheme.titleStyle,
+                  textAlign: TextAlign.center),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,

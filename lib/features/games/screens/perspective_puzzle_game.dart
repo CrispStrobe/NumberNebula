@@ -30,57 +30,52 @@ class _VisualConfig {
   static final cube.Vector3 lightPosition = cube.Vector3(10, 15, 10);
 
   static final List<Color> blockColors = [
-    const Color(0xFF00C8FF),
-    const Color(0xFF64DD17),
-    const Color(0xFFFF9100),
-    const Color(0xFFD500F9),
-    const Color(0xFFFFEA00),
-    const Color(0xFFFF1744),
+    const Color(0xFF00C8FF), const Color(0xFF64DD17), const Color(0xFFFF9100),
+    const Color(0xFFD500F9), const Color(0xFFFFEA00), const Color(0xFFFF1744),
   ];
-
+  
   static final Map<String, Map<String, dynamic>> perspectiveData = {
-    // Arrow for the front - FIXED DIRECTION (should point AWAY from cube)
-    'Front': {
-      'arrowStart': cube.Vector3(0, 0.5, 5.0),
-      'arrowEnd': cube.Vector3(0, 0.5, 2.0),
-      'color': const Color(0xFF00C8FF),
-    },
-    // Arrow for the back (points TOWARDS cube)
-    'Back': {
-      'arrowStart': cube.Vector3(0, 0.5, -5.0),
-      'arrowEnd': cube.Vector3(0, 0.5, -2.0),
-      'color': const Color(0xFFFF1744),
-    },
-    // Arrow for the left - MOVED FURTHER OUT
-    'Left': {
-      'arrowStart': cube.Vector3(-5.0, 0.5, 0),
-      'arrowEnd': cube.Vector3(-2.0, 0.5, 0),
-      'color': const Color(0xFF64DD17),
-    },
-    // Arrow for the right - MOVED FURTHER OUT
-    'Right': {
-      'arrowStart': cube.Vector3(5.0, 0.5, 0),
-      'arrowEnd': cube.Vector3(2.0, 0.5, 0),
-      'color': const Color(0xFFFF9100),
-    },
-  };
+  // Arrow for the front - FIXED DIRECTION (should point AWAY from cube)
+  'Front': {
+    'arrowStart': cube.Vector3(0, 0.5, 5.0),
+    'arrowEnd': cube.Vector3(0, 0.5, 2.0),
+    'color': const Color(0xFF00C8FF),
+  },
+  // Arrow for the back (points TOWARDS cube)
+  'Back': {
+    'arrowStart': cube.Vector3(0, 0.5, -5.0),
+    'arrowEnd': cube.Vector3(0, 0.5, -2.0),
+    'color': const Color(0xFFFF1744),
+  },
+  // Arrow for the left - MOVED FURTHER OUT
+  'Left': {
+    'arrowStart': cube.Vector3(-5.0, 0.5, 0),
+    'arrowEnd': cube.Vector3(-2.0, 0.5, 0),
+    'color': const Color(0xFF64DD17),
+  },
+  // Arrow for the right - MOVED FURTHER OUT
+  'Right': {
+    'arrowStart': cube.Vector3(5.0, 0.5, 0),
+    'arrowEnd': cube.Vector3(2.0, 0.5, 0),
+    'color': const Color(0xFFFF9100),
+  },
+};
 }
 
 // Robust 3D Arrow using a single mesh
 // Ultra-simple 3D Arrow - create specific geometry for each direction
 class _Arrow3D {
   /// Creates a fully oriented 3D arrow object using predefined geometries
-  static cube.Object createArrow(
-      cube.Vector3 start, cube.Vector3 end, Color color) {
+  static cube.Object createArrow(cube.Vector3 start, cube.Vector3 end, Color color) {
     final material = cube.Material()
       ..diffuse.setValues(color.r, color.g, color.b);
 
     final direction = end - start;
-
+    
     // Determine which direction this arrow should point
     cube.Mesh arrowMesh;
     cube.Vector3 position;
-
+    
     if (direction.z.abs() > direction.x.abs()) {
       // Z-direction arrow (Front/Back)
       if (direction.z > 0) {
@@ -93,7 +88,7 @@ class _Arrow3D {
         position = start;
       }
     } else {
-      // X-direction arrow (Left/Right)
+      // X-direction arrow (Left/Right)  
       if (direction.x > 0) {
         // Direction is positive X (Right - away from cube)
         arrowMesh = _createXPositiveArrow();
@@ -104,11 +99,12 @@ class _Arrow3D {
         position = start;
       }
     }
-
+    
     return cube.Object(
-        position: position,
-        mesh: arrowMesh..material = material,
-        name: 'arrow');
+      position: position,
+      mesh: arrowMesh..material = material, 
+      name: 'arrow'
+    );
   }
 
   // Arrow pointing towards +Z (Back - towards cube)
@@ -117,31 +113,31 @@ class _Arrow3D {
       // Shaft base at start
       cube.Vector3(-0.15, 0.35, 0), cube.Vector3(0.15, 0.35, 0),
       cube.Vector3(0.15, 0.65, 0), cube.Vector3(-0.15, 0.65, 0),
-
+      
       // Shaft end (where head begins) - EXACT same Z as head base
       cube.Vector3(-0.15, 0.35, 2.0), cube.Vector3(0.15, 0.35, 2.0),
       cube.Vector3(0.15, 0.65, 2.0), cube.Vector3(-0.15, 0.65, 2.0),
-
+      
       // Head base (EXACT same Z as shaft end for perfect connection)
       cube.Vector3(-0.35, 0.15, 2.0), cube.Vector3(0.35, 0.15, 2.0),
       cube.Vector3(0.35, 0.85, 2.0), cube.Vector3(-0.35, 0.85, 2.0),
-
+      
       // Head tip
       cube.Vector3(0, 0.5, 3.0),
     ];
-
+    
     final indices = <cube.Polygon>[
       // Shaft faces
       cube.Polygon(0, 1, 5), cube.Polygon(0, 5, 4),
       cube.Polygon(1, 2, 6), cube.Polygon(1, 6, 5),
       cube.Polygon(2, 3, 7), cube.Polygon(2, 7, 6),
       cube.Polygon(3, 0, 4), cube.Polygon(3, 4, 7),
-
+      
       // Head pyramid faces
       cube.Polygon(8, 12, 9), cube.Polygon(9, 12, 10),
       cube.Polygon(10, 12, 11), cube.Polygon(11, 12, 8),
     ];
-
+    
     return cube.Mesh(vertices: vertices, indices: indices);
   }
 
@@ -151,31 +147,31 @@ class _Arrow3D {
       // Shaft base at start
       cube.Vector3(-0.15, 0.35, 0), cube.Vector3(0.15, 0.35, 0),
       cube.Vector3(0.15, 0.65, 0), cube.Vector3(-0.15, 0.65, 0),
-
+      
       // Shaft end (where head begins) - EXACT same Z as head base
       cube.Vector3(-0.15, 0.35, -2.0), cube.Vector3(0.15, 0.35, -2.0),
       cube.Vector3(0.15, 0.65, -2.0), cube.Vector3(-0.15, 0.65, -2.0),
-
+      
       // Head base (EXACT same Z as shaft end for perfect connection)
       cube.Vector3(-0.35, 0.15, -2.0), cube.Vector3(0.35, 0.15, -2.0),
       cube.Vector3(0.35, 0.85, -2.0), cube.Vector3(-0.35, 0.85, -2.0),
-
+      
       // Head tip
       cube.Vector3(0, 0.5, -3.0),
     ];
-
+    
     final indices = <cube.Polygon>[
       // Shaft faces
       cube.Polygon(0, 4, 5), cube.Polygon(0, 5, 1),
       cube.Polygon(1, 5, 6), cube.Polygon(1, 6, 2),
       cube.Polygon(2, 6, 7), cube.Polygon(2, 7, 3),
       cube.Polygon(3, 7, 4), cube.Polygon(3, 4, 0),
-
+      
       // Head pyramid faces
       cube.Polygon(8, 9, 12), cube.Polygon(9, 10, 12),
       cube.Polygon(10, 11, 12), cube.Polygon(11, 8, 12),
     ];
-
+    
     return cube.Mesh(vertices: vertices, indices: indices);
   }
 
@@ -185,31 +181,31 @@ class _Arrow3D {
       // Shaft base at start
       cube.Vector3(0, 0.35, -0.15), cube.Vector3(0, 0.35, 0.15),
       cube.Vector3(0, 0.65, 0.15), cube.Vector3(0, 0.65, -0.15),
-
+      
       // Shaft end (where head begins) - EXACT same X as head base
       cube.Vector3(2.0, 0.35, -0.15), cube.Vector3(2.0, 0.35, 0.15),
       cube.Vector3(2.0, 0.65, 0.15), cube.Vector3(2.0, 0.65, -0.15),
-
+      
       // Head base (EXACT same X as shaft end for perfect connection)
       cube.Vector3(2.0, 0.15, -0.35), cube.Vector3(2.0, 0.15, 0.35),
       cube.Vector3(2.0, 0.85, 0.35), cube.Vector3(2.0, 0.85, -0.35),
-
+      
       // Head tip
       cube.Vector3(3.0, 0.5, 0),
     ];
-
+    
     final indices = <cube.Polygon>[
       // Shaft faces
       cube.Polygon(0, 1, 5), cube.Polygon(0, 5, 4),
       cube.Polygon(1, 2, 6), cube.Polygon(1, 6, 5),
       cube.Polygon(2, 3, 7), cube.Polygon(2, 7, 6),
       cube.Polygon(3, 0, 4), cube.Polygon(3, 4, 7),
-
+      
       // Head pyramid faces
       cube.Polygon(8, 12, 9), cube.Polygon(9, 12, 10),
       cube.Polygon(10, 12, 11), cube.Polygon(11, 12, 8),
     ];
-
+    
     return cube.Mesh(vertices: vertices, indices: indices);
   }
 
@@ -219,59 +215,47 @@ class _Arrow3D {
       // Shaft base at start
       cube.Vector3(0, 0.35, -0.15), cube.Vector3(0, 0.35, 0.15),
       cube.Vector3(0, 0.65, 0.15), cube.Vector3(0, 0.65, -0.15),
-
+      
       // Shaft end (where head begins) - EXACT same X as head base
       cube.Vector3(-2.0, 0.35, -0.15), cube.Vector3(-2.0, 0.35, 0.15),
       cube.Vector3(-2.0, 0.65, 0.15), cube.Vector3(-2.0, 0.65, -0.15),
-
+      
       // Head base (EXACT same X as shaft end for perfect connection)
       cube.Vector3(-2.0, 0.15, -0.35), cube.Vector3(-2.0, 0.15, 0.35),
       cube.Vector3(-2.0, 0.85, 0.35), cube.Vector3(-2.0, 0.85, -0.35),
-
+      
       // Head tip
       cube.Vector3(-3.0, 0.5, 0),
     ];
-
+    
     final indices = <cube.Polygon>[
       // Shaft faces
       cube.Polygon(0, 4, 5), cube.Polygon(0, 5, 1),
       cube.Polygon(1, 5, 6), cube.Polygon(1, 6, 2),
       cube.Polygon(2, 6, 7), cube.Polygon(2, 7, 3),
       cube.Polygon(3, 7, 4), cube.Polygon(3, 4, 0),
-
+      
       // Head pyramid faces
       cube.Polygon(8, 9, 12), cube.Polygon(9, 10, 12),
       cube.Polygon(10, 11, 12), cube.Polygon(11, 8, 12),
     ];
-
+    
     return cube.Mesh(vertices: vertices, indices: indices);
   }
 }
 
 class _CubeGeometry {
   static final List<cube.Vector3> vertices = [
-    cube.Vector3(-0.5, -0.5, -0.5),
-    cube.Vector3(0.5, -0.5, -0.5),
-    cube.Vector3(0.5, 0.5, -0.5),
-    cube.Vector3(-0.5, 0.5, -0.5),
-    cube.Vector3(-0.5, -0.5, 0.5),
-    cube.Vector3(0.5, -0.5, 0.5),
-    cube.Vector3(0.5, 0.5, 0.5),
-    cube.Vector3(-0.5, 0.5, 0.5),
+    cube.Vector3(-0.5, -0.5, -0.5), cube.Vector3(0.5, -0.5, -0.5),
+    cube.Vector3(0.5, 0.5, -0.5), cube.Vector3(-0.5, 0.5, -0.5),
+    cube.Vector3(-0.5, -0.5, 0.5), cube.Vector3(0.5, -0.5, 0.5),
+    cube.Vector3(0.5, 0.5, 0.5), cube.Vector3(-0.5, 0.5, 0.5),
   ];
   static final List<cube.Polygon> indices = [
-    cube.Polygon(0, 1, 2),
-    cube.Polygon(0, 2, 3),
-    cube.Polygon(5, 4, 7),
-    cube.Polygon(5, 7, 6),
-    cube.Polygon(4, 0, 3),
-    cube.Polygon(4, 3, 7),
-    cube.Polygon(1, 5, 6),
-    cube.Polygon(1, 6, 2),
-    cube.Polygon(3, 2, 6),
-    cube.Polygon(3, 6, 7),
-    cube.Polygon(4, 5, 1),
-    cube.Polygon(4, 1, 0),
+    cube.Polygon(0, 1, 2), cube.Polygon(0, 2, 3), cube.Polygon(5, 4, 7),
+    cube.Polygon(5, 7, 6), cube.Polygon(4, 0, 3), cube.Polygon(4, 3, 7),
+    cube.Polygon(1, 5, 6), cube.Polygon(1, 6, 2), cube.Polygon(3, 2, 6),
+    cube.Polygon(3, 6, 7), cube.Polygon(4, 5, 1), cube.Polygon(4, 1, 0),
   ];
 }
 
@@ -284,59 +268,19 @@ typedef PerspectiveView = List<List<Block?>>;
 class PerspectivePuzzle {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-        'structure': structure
-            .map((v0) =>
-                {'x': v0.x, 'y': v0.y, 'z': v0.z, 'color': v0.color.toARGB32()})
-            .toList(),
-        'gridSize': gridSize,
-        'maxHeight': maxHeight,
-        'difficulty': difficulty,
-        'correctViews': correctViews.entries
-            .map((v0) => [
-                  v0.key,
-                  v0.value
-                      .map((v1) => v1
-                          .map((v2) => (v2 == null
-                              ? null
-                              : {
-                                  'x': v2.x,
-                                  'y': v2.y,
-                                  'z': v2.z,
-                                  'color': v2.color.toARGB32()
-                                }))
-                          .toList())
-                      .toList()
-                ])
-            .toList()
-      };
-  factory PerspectivePuzzle.fromJson(Map<String, dynamic> json) =>
-      PerspectivePuzzle(
-          structure: (json['structure'] as List)
-              .map((v0) => (
-                    x: v0['x'] as int,
-                    y: v0['y'] as int,
-                    z: v0['z'] as int,
-                    color: Color(v0['color'] as int)
-                  ))
-              .toSet(),
-          gridSize: json['gridSize'] as int,
-          maxHeight: json['maxHeight'] as int,
-          difficulty: json['difficulty'] as int,
-          correctViews: Map<String, PerspectiveView>.fromEntries(
-              (json['correctViews'] as List).map((v0) => MapEntry(
-                  v0[0] as String,
-                  (v0[1] as List)
-                      .map((v1) => (v1 as List)
-                          .map((v2) => (v2 == null
-                              ? null
-                              : (
-                                  x: v2['x'] as int,
-                                  y: v2['y'] as int,
-                                  z: v2['z'] as int,
-                                  color: Color(v2['color'] as int)
-                                )))
-                          .toList())
-                      .toList()))));
+    'structure': structure.map((v0) => {'x': v0.x, 'y': v0.y, 'z': v0.z, 'color': v0.color.toARGB32()}).toList(),
+    'gridSize': gridSize,
+    'maxHeight': maxHeight,
+    'difficulty': difficulty,
+    'correctViews': correctViews.entries.map((v0) => [v0.key, v0.value.map((v1) => v1.map((v2) => (v2 == null ? null : {'x': v2.x, 'y': v2.y, 'z': v2.z, 'color': v2.color.toARGB32()})).toList()).toList()]).toList()
+  };
+  factory PerspectivePuzzle.fromJson(Map<String, dynamic> json) => PerspectivePuzzle(
+    structure: (json['structure'] as List).map((v0) => (x: v0['x'] as int, y: v0['y'] as int, z: v0['z'] as int, color: Color(v0['color'] as int))).toSet(),
+    gridSize: json['gridSize'] as int,
+    maxHeight: json['maxHeight'] as int,
+    difficulty: json['difficulty'] as int,
+    correctViews: Map<String, PerspectiveView>.fromEntries((json['correctViews'] as List).map((v0) => MapEntry(v0[0] as String, (v0[1] as List).map((v1) => (v1 as List).map((v2) => (v2 == null ? null : (x: v2['x'] as int, y: v2['y'] as int, z: v2['z'] as int, color: Color(v2['color'] as int)))).toList()).toList())))
+  );
 
   final Set<Block> structure;
   final int gridSize;
@@ -353,8 +297,9 @@ class PerspectivePuzzle {
   });
 
   static PerspectivePuzzle generate(Map<String, int> args) =>
-      PerspectivePuzzle.fromJson(
-          generation.PerspectivePuzzle.generate(args).toJson());
+      PerspectivePuzzle.fromJson(generation.PerspectivePuzzle.generate(args).toJson());
+
+
 }
 
 // =============================================================================
@@ -365,45 +310,26 @@ enum AnswerState { unanswered, correct, incorrect }
 class PerspectivePuzzleGame extends StatefulWidget {
   final int grade;
   final int level;
-  const PerspectivePuzzleGame(
-      {super.key, required this.grade, required this.level});
+  const PerspectivePuzzleGame({super.key, required this.grade, required this.level});
   @override
   State<PerspectivePuzzleGame> createState() => _PerspectivePuzzleGameState();
 }
 
-class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
-    with TickerProviderStateMixin, PuzzleSessionMixin<PerspectivePuzzleGame> {
+class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with TickerProviderStateMixin, PuzzleSessionMixin<PerspectivePuzzleGame> {
   bool _sessionReady = false;
   Timer? _roundTimer;
   int _roundEpoch = 0;
   bool _roundCompleted = false;
-  @override
-  String get sessionGameKey => 'perspective_puzzle';
-  @override
-  int get sessionGrade => widget.grade;
-  @override
-  int get sessionLevel => widget.level;
-  @override
-  Map<String, dynamic>? capturePuzzleSession() {
+  @override String get sessionGameKey => 'perspective_puzzle';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
     if (!_sessionReady || _isGenerating || _roundCompleted) return null;
     return {
       'currentPuzzle': (currentPuzzle?.toJson()),
       '_perspectivesToSolve': _perspectivesToSolve.map((v0) => v0).toList(),
       '_currentTurnIndex': _currentTurnIndex,
-      '_answerChoices': _answerChoices
-          .map((v0) => v0
-              .map((v1) => v1
-                  .map((v2) => (v2 == null
-                      ? null
-                      : {
-                          'x': v2.x,
-                          'y': v2.y,
-                          'z': v2.z,
-                          'color': v2.color.toARGB32()
-                        }))
-                  .toList())
-              .toList())
-          .toList(),
+      '_answerChoices': _answerChoices.map((v0) => v0.map((v1) => v1.map((v2) => (v2 == null ? null : {'x': v2.x, 'y': v2.y, 'z': v2.z, 'color': v2.color.toARGB32()})).toList()).toList()).toList(),
       '_correctAnswerIndex': _correctAnswerIndex,
       '_selectedAnswerIndex': _selectedAnswerIndex,
       '_answerState': _answerState.name,
@@ -412,33 +338,13 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
       '_lives': _lives
     };
   }
-
-  @override
-  void applyPuzzleSession(Map<String, dynamic> state) {
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
     _invalidateRoundCallbacks();
     _roundCompleted = false;
-    currentPuzzle = (state["currentPuzzle"] == null
-        ? null
-        : PerspectivePuzzle.fromJson(
-            Map<String, dynamic>.from(state["currentPuzzle"] as Map)));
-    _perspectivesToSolve = (state["_perspectivesToSolve"] as List)
-        .map((v0) => v0 as String)
-        .toList();
+    currentPuzzle = (state["currentPuzzle"] == null ? null : PerspectivePuzzle.fromJson(Map<String, dynamic>.from(state["currentPuzzle"] as Map)));
+    _perspectivesToSolve = (state["_perspectivesToSolve"] as List).map((v0) => v0 as String).toList();
     _currentTurnIndex = state["_currentTurnIndex"] as int;
-    _answerChoices = (state["_answerChoices"] as List)
-        .map((v0) => (v0 as List)
-            .map((v1) => (v1 as List)
-                .map((v2) => (v2 == null
-                    ? null
-                    : (
-                        x: v2['x'] as int,
-                        y: v2['y'] as int,
-                        z: v2['z'] as int,
-                        color: Color(v2['color'] as int)
-                      )))
-                .toList())
-            .toList())
-        .toList();
+    _answerChoices = (state["_answerChoices"] as List).map((v0) => (v0 as List).map((v1) => (v1 as List).map((v2) => (v2 == null ? null : (x: v2['x'] as int, y: v2['y'] as int, z: v2['z'] as int, color: Color(v2['color'] as int)))).toList()).toList()).toList();
     _correctAnswerIndex = state["_correctAnswerIndex"] as int;
     _correctAttempts = state["_correctAttempts"] as int;
     _totalAttempts = state["_totalAttempts"] as int;
@@ -461,7 +367,6 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
     _createSceneObject(currentPuzzle!.structure);
     _resumeAnswerFeedback();
   }
-
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
@@ -485,7 +390,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
   int _correctAttempts = 0;
   int _totalAttempts = 0;
   int _lives = 3; // The player gets 3 chances for the whole puzzle.
-
+  
   double _cameraRotationY = 0.0;
   static const double _maxRotation = 0.26; // ~15 degrees
   double? _lastPanX;
@@ -493,11 +398,8 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
   @override
   void initState() {
     super.initState();
-    _successController = AnimationController(
-        duration: const Duration(milliseconds: 800), vsync: this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _restoreOrGenerate();
-    });
+    _successController = AnimationController(duration: const Duration(milliseconds: 800), vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
   }
 
   @override
@@ -515,13 +417,12 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
     _roundCompleted = false;
     beginPuzzleSession();
     setState(() => _isGenerating = true);
-
-    final puzzle = await compute(PerspectivePuzzle.generate,
-        {'grade': widget.grade, 'level': widget.level});
-
+    
+    final puzzle = await compute(PerspectivePuzzle.generate, {'grade': widget.grade, 'level': widget.level});
+    
     // Safety check before calling setState
     if (mounted && epoch == _roundEpoch) {
-      setState(() {
+        setState(() {
         currentPuzzle = puzzle;
         _perspectivesToSolve = ['Front', 'Right', 'Back', 'Left']..shuffle();
         _currentTurnIndex = 0;
@@ -532,9 +433,9 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
         _lives = 3;
         _createSceneObject(puzzle.structure);
         _setupTurn();
-      });
+        });
     }
-  }
+    }
 
   void _setupTurn() {
     if (currentPuzzle == null) return;
@@ -549,11 +450,11 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
     });
     _updateArrowForPerspective(currentPerspective);
   }
-
+  
   void _updateArrowForPerspective(String perspective) {
     if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     if (_scene == null) return;
-
+    
     _arrowObject.children.clear();
     if (_scene!.world.children.contains(_arrowObject)) {
       _scene!.world.remove(_arrowObject);
@@ -563,23 +464,23 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
     final arrowColor = perspectiveInfo['color'] as Color;
     final start = perspectiveInfo['arrowStart'] as cube.Vector3;
     final end = perspectiveInfo['arrowEnd'] as cube.Vector3;
-
+    
     final newArrow = _Arrow3D.createArrow(start, end, arrowColor);
     _arrowObject.add(newArrow);
-
+    
     _scene!.world.add(_arrowObject);
     _scene!.update();
   }
-
+  
   void _updateCameraPosition() {
     if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     if (_scene == null) return;
-
+    
     final basePos = _VisualConfig.baseCameraPosition;
-
+    
     final cosY = math.cos(_cameraRotationY);
     final sinY = math.sin(_cameraRotationY);
-
+    
     final newX = basePos.x * cosY - basePos.z * sinY;
     final newZ = basePos.x * sinY + basePos.z * cosY;
 
@@ -587,69 +488,58 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
     _scene!.camera.target.setFrom(_VisualConfig.cameraTarget);
     _scene!.update();
   }
-
-  List<PerspectiveView> _generateDecoys(
-      PerspectiveView correctView, int count) {
+  
+  List<PerspectiveView> _generateDecoys(PerspectiveView correctView, int count) {
     final decoys = <PerspectiveView>{};
     final random = math.Random();
     var guard = 0;
     while (decoys.length < count && guard++ < 500) {
-      var newView = correctView.map(List<Block?>.from).toList();
-      int modType = random.nextInt(3);
-      if (modType == 0 && newView.isNotEmpty && newView[0].length > 1) {
-        int col1 = random.nextInt(newView[0].length);
-        int col2 = random.nextInt(newView[0].length);
-        if (col1 == col2) continue;
-        for (var row in newView) {
-          var temp = row[col1];
-          row[col1] = row[col2];
-          row[col2] = temp;
-        }
-      } else if (modType == 1) {
-        var blocks = newView.expand((row) => row).nonNulls.toList();
-        if (blocks.isNotEmpty) {
-          var blockToRemove = blocks[random.nextInt(blocks.length)];
-          for (var i = 0; i < newView.length; i++) {
-            for (var j = 0; j < newView[i].length; j++) {
-              if (newView[i][j] == blockToRemove) {
-                newView[i][j] = null;
-              }
+        var newView = correctView.map(List<Block?>.from).toList();
+        int modType = random.nextInt(3);
+        if (modType == 0 && newView.isNotEmpty && newView[0].length > 1) {
+            int col1 = random.nextInt(newView[0].length);
+            int col2 = random.nextInt(newView[0].length);
+            if(col1 == col2) continue;
+            for(var row in newView) {
+                var temp = row[col1]; row[col1] = row[col2]; row[col2] = temp;
             }
-          }
-        }
-      } else {
-        var blocks = newView.expand((row) => row).nonNulls.toList();
-        if (blocks.isNotEmpty) {
-          var blockToChange = blocks[random.nextInt(blocks.length)];
-          var newColor = _VisualConfig
-              .blockColors[random.nextInt(_VisualConfig.blockColors.length)];
-          for (var i = 0; i < newView.length; i++) {
-            for (var j = 0; j < newView[i].length; j++) {
-              if (newView[i][j] == blockToChange) {
-                newView[i][j] = (
-                  x: blockToChange.x,
-                  y: blockToChange.y,
-                  z: blockToChange.z,
-                  color: newColor
-                );
-              }
+        } else if (modType == 1) {
+            var blocks = newView.expand((row) => row).nonNulls.toList();
+            if (blocks.isNotEmpty) {
+                var blockToRemove = blocks[random.nextInt(blocks.length)];
+                for (var i = 0; i < newView.length; i++) {
+                    for (var j = 0; j < newView[i].length; j++) {
+                        if (newView[i][j] == blockToRemove) {
+                            newView[i][j] = null;
+                        }
+                    }
+                }
             }
-          }
+        } else {
+            var blocks = newView.expand((row) => row).nonNulls.toList();
+             if (blocks.isNotEmpty) {
+                var blockToChange = blocks[random.nextInt(blocks.length)];
+                var newColor = _VisualConfig.blockColors[random.nextInt(_VisualConfig.blockColors.length)];
+                for (var i = 0; i < newView.length; i++) {
+                    for (var j = 0; j < newView[i].length; j++) {
+                        if (newView[i][j] == blockToChange) {
+                            newView[i][j] = (x: blockToChange.x, y: blockToChange.y, z: blockToChange.z, color: newColor);
+                        }
+                    }
+                }
+            }
         }
-      }
-      if (!const DeepCollectionEquality().equals(newView, correctView)) {
-        decoys.add(newView);
-      }
+        if (!const DeepCollectionEquality().equals(newView, correctView)) {
+            decoys.add(newView);
+        }
     }
     return decoys.toList();
   }
 
   void _selectAnswer(int index) {
-    if (_roundCompleted ||
-        _isGenerating ||
+    if (_roundCompleted || _isGenerating ||
         _answerState != AnswerState.unanswered ||
-        index < 0 ||
-        index >= _answerChoices.length) {
+        index < 0 || index >= _answerChoices.length) {
       return;
     }
 
@@ -688,8 +578,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
     _roundTimer?.cancel();
     final epoch = _roundEpoch;
     _roundTimer = Timer(delay, () {
-      if (!mounted || epoch != _roundEpoch || _roundCompleted || _isGenerating)
-        return;
+      if (!mounted || epoch != _roundEpoch || _roundCompleted || _isGenerating) return;
       _roundTimer = null;
       action();
     });
@@ -711,18 +600,17 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
       });
     }
   }
-
+  
   void _nextTurn() {
-    if (!mounted || _roundCompleted || _answerState != AnswerState.correct)
-      return;
+    if (!mounted || _roundCompleted || _answerState != AnswerState.correct) return;
 
     if (_currentTurnIndex < _perspectivesToSolve.length - 1) {
-      setState(() => _currentTurnIndex++);
-      _setupTurn();
+        setState(() => _currentTurnIndex++);
+        _setupTurn();
     } else {
-      _handleSuccess();
+        _handleSuccess();
     }
-  }
+    }
 
   void _handleSuccess() {
     if (!mounted || _roundCompleted) return;
@@ -734,27 +622,27 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
     int difficultyBonus = (currentPuzzle?.difficulty ?? 1) * 100;
     // Penalize for incorrect guesses.
     int mistakes = _totalAttempts - _correctAttempts;
-    int penalty = mistakes * 50;
-    int finalScore =
-        (baseScore + difficultyBonus - penalty).clamp(50, 1000).toInt();
+    int penalty = mistakes * 50; 
+    int finalScore = (baseScore + difficultyBonus - penalty).clamp(50, 1000).toInt();
 
     // 2. Make the single, unified call to the GameProvider.
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-          skillLevel: widget.grade,
-          gameType: 'perspective_puzzle',
-          difficulty: currentPuzzle?.difficulty ?? 1,
-          score: finalScore,
-          // Every view identified first time = flawless; each extra guess costs.
-          performance: Perf.fromRatio(_correctAttempts, _totalAttempts),
-        ));
-
+      skillLevel: widget.grade,
+      gameType: 'perspective_puzzle',
+      difficulty: currentPuzzle?.difficulty ?? 1,
+      score: finalScore,
+      // Every view identified first time = flawless; each extra guess costs.
+      performance: Perf.fromRatio(_correctAttempts, _totalAttempts),
+    ));
+    
     // 3. Trigger UI feedback.
     _successController.forward(from: 0.0);
     showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _buildSuccessDialog(finalScore));
+      context: context, 
+      barrierDismissible: false, 
+      builder: (_) => _buildSuccessDialog(finalScore)
+    );
   }
 
   void _handleFailure() {
@@ -767,53 +655,49 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
     // Report the failure to the GameProvider.
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-          skillLevel: widget.grade,
-          gameType: 'perspective_puzzle',
-          difficulty: currentPuzzle?.difficulty ?? 1,
-          progress: _perspectivesToSolve.isEmpty
-              ? 0.0
-              : _currentTurnIndex / _perspectivesToSolve.length,
-        ));
+      skillLevel: widget.grade,
+      gameType: 'perspective_puzzle',
+      difficulty: currentPuzzle?.difficulty ?? 1,
+      progress: _perspectivesToSolve.isEmpty
+          ? 0.0
+          : _currentTurnIndex / _perspectivesToSolve.length,
+    ));
 
     // Show a failure dialog.
     showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => AlertDialog(
-              backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.9),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  side:
-                      const BorderSide(color: SpaceTheme.rocketRed, width: 2)),
-              title: Text(S.of(context)!.perspectivePuzzleLoseTitle,
-                  style: SpaceTheme.headlineStyle),
-              content: Text(S.of(context)!.perspectivePuzzleLoseDesc,
-                  style: SpaceTheme.bodyStyle),
-              actions: [
-                TextButton(
-                  autofocus: true,
-                  child: Text(S.of(context)!.tryAgain),
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    _generatePuzzle();
-                  },
-                ),
-              ],
-            ));
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.9),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: SpaceTheme.rocketRed, width: 2)
+        ),
+        title: Text(S.of(context)!.perspectivePuzzleLoseTitle,
+            style: SpaceTheme.headlineStyle),
+        content: Text(S.of(context)!.perspectivePuzzleLoseDesc,
+            style: SpaceTheme.bodyStyle),
+        actions: [
+          TextButton(
+            autofocus: true,
+            child: Text(S.of(context)!.tryAgain),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _generatePuzzle();
+            },
+          ),
+        ],
+      )
+    );
   }
-
+  
   String _getTranslatedPerspective(BuildContext context, String perspective) {
     switch (perspective) {
-      case 'Front':
-        return S.of(context)!.perspectiveFront;
-      case 'Back':
-        return S.of(context)!.perspectiveBack;
-      case 'Left':
-        return S.of(context)!.perspectiveLeft;
-      case 'Right':
-        return S.of(context)!.perspectiveRight;
-      default:
-        return perspective.toUpperCase();
+        case 'Front': return S.of(context)!.perspectiveFront;
+        case 'Back': return S.of(context)!.perspectiveBack;
+        case 'Left': return S.of(context)!.perspectiveLeft;
+        case 'Right': return S.of(context)!.perspectiveRight;
+        default: return perspective.toUpperCase();
     }
   }
 
@@ -821,7 +705,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
     if (_lastPanX != null) {
       final deltaX = details.globalPosition.dx - _lastPanX!;
       final rotationDelta = deltaX * 0.005; // Sensitivity
-
+      
       setState(() {
         _cameraRotationY -= rotationDelta; // Invert for more natural drag
         _cameraRotationY = _cameraRotationY.clamp(-_maxRotation, _maxRotation);
@@ -837,8 +721,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady)
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (_isGenerating || currentPuzzle == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -847,16 +730,11 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
         child: SafeArea(
           child: Column(
             children: [
-              GameUI(
-                  title: S.of(context)!.perspectivePuzzleGameTitle,
-                  level: widget.level,
-                  onBack: () => Navigator.of(context).pop()),
+              GameUI(title: S.of(context)!.perspectivePuzzleGameTitle, level: widget.level, onBack: () => Navigator.of(context).pop()),
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    return constraints.maxWidth > 700
-                        ? _buildWideLayout()
-                        : _buildTallLayout();
+                    return constraints.maxWidth > 700 ? _buildWideLayout() : _buildTallLayout();
                   },
                 ),
               ),
@@ -872,9 +750,9 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
       padding: const EdgeInsets.all(16.0),
       child: Row(
         children: [
-          Expanded(flex: 5, child: _build3DView()),
+          Expanded( flex: 5, child: _build3DView() ),
           const SizedBox(width: 20),
-          Expanded(flex: 6, child: _buildInteractionArea()),
+          Expanded( flex: 6, child: _buildInteractionArea() ),
         ],
       ),
     );
@@ -885,9 +763,9 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          Expanded(flex: 4, child: _build3DView()),
+          Expanded( flex: 4, child: _build3DView() ),
           const SizedBox(height: 16),
-          Expanded(flex: 5, child: _buildInteractionArea()),
+          Expanded( flex: 5, child: _buildInteractionArea() ),
         ],
       ),
     );
@@ -896,7 +774,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
   Widget _build3DView() {
     final currentPerspective = _perspectivesToSolve[_currentTurnIndex];
     final perspectiveInfo = _VisualConfig.perspectiveData[currentPerspective]!;
-
+    
     return Container(
       decoration: SpaceTheme.cardDecoration,
       child: ClipRRect(
@@ -911,10 +789,10 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
                 onSceneCreated: (s) {
                   _scene = s;
                   _scene!.world.add(_sceneObject);
-
+                  
                   _updateCameraPosition();
                   _scene!.light.position.setFrom(_VisualConfig.lightPosition);
-
+                  
                   _updateArrowForPerspective(currentPerspective);
                 },
               ),
@@ -925,23 +803,18 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
               right: 0,
               child: Center(
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.8),
                     borderRadius: BorderRadius.circular(25),
-                    border:
-                        Border.all(color: perspectiveInfo['color'], width: 3),
+                    border: Border.all(color: perspectiveInfo['color'], width: 3),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                            color: perspectiveInfo['color'],
-                            shape: BoxShape.circle),
+                        width: 8, height: 8,
+                        decoration: BoxDecoration( color: perspectiveInfo['color'], shape: BoxShape.circle ),
                       ),
                       const SizedBox(width: 12),
                       Text(
@@ -955,11 +828,8 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
                       ),
                       const SizedBox(width: 12),
                       Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                            color: perspectiveInfo['color'],
-                            shape: BoxShape.circle),
+                        width: 8, height: 8,
+                        decoration: BoxDecoration( color: perspectiveInfo['color'], shape: BoxShape.circle ),
                       ),
                     ],
                   ),
@@ -978,8 +848,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.touch_app,
-                        color: Colors.white54, size: 16),
+                    const Icon(Icons.touch_app, color: Colors.white54, size: 16),
                     const SizedBox(width: 4),
                     Text(
                       S.of(context)!.perspectiveDragHint,
@@ -999,9 +868,8 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
   }
 
   Widget _buildInteractionArea() {
-    final perspective = _getTranslatedPerspective(
-        context, _perspectivesToSolve[_currentTurnIndex]);
-
+    final perspective = _getTranslatedPerspective(context, _perspectivesToSolve[_currentTurnIndex]);
+    
     return Column(
       children: [
         Padding(
@@ -1021,7 +889,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
               final cellWidth = availableWidth / 2;
               final cellHeight = availableHeight / 2;
               final cellSize = math.min(cellWidth, cellHeight);
-
+              
               return Wrap(
                 spacing: spacing,
                 runSpacing: spacing,
@@ -1030,20 +898,16 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
                 children: List.generate(_answerChoices.length, (index) {
                   Border? border;
                   if (_selectedAnswerIndex == index) {
-                    border = Border.all(
-                        color: _answerState == AnswerState.correct
-                            ? SpaceTheme.alienGreen
-                            : _answerState == AnswerState.incorrect
-                                ? SpaceTheme.rocketRed
-                                : SpaceTheme.starYellow,
-                        width: 4);
+                      border = Border.all(
+                          color: _answerState == AnswerState.correct ? SpaceTheme.alienGreen : 
+                                 _answerState == AnswerState.incorrect ? SpaceTheme.rocketRed :
+                                 SpaceTheme.starYellow,
+                          width: 4);
                   }
-
+                  
                   final isSelected = _selectedAnswerIndex == index;
-                  final isCorrect =
-                      isSelected && _answerState == AnswerState.correct;
-                  final isWrong =
-                      isSelected && _answerState == AnswerState.incorrect;
+                  final isCorrect = isSelected && _answerState == AnswerState.correct;
+                  final isWrong = isSelected && _answerState == AnswerState.incorrect;
                   return Semantics(
                     label: S.of(context)!.a11yAnswerChoice(index + 1),
                     button: true,
@@ -1057,8 +921,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
                           color: SpaceTheme.deepSpace,
-                          border: border ??
-                              Border.all(color: Colors.white24, width: 1),
+                          border: border ?? Border.all(color: Colors.white24, width: 1),
                         ),
                         child: Stack(
                           alignment: Alignment.center,
@@ -1073,15 +936,13 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
                               const Positioned(
                                 top: 4,
                                 right: 4,
-                                child: Icon(Icons.check_circle,
-                                    color: SpaceTheme.alienGreen, size: 28),
+                                child: Icon(Icons.check_circle, color: SpaceTheme.alienGreen, size: 28),
                               )
                             else if (isWrong)
                               const Positioned(
                                 top: 4,
                                 right: 4,
-                                child: Icon(Icons.cancel,
-                                    color: SpaceTheme.rocketRed, size: 28),
+                                child: Icon(Icons.cancel, color: SpaceTheme.rocketRed, size: 28),
                               ),
                           ],
                         ),
@@ -1099,51 +960,42 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
 
   void _createSceneObject(Set<Block> blocks) {
     if (!mounted) return; // safety check
-
+    
     _sceneObject.children.clear();
     if (blocks.isEmpty || currentPuzzle == null) return;
-
+    
     final size = (currentPuzzle!.gridSize - 1) / 2.0;
     final height = (currentPuzzle!.maxHeight) / 2.0;
-
+    
     for (final block in blocks) {
-      final material = cube.Material();
-      material.diffuse.setValues(block.color.r, block.color.g, block.color.b);
-      _sceneObject.add(cube.Object(
-          position:
-              cube.Vector3(block.x - size, block.y - height, block.z - size),
-          mesh: cube.Mesh(
-              vertices: _CubeGeometry.vertices,
-              indices: _CubeGeometry.indices,
-              material: material)));
+        final material = cube.Material();
+        material.diffuse.setValues(block.color.r, block.color.g, block.color.b);
+        _sceneObject.add(cube.Object(
+        position: cube.Vector3(block.x - size, block.y - height, block.z - size),
+        mesh: cube.Mesh(
+            vertices: _CubeGeometry.vertices, 
+            indices: _CubeGeometry.indices,
+            material: material
+        )
+        ));
     }
-
+    
     // Only update scene if mounted
     if (mounted && _scene != null) {
-      _scene!.update();
+        _scene!.update();
     }
-  }
-
+    }
+  
   Widget _buildSuccessDialog(int bonusScore) {
-    return ScaleTransition(
-      scale:
-          CurvedAnimation(parent: _successController, curve: Curves.elasticOut),
-      child: AlertDialog(
-        scrollable: true,
+     return ScaleTransition(
+      scale: CurvedAnimation(parent: _successController, curve: Curves.elasticOut),
+      child: AlertDialog(scrollable: true,
         backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.9),
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
             side: const BorderSide(color: SpaceTheme.alienGreen, width: 2)),
-        title: Text(S.of(context)!.perspectivePuzzleWinTitle,
-            style: SpaceTheme.headlineStyle),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          RoundSummary(gameKey: 'perspective_puzzle'),
-          Text(
-            S.of(context)!.perspectivePuzzleWinDesc(bonusScore),
-            style: SpaceTheme.bodyStyle,
-            textAlign: TextAlign.center,
-          )
-        ]),
+        title: Text(S.of(context)!.perspectivePuzzleWinTitle, style: SpaceTheme.headlineStyle),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [RoundSummary(gameKey: 'perspective_puzzle'), Text(S.of(context)!.perspectivePuzzleWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center,)]),
         actions: [
           TextButton(
             autofocus: true,
@@ -1162,25 +1014,24 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame>
 class PerspectiveGridWidget extends StatelessWidget {
   final PerspectiveView view;
   final double maxSize;
-
+  
   const PerspectiveGridWidget({
-    super.key,
-    required this.view,
+    super.key, 
+    required this.view, 
     required this.maxSize,
   });
 
   @override
   Widget build(BuildContext context) {
     if (view.isEmpty) return const SizedBox.shrink();
-
+    
     final maxRowLength = view.map((row) => row.length).reduce(math.max);
     if (maxRowLength == 0) return const SizedBox.shrink();
-
-    final cellSize =
-        math.min(maxSize / maxRowLength, maxSize / view.length) * 0.85;
+    
+    final cellSize = math.min(maxSize / maxRowLength, maxSize / view.length) * 0.85;
     final gridWidth = maxRowLength * cellSize;
     final gridHeight = view.length * cellSize;
-
+    
     return SizedBox(
       width: gridWidth,
       height: gridHeight,
@@ -1195,14 +1046,14 @@ class PerspectiveGridWidget extends StatelessWidget {
                 if (col < row.length) {
                   block = row[col];
                 }
-
+                
                 return Expanded(
                   child: Container(
                     margin: const EdgeInsets.all(0.5),
                     decoration: BoxDecoration(
                       color: block?.color ?? Colors.transparent,
                       borderRadius: BorderRadius.circular(2),
-                      border: block == null
+                      border: block == null 
                           ? Border.all(color: Colors.white12, width: 0.5)
                           : Border.all(color: Colors.white24, width: 0.5),
                     ),

@@ -162,8 +162,7 @@ void main() {
             final r = eq.cells[i].$1;
             final c = eq.cells[i].$2;
             expect(puzzle.grid[r][c], eq.equation[i].toString(),
-                reason:
-                    'grid[$r][$c] should be "${eq.equation[i]}" for equation "${eq.equation}"');
+                reason: 'grid[$r][$c] should be "${eq.equation[i]}" for equation "${eq.equation}"');
           }
         }
       }
@@ -200,13 +199,12 @@ void main() {
       );
       // At least some equations should be non-cardinal
       // (can't guarantee every puzzle has diagonals, but most should)
-      final hasDiagonal = puzzle.placedEquations
-          .any((eq) => eq.direction.dr != 0 && eq.direction.dc != 0);
+      final hasDiagonal = puzzle.placedEquations.any(
+          (eq) => eq.direction.dr != 0 && eq.direction.dc != 0);
       // This is probabilistic -- just log it
       if (!hasDiagonal) {
         // ignore: avoid_print
-        print(
-            'Note: no diagonal equations found (seed=42), this is rare but possible');
+        print('Note: no diagonal equations found (seed=42), this is rare but possible');
       }
     });
   });

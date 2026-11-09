@@ -44,9 +44,7 @@ bool _solutionConsistent(List<int> s) {
   final a = s[3];
   final b = s[4];
   final c = s[5];
-  return leftPanel == a * b &&
-      rightPanel == b * c &&
-      top == leftPanel + rightPanel;
+  return leftPanel == a * b && rightPanel == b * c && top == leftPanel + rightPanel;
 }
 
 void main() {
@@ -57,21 +55,18 @@ void main() {
       for (var grade = 1; grade <= 4; grade++) {
         for (var level = 1; level <= 10; level++) {
           for (var iter = 0; iter < 3; iter++) {
-            final puzzle =
-                SolarPanelPuzzle.generate(_args(grade: grade, level: level));
+            final puzzle = SolarPanelPuzzle.generate(_args(grade: grade, level: level));
 
             // fullSolution must be a 6-cell panel obeying the relation.
             expect(puzzle.fullSolution.length, 6,
-                reason:
-                    'grade=$grade level=$level: solution must have 6 cells');
+                reason: 'grade=$grade level=$level: solution must have 6 cells');
             expect(_solutionConsistent(puzzle.fullSolution), isTrue,
                 reason:
                     'grade=$grade level=$level: ${puzzle.fullSolution} must satisfy panel relation');
 
             // baseNumbers are the [A, B, C] tail of the solution.
             expect(puzzle.baseNumbers, puzzle.fullSolution.sublist(3, 6),
-                reason:
-                    'grade=$grade level=$level: baseNumbers == solution[3..6)');
+                reason: 'grade=$grade level=$level: baseNumbers == solution[3..6)');
 
             // Hidden-cell count is clamped to [2, 5] and at least one base
             // number (cell 3/4/5) is always hidden.
@@ -79,22 +74,18 @@ void main() {
                 reason: 'grade=$grade level=$level: hidden count clamped 2..5');
             expect(puzzle.hiddenCells.every((c) => c >= 0 && c < 6), isTrue,
                 reason: 'grade=$grade level=$level: hidden cells in 0..5');
-            expect(puzzle.hiddenCells.any((c) => c == 3 || c == 4 || c == 5),
-                isTrue,
-                reason:
-                    'grade=$grade level=$level: at least one base number hidden');
+            expect(puzzle.hiddenCells.any((c) => c == 3 || c == 4 || c == 5), isTrue,
+                reason: 'grade=$grade level=$level: at least one base number hidden');
 
             // Visible values cover exactly the non-hidden cells and match the
             // true solution.
             for (var i = 0; i < 6; i++) {
               if (puzzle.hiddenCells.contains(i)) {
                 expect(puzzle.visibleValues.containsKey(i), isFalse,
-                    reason:
-                        'grade=$grade level=$level: hidden cell $i is not visible');
+                    reason: 'grade=$grade level=$level: hidden cell $i is not visible');
               } else {
                 expect(puzzle.visibleValues[i], puzzle.fullSolution[i],
-                    reason:
-                        'grade=$grade level=$level: visible cell $i matches solution');
+                    reason: 'grade=$grade level=$level: visible cell $i matches solution');
               }
             }
           }
@@ -121,8 +112,7 @@ void main() {
   });
 
   group('getAnswerIndexForCell', () {
-    test('maps hidden cells to sorted answer slots and rejects visible cells',
-        () {
+    test('maps hidden cells to sorted answer slots and rejects visible cells', () {
       final puzzle = SolarPanelPuzzle(
         baseNumbers: const [3, 2, 4],
         hiddenCells: const {1, 4, 3}, // intentionally unsorted
@@ -227,8 +217,6 @@ void main() {
 /// Matcher for an Offset close to [expected] within a small tolerance.
 Matcher _offsetCloseTo(Offset expected, [double tol = 0.001]) =>
     predicate<Offset>(
-      (o) =>
-          (o.dx - expected.dx).abs() <= tol &&
-          (o.dy - expected.dy).abs() <= tol,
+      (o) => (o.dx - expected.dx).abs() <= tol && (o.dy - expected.dy).abs() <= tol,
       'Offset close to $expected',
     );

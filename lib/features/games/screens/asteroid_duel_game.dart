@@ -27,19 +27,12 @@ class AsteroidDuelGame extends StatefulWidget {
 }
 
 class _AsteroidDuelGameState extends State<AsteroidDuelGame>
-    with
-        TickerProviderStateMixin,
-        GameAnimationsMixin<AsteroidDuelGame>,
-        PuzzleSessionMixin<AsteroidDuelGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<AsteroidDuelGame>, PuzzleSessionMixin<AsteroidDuelGame> {
   bool _sessionReady = false;
-  @override
-  String get sessionGameKey => 'asteroid_duel';
-  @override
-  int get sessionGrade => widget.grade;
-  @override
-  int get sessionLevel => widget.level;
-  @override
-  Map<String, dynamic>? capturePuzzleSession() {
+  @override String get sessionGameKey => 'asteroid_duel';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
     if (!_sessionReady || _isGenerating) return null;
     return {
       '_totalAsteroids': _totalAsteroids,
@@ -52,30 +45,17 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
       '_selectedAsteroids': _selectedAsteroids.map((v0) => v0).toList()
     };
   }
-
-  @override
-  void applyPuzzleSession(Map<String, dynamic> state) {
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
     _totalAsteroids = state["_totalAsteroids"] as int;
     _remaining = state["_remaining"] as int;
     _maxPerTurn = state["_maxPerTurn"] as int;
     _isPlayerTurn = state["_isPlayerTurn"] as bool;
     _winningPositions = state["_winningPositions"] as int;
     _optimalMoves = state["_optimalMoves"] as int;
-    _moveHistory
-      ..clear()
-      ..addAll((state["_moveHistory"] as List)
-          .map((v0) =>
-              _MoveRecord.fromJson(Map<String, dynamic>.from(v0 as Map)))
-          .toList());
-    _selectedAsteroids
-      ..clear()
-      ..addAll(
-          (state["_selectedAsteroids"] as List).map((v0) => v0 as int).toSet());
-    _isGenerating = false;
-    _gameOver = false;
-    if (!_isPlayerTurn) _aiTurn();
+    _moveHistory..clear()..addAll((state["_moveHistory"] as List).map((v0) => _MoveRecord.fromJson(Map<String, dynamic>.from(v0 as Map))).toList());
+    _selectedAsteroids..clear()..addAll((state["_selectedAsteroids"] as List).map((v0) => v0 as int).toSet());
+    _isGenerating = false; _gameOver = false; if (!_isPlayerTurn) _aiTurn();
   }
-
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
@@ -104,6 +84,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
   // Selection state for tap-to-select
   final Set<int> _selectedAsteroids = {};
 
+
   final _random = math.Random();
 
   @override
@@ -111,8 +92,9 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
     super.initState();
     initGameAnimations();
 
-    pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-        CurvedAnimation(parent: pulseController, curve: Curves.easeInOut));
+    pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
+        .animate(CurvedAnimation(parent: pulseController, curve: Curves.easeInOut));
+
 
     _removeController = AnimationController(
       duration: const Duration(milliseconds: 400),
@@ -122,8 +104,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
-            gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -160,11 +141,10 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
 
     final grade = currentDifficulty!.grade;
 
-    final generated =
-        generateAsteroidDuel(grade, widget.level, random: _random);
-    _maxPerTurn = generated['_maxPerTurn'] as int;
-    _remaining = generated['_remaining'] as int;
-    _totalAsteroids = generated['_totalAsteroids'] as int;
+    final generated=generateAsteroidDuel(grade, widget.level, random: _random);
+_maxPerTurn=generated['_maxPerTurn'] as int;
+_remaining=generated['_remaining'] as int;
+_totalAsteroids=generated['_totalAsteroids'] as int;
 
     if (mounted) {
       setState(() {
@@ -210,8 +190,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
     setState(() {
       _remaining -= count;
       _selectedAsteroids.clear();
-      _moveHistory.add(_MoveRecord(
-          isPlayer: true, count: count, remainingAfter: _remaining));
+      _moveHistory.add(_MoveRecord(isPlayer: true, count: count, remainingAfter: _remaining));
       _isPlayerTurn = false;
     });
 
@@ -261,8 +240,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
 
     setState(() {
       _remaining -= aiTake;
-      _moveHistory.add(_MoveRecord(
-          isPlayer: false, count: aiTake, remainingAfter: _remaining));
+      _moveHistory.add(_MoveRecord(isPlayer: false, count: aiTake, remainingAfter: _remaining));
       _isPlayerTurn = true;
       _isAiThinking = false;
     });
@@ -284,12 +262,12 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-          skillLevel: widget.grade,
-          gameType: 'asteroid_duel',
-          difficulty: widget.level,
-          score: totalScore,
-          performance: Perf.fromRatio(_optimalMoves, _winningPositions),
-        ));
+      skillLevel: widget.grade,
+      gameType: 'asteroid_duel',
+      difficulty: widget.level,
+      score: totalScore,
+      performance: Perf.fromRatio(_optimalMoves, _winningPositions),
+    ));
 
     successController.forward(from: 0.0);
 
@@ -309,10 +287,10 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-          skillLevel: widget.grade,
-          gameType: 'asteroid_duel',
-          difficulty: widget.level,
-        ));
+      skillLevel: widget.grade,
+      gameType: 'asteroid_duel',
+      difficulty: widget.level,
+    ));
 
     if (mounted) {
       showDialog(
@@ -325,8 +303,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady)
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_isGenerating || currentDifficulty == null) {
@@ -362,13 +339,11 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
                 decoration: BoxDecoration(
                   color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: SpaceTheme.starYellow.withValues(alpha: 0.4)),
+                  border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.4)),
                 ),
                 child: Text(
                   s.asteroidDuelInstructions(_maxPerTurn),
-                  style: SpaceTheme.bodyStyle
-                      .copyWith(fontSize: 15, color: SpaceTheme.starYellow),
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 15, color: SpaceTheme.starYellow),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -488,8 +463,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
                   color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: SpaceTheme.nebulaPurple
-                        .withValues(alpha: glowAnimation.value * 0.7),
+                    color: SpaceTheme.nebulaPurple.withValues(alpha: glowAnimation.value * 0.7),
                   ),
                 ),
                 child: Center(
@@ -512,38 +486,28 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
                             shape: BoxShape.circle,
                             gradient: isSelected
                                 ? const LinearGradient(
-                                    colors: [
-                                      SpaceTheme.starYellow,
-                                      Color(0xFFFF6B35)
-                                    ],
+                                    colors: [SpaceTheme.starYellow, Color(0xFFFF6B35)],
                                   )
                                 : const LinearGradient(
-                                    colors: [
-                                      Color(0xFFE63946),
-                                      Color(0xFFFF6B35)
-                                    ],
+                                    colors: [Color(0xFFE63946), Color(0xFFFF6B35)],
                                   ),
                             boxShadow: [
                               BoxShadow(
                                 color: isSelected
-                                    ? SpaceTheme.starYellow
-                                        .withValues(alpha: 0.8)
-                                    : const Color(0xFFE63946)
-                                        .withValues(alpha: 0.4),
+                                    ? SpaceTheme.starYellow.withValues(alpha: 0.8)
+                                    : const Color(0xFFE63946).withValues(alpha: 0.4),
                                 blurRadius: isSelected ? 12 : 4,
                                 spreadRadius: isSelected ? 2 : 0,
                               ),
                             ],
                             border: isSelected
-                                ? Border.all(
-                                    color: SpaceTheme.starYellow, width: 2)
+                                ? Border.all(color: SpaceTheme.starYellow, width: 2)
                                 : null,
                           ),
                           child: Center(
                             child: CustomPaint(
                               size: Size(cellSize * 0.6, cellSize * 0.6),
-                              painter: _AsteroidPainter(
-                                  isSelected: isSelected, seed: i * 7 + 13),
+                              painter: _AsteroidPainter(isSelected: isSelected, seed: i * 7 + 13),
                             ),
                           ),
                         ),
@@ -576,8 +540,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
   }
 
   Widget _buildActionButtons() {
-    if (_gameOver || !_isPlayerTurn || _isAiThinking)
-      return const SizedBox.shrink();
+    if (_gameOver || !_isPlayerTurn || _isAiThinking) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -593,19 +556,14 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
                     onPressed: _confirmSelection,
                     icon: const Icon(Icons.rocket_launch, size: 20),
                     label: Text(
-                      S
-                          .of(context)!
-                          .asteroidDuelMine(_selectedAsteroids.length),
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold),
+                      S.of(context)!.asteroidDuelMine(_selectedAsteroids.length),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: SpaceTheme.starYellow,
                       foregroundColor: SpaceTheme.deepSpace,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                 );
@@ -614,11 +572,8 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
             const SizedBox(height: 8),
           ],
           Text(
-            S
-                .of(context)!
-                .asteroidDuelTapToSelect(math.min(_maxPerTurn, _remaining)),
-            style: SpaceTheme.bodyStyle
-                .copyWith(fontSize: 12, color: Colors.white54),
+            S.of(context)!.asteroidDuelTapToSelect(math.min(_maxPerTurn, _remaining)),
+            style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white54),
           ),
           const SizedBox(height: 8),
           // Quick-select buttons as alternative
@@ -630,16 +585,11 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
                 onPressed: () => _playerTake(count),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: SpaceTheme.rocketRed,
-                  side: BorderSide(
-                      color: SpaceTheme.rocketRed.withValues(alpha: 0.6)),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                  side: BorderSide(color: SpaceTheme.rocketRed.withValues(alpha: 0.6)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: Text('$count',
-                    style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.bold)),
+                child: Text('$count', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
               );
             }),
           ),
@@ -671,8 +621,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
                   : MainAxisAlignment.end,
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: move.isPlayer
                         ? const Color(0xFF06FFA5).withValues(alpha: 0.2)
@@ -708,12 +657,10 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'asteroid_duel'),
-                  const Icon(Icons.sports_kabaddi,
-                      size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.sports_kabaddi, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.asteroidDuelWinTitle,
-                      style: SpaceTheme.headlineStyle,
-                      textAlign: TextAlign.center),
+                      style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(s.asteroidDuelWinDesc(totalScore),
                       style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
@@ -759,9 +706,8 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            RoundSummary(gameKey: 'asteroid_duel'),
-            const Icon(Icons.sports_kabaddi,
-                size: 64, color: SpaceTheme.rocketRed),
+                  RoundSummary(gameKey: 'asteroid_duel'),
+            const Icon(Icons.sports_kabaddi, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(s.asteroidDuelLoseTitle,
                 style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
@@ -774,15 +720,11 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
               decoration: BoxDecoration(
                 color: SpaceTheme.starYellow.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                    color: SpaceTheme.starYellow.withValues(alpha: 0.3)),
+                border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.3)),
               ),
               child: Text(
-                S
-                    .of(context)!
-                    .asteroidDuelHint(_maxPerTurn + 1, _maxPerTurn + 2),
-                style: SpaceTheme.bodyStyle
-                    .copyWith(fontSize: 11, color: SpaceTheme.starYellow),
+                S.of(context)!.asteroidDuelHint(_maxPerTurn + 1, _maxPerTurn + 2),
+                style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: SpaceTheme.starYellow),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -847,9 +789,7 @@ class _AsteroidPainter extends CustomPainter {
     path.close();
 
     final paint = Paint()
-      ..color = isSelected
-          ? SpaceTheme.starYellow.withValues(alpha: 0.8)
-          : Colors.white54
+      ..color = isSelected ? SpaceTheme.starYellow.withValues(alpha: 0.8) : Colors.white54
       ..style = PaintingStyle.fill;
 
     canvas.drawPath(path, paint);
@@ -863,19 +803,20 @@ class _AsteroidPainter extends CustomPainter {
 
 class _MoveRecord {
   /// Exact local-session snapshot, including mutable model state.
-  Map<String, dynamic> toJson() =>
-      {'isPlayer': isPlayer, 'count': count, 'remainingAfter': remainingAfter};
+  Map<String, dynamic> toJson() => {
+    'isPlayer': isPlayer,
+    'count': count,
+    'remainingAfter': remainingAfter
+  };
   factory _MoveRecord.fromJson(Map<String, dynamic> json) => _MoveRecord(
-      isPlayer: json['isPlayer'] as bool,
-      count: json['count'] as int,
-      remainingAfter: json['remainingAfter'] as int);
+    isPlayer: json['isPlayer'] as bool,
+    count: json['count'] as int,
+    remainingAfter: json['remainingAfter'] as int
+  );
 
   final bool isPlayer;
   final int count;
   final int remainingAfter;
 
-  _MoveRecord(
-      {required this.isPlayer,
-      required this.count,
-      required this.remainingAfter});
+  _MoveRecord({required this.isPlayer, required this.count, required this.remainingAfter});
 }

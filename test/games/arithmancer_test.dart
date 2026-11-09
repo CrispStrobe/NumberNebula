@@ -18,8 +18,9 @@ import 'package:space_math_academy/shared/utils/arithmancer.dart';
 /// Builds a non-chained MathResult with the given numeric value. The property
 /// getters only depend on `value` and `isChained`, so empty cards/expression
 /// are fine for detector tests.
-MathResult resultOf(double value, {List<MathCard>? cards}) => MathResult(
-    value, cards ?? const <MathCard>[], value.toString(), const <String>[]);
+MathResult resultOf(double value, {List<MathCard>? cards}) =>
+    MathResult(value, cards ?? const <MathCard>[], value.toString(),
+        const <String>[]);
 
 void main() {
   group('MathResult number-property detectors', () {
@@ -69,8 +70,7 @@ void main() {
       expect(resultOf(2584).isFibonacci, isFalse);
     });
 
-    test('isTriangular / isPentagonal / isHexagonal against formula values',
-        () {
+    test('isTriangular / isPentagonal / isHexagonal against formula values', () {
       for (final t in [1, 3, 6, 10, 15, 21, 28, 36]) {
         expect(resultOf(t.toDouble()).isTriangular, isTrue, reason: 't=$t');
       }
@@ -155,8 +155,8 @@ void main() {
     });
 
     test('chained damage/block is the sum of both sides', () {
-      final chained =
-          MathResult.chained(resultOf(10), resultOf(-4), const <MathCard>[]);
+      final chained = MathResult.chained(resultOf(10), resultOf(-4),
+          const <MathCard>[]);
       expect(chained.damage, 10); // 10 + 0
       expect(chained.block, 4); //  0 + 4
     });

@@ -53,23 +53,22 @@ class GameUI extends StatelessWidget {
                 tooltip: S.of(context)?.backToMenu,
                 onPressed: onBack,
               ),
-
+              
               SizedBox(width: isCompact ? 12 : 16),
-
+              
               // Title Area
               Expanded(
                 // Use the custom widget if provided; otherwise, use the default Text title.
-                child: customTitleWidget ??
-                    Text(
-                      title,
-                      style: SpaceTheme.headlineStyle.copyWith(
-                        fontSize: isCompact ? 20 : 28,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
+                child: customTitleWidget ?? Text(
+                  title,
+                  style: SpaceTheme.headlineStyle.copyWith(
+                    fontSize: isCompact ? 20 : 28,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               ),
-
+              
               // Game Stats
               _buildStatsRow(context, isCompact),
             ],
@@ -124,8 +123,7 @@ class GameUI extends StatelessWidget {
             label: isCompact ? '' : timeLabel, // Hide label if compact
             semanticLabel: '$timeLabel ${_formatTime(timeLeft!)}',
             value: _formatTime(timeLeft!),
-            color:
-                timeLeft! > 10 ? SpaceTheme.cosmicPink : SpaceTheme.rocketRed,
+            color: timeLeft! > 10 ? SpaceTheme.cosmicPink : SpaceTheme.rocketRed,
             isCompact: isCompact,
           ),
         ],
@@ -192,7 +190,7 @@ class GameUI extends StatelessWidget {
       ),
     );
   }
-
+  
   /// Formats the time from seconds into a M:SS string.
   String _formatTime(int seconds) {
     final minutes = seconds ~/ 60;
@@ -216,16 +214,14 @@ class StarRatingDisplay extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(
-            3,
-            (i) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: Icon(
-                    i < stars ? Icons.star_rounded : Icons.star_border_rounded,
-                    color: i < stars ? SpaceTheme.starYellow : Colors.white24,
-                    size: 32,
-                  ),
-                )),
+        children: List.generate(3, (i) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Icon(
+            i < stars ? Icons.star_rounded : Icons.star_border_rounded,
+            color: i < stars ? SpaceTheme.starYellow : Colors.white24,
+            size: 32,
+          ),
+        )),
       ),
     );
   }

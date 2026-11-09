@@ -167,8 +167,8 @@ void main() {
             reason: 'Grade 1 should use single words');
 
         // Verify cipher text matches encryption
-        final expected = CommRelayPuzzle.encryptCaesar(
-            puzzle.plainText, puzzle.shiftAmount!);
+        final expected =
+            CommRelayPuzzle.encryptCaesar(puzzle.plainText, puzzle.shiftAmount!);
         expect(puzzle.cipherText, expected);
       }
     });
@@ -184,8 +184,8 @@ void main() {
         expect(puzzle.cipherType, CipherType.caesar);
         expect(puzzle.shiftAmount, inInclusiveRange(1, 25));
 
-        final expected = CommRelayPuzzle.encryptCaesar(
-            puzzle.plainText, puzzle.shiftAmount!);
+        final expected =
+            CommRelayPuzzle.encryptCaesar(puzzle.plainText, puzzle.shiftAmount!);
         expect(puzzle.cipherText, expected);
       }
     });

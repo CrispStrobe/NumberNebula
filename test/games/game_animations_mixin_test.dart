@@ -56,19 +56,20 @@ void main() {
       final state = tester.state<_TestWidgetState>(find.byType(_TestWidget));
 
       // Glow
-      expect(state.glowController.duration, const Duration(milliseconds: 2000));
+      expect(state.glowController.duration,
+          const Duration(milliseconds: 2000));
       expect(state.glowController.isAnimating, isTrue);
       expect(state.glowAnimation.value, isNotNull);
 
       // Pulse
-      expect(
-          state.pulseController.duration, const Duration(milliseconds: 1000));
+      expect(state.pulseController.duration,
+          const Duration(milliseconds: 1000));
       expect(state.pulseController.isAnimating, isTrue);
       expect(state.pulseAnimation.value, isNotNull);
 
       // Success (one-shot — not animating until triggered)
-      expect(
-          state.successController.duration, const Duration(milliseconds: 600));
+      expect(state.successController.duration,
+          const Duration(milliseconds: 600));
       expect(state.successController.isAnimating, isFalse);
       expect(state.successAnimation.value, isNotNull);
     });
@@ -96,7 +97,8 @@ void main() {
 
     testWidgets('success controller completes after duration', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(home: _TestWidget(useGlow: false, usePulse: false)),
+        const MaterialApp(
+            home: _TestWidget(useGlow: false, usePulse: false)),
       );
 
       final state = tester.state<_TestWidgetState>(find.byType(_TestWidget));

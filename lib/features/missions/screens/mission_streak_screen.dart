@@ -35,8 +35,7 @@ class MissionStreakScreen extends StatelessWidget {
     if (state == null) {
       return Scaffold(
         body: SpaceBackground(
-          child: Center(
-              child: Text(s.missionHubStart, style: SpaceTheme.bodyStyle)),
+          child: Center(child: Text(s.missionHubStart, style: SpaceTheme.bodyStyle)),
         ),
       );
     }
@@ -50,13 +49,11 @@ class MissionStreakScreen extends StatelessWidget {
             children: [
               // Header
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
                     IconButton(
-                      icon:
-                          const Icon(Icons.arrow_back_ios, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),
                     const SizedBox(width: 8),
@@ -97,12 +94,10 @@ class MissionStreakScreen extends StatelessWidget {
               // Task list
               Expanded(
                 child: ListView.builder(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   itemCount: mission.tasks.length,
                   itemBuilder: (context, index) {
-                    return _buildTaskTile(
-                        context, index, state, missionProvider);
+                    return _buildTaskTile(context, index, state, missionProvider);
                   },
                 ),
               ),
@@ -134,7 +129,8 @@ class MissionStreakScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.4)),
+        border: Border.all(
+            color: SpaceTheme.starYellow.withValues(alpha: 0.4)),
       ),
       child: Wrap(
         alignment: WrapAlignment.center,
@@ -192,8 +188,8 @@ class MissionStreakScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildTaskTile(BuildContext context, int index, MissionState state,
-      MissionProvider provider) {
+  Widget _buildTaskTile(BuildContext context, int index,
+      MissionState state, MissionProvider provider) {
     final s = S.of(context)!;
     final task = state.mission.tasks[index];
     final isNext = index == state.nextTaskIndex;
@@ -347,8 +343,7 @@ class MissionStreakScreen extends StatelessWidget {
                 if (performance != null) ...[
                   Row(
                     children: [
-                      PerformanceBadge(
-                          performance: performance, showLabel: true),
+                      PerformanceBadge(performance: performance, showLabel: true),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -440,7 +435,8 @@ class MissionStreakScreen extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: SpaceTheme.starYellow,
               foregroundColor: SpaceTheme.spaceBlue,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               textStyle: SpaceTheme.buttonStyle,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -452,8 +448,8 @@ class MissionStreakScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _launchTask(
-      BuildContext context, int index, MissionProvider provider) async {
+  Future<void> _launchTask(BuildContext context, int index,
+      MissionProvider provider) async {
     final task = provider.state!.mission.tasks[index];
     final builder = gameBuilders[task.gameType];
     if (builder == null) return;

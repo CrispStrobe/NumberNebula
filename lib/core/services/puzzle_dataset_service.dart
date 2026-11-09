@@ -103,8 +103,9 @@ class PuzzleDatasetService {
     // Filter by ops if specified
     if (requiredOps != null && requiredOps.isNotEmpty) {
       final opsSet = requiredOps.toSet();
-      candidates =
-          candidates.where((p) => p.ops.toSet().containsAll(opsSet)).toList();
+      candidates = candidates
+          .where((p) => p.ops.toSet().containsAll(opsSet))
+          .toList();
       if (candidates.isEmpty) return null;
     }
 
@@ -175,7 +176,8 @@ class PuzzleDatasetService {
 
   Future<List<PuzzleEntry>?> _loadBundled(String gameType) async {
     try {
-      final json = await rootBundle.loadString('assets/puzzles/$gameType.json');
+      final json =
+          await rootBundle.loadString('assets/puzzles/$gameType.json');
       return _parseDataset(json);
     } catch (e) {
       if (kDebugMode) {

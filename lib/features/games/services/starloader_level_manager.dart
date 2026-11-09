@@ -13,7 +13,6 @@ import '../models/starloader_level_model.dart';
 import 'starloader_level_generator.dart';
 import 'sokoban_generator.dart' as sokoban;
 import '../screens/star_loader_game.dart';
-
 class StarLoaderLevelManager {
   static final StarLoaderLevelManager _instance =
       StarLoaderLevelManager._internal();
@@ -218,16 +217,14 @@ class StarLoaderLevelManager {
         // existing push target using a verified board from the bundled pool.
         selectedEntry =
             fallbackPool[Random().nextInt(min(3, fallbackPool.length))];
-        AppLogger.debug(
-            '📦 [Manager] Search below target; selected verified fallback '
+        AppLogger.debug('📦 [Manager] Search below target; selected verified fallback '
             'with ${selectedEntry.optimalMoves} pushes (minimum $minimum).');
       } else {
         selectedEntry = generated;
         _database.levels.add(selectedEntry);
         await _saveDatabase();
       }
-      AppLogger.debug(
-          '💾 [Manager] New level generated and written to JSON file.');
+      AppLogger.debug('💾 [Manager] New level generated and written to JSON file.');
     }
 
     // CRITICAL: Mark as played NOW so we don't get it again next click

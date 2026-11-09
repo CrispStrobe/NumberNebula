@@ -124,7 +124,8 @@ void main() {
                   reason: 'empty path for ($r,$c) ${columns}x$rows seed=$seed');
 
               // The core piece centre must lie inside the outline.
-              final centre = Offset(extended.width / 2, extended.height / 2);
+              final centre =
+                  Offset(extended.width / 2, extended.height / 2);
               expect(path.contains(centre), isTrue,
                   reason: 'centre outside path for ($r,$c) '
                       '${columns}x$rows seed=$seed');
@@ -172,8 +173,7 @@ void main() {
     final dataA = pieceAt(0, 0, 3);
     final dataB = pieceAt(1, 1, 3);
 
-    JigsawPieceClipper make(PuzzlePieceData d, double bump) =>
-        JigsawPieceClipper(
+    JigsawPieceClipper make(PuzzlePieceData d, double bump) => JigsawPieceClipper(
           data: d,
           columns: 3,
           rows: 3,

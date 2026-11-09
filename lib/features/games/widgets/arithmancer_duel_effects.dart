@@ -51,11 +51,7 @@ class CombatParticle {
         (random.nextDouble() - 0.5) * 150,
         -random.nextDouble() * 100,
       ),
-      color: [
-        Colors.white,
-        Colors.cyan,
-        Colors.lightBlueAccent
-      ][random.nextInt(3)],
+      color: [Colors.white, Colors.cyan, Colors.lightBlueAccent][random.nextInt(3)],
       size: 2 + random.nextDouble() * 4,
       life: 1.0 + random.nextDouble() * 0.5,
       type: 'explosion',
@@ -72,11 +68,7 @@ class CombatParticle {
         (random.nextDouble() - 0.5) * 200,
         random.nextDouble() * 150,
       ),
-      color: [
-        Colors.purple,
-        Colors.deepPurple,
-        Colors.indigo
-      ][random.nextInt(3)],
+      color: [Colors.purple, Colors.deepPurple, Colors.indigo][random.nextInt(3)],
       size: 2 + random.nextDouble() * 3,
       life: 0.6 + random.nextDouble() * 0.4,
       type: 'enemy_attack',
@@ -134,14 +126,13 @@ class EnergyOrb {
   }
 
   bool update(double animationProgress) {
-    final adjustedProgress =
-        ((animationProgress - startTime) / (1.0 - startTime)).clamp(0.0, 1.0);
-
+    final adjustedProgress = ((animationProgress - startTime) / (1.0 - startTime)).clamp(0.0, 1.0);
+    
     if (adjustedProgress > 0) {
       position = Offset.lerp(startPosition, endPosition, adjustedProgress)!;
       life = 1.0 - adjustedProgress;
     }
-
+    
     return adjustedProgress >= 1.0;
   }
 
@@ -325,14 +316,10 @@ class CardPatternPainter extends CustomPainter {
       ..strokeWidth = 1;
 
     // Draw circuit-like patterns
-    canvas.drawLine(Offset(0, size.height * 0.2),
-        Offset(size.width, size.height * 0.2), paint);
-    canvas.drawLine(Offset(0, size.height * 0.8),
-        Offset(size.width, size.height * 0.8), paint);
-    canvas.drawLine(Offset(size.width * 0.2, 0),
-        Offset(size.width * 0.2, size.height), paint);
-    canvas.drawLine(Offset(size.width * 0.8, 0),
-        Offset(size.width * 0.8, size.height), paint);
+    canvas.drawLine(Offset(0, size.height * 0.2), Offset(size.width, size.height * 0.2), paint);
+    canvas.drawLine(Offset(0, size.height * 0.8), Offset(size.width, size.height * 0.8), paint);
+    canvas.drawLine(Offset(size.width * 0.2, 0), Offset(size.width * 0.2, size.height), paint);
+    canvas.drawLine(Offset(size.width * 0.8, 0), Offset(size.width * 0.8, size.height), paint);
   }
 
   @override

@@ -22,9 +22,9 @@ import '../../../core/services/sri_service.dart';
 import 'package:flutter/foundation.dart';
 
 enum GameMode {
-  vsPrograms, // Human vs AI programs (enemies)
-  vsPlayers, // Human vs AI players
-  ladder, // Mixed: 3 programs, 1 player, repeat
+  vsPrograms,  // Human vs AI programs (enemies)
+  vsPlayers,   // Human vs AI players
+  ladder,      // Mixed: 3 programs, 1 player, repeat
 }
 
 class ArithmancerDuelGame extends StatefulWidget {
@@ -53,95 +53,34 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     updateDecorativeMotion([_pulseController], reduced);
   }
 
-  @override
-  String get sessionGameKey => 'arithmancer_duel';
-  @override
-  int get sessionGrade => widget.grade;
-  @override
-  int get sessionLevel => widget.level;
-  @override
-  Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isCalculating || _isOpponentTurn || _showingResult)
-      return null;
-    return {
-      '_ladderProgress': _ladderProgress,
-      '_enemiesDefeated': _enemiesDefeated,
-      '_accumulatedEnergy': _accumulatedEnergy,
-      '_lastExpression': _lastExpression,
-      '_lastDamage': _lastDamage,
-      '_lastProperties': _lastProperties.map((v0) => v0).toList(),
-      'mode': _sessionMode.name,
-      'engine': _pvpGame == null ? _game.toJson() : null,
-      'pvp': _pvpGame?.toJson(),
-      'hand': _handCards.map((c) => c.toJson()).toList(),
-      'battlefield': _battlefieldCards.map((c) => c.toJson()).toList(),
-      'opponent': _opponentBattlefield.map((c) => c.toJson()).toList()
-    };
+  @override String get sessionGameKey => 'arithmancer_duel';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isCalculating || _isOpponentTurn || _showingResult) return null;
+    return {'_ladderProgress': _ladderProgress, '_enemiesDefeated': _enemiesDefeated, '_accumulatedEnergy': _accumulatedEnergy, '_lastExpression': _lastExpression, '_lastDamage': _lastDamage, '_lastProperties': _lastProperties.map((v0) => v0).toList(), 'mode': _sessionMode.name, 'engine': _pvpGame == null ? _game.toJson() : null, 'pvp': _pvpGame?.toJson(), 'hand': _handCards.map((c) => c.toJson()).toList(), 'battlefield': _battlefieldCards.map((c) => c.toJson()).toList(), 'opponent': _opponentBattlefield.map((c) => c.toJson()).toList()};
   }
-
-  @override
-  void applyPuzzleSession(Map<String, dynamic> state) {
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
     _ladderProgress = state["_ladderProgress"] as int;
-    _enemiesDefeated = state["_enemiesDefeated"] as int;
-    _accumulatedEnergy = state["_accumulatedEnergy"] as int;
-    _lastExpression = state["_lastExpression"] as String;
-    _lastDamage = state["_lastDamage"] as int;
-    _lastProperties =
-        (state["_lastProperties"] as List).map((v0) => v0 as String).toList();
-    _restoredMode = GameMode.values.byName(state['mode'] as String);
-    _pvpGame = state['pvp'] == null
-        ? null
-        : PvPGame.fromJson(Map<String, dynamic>.from(state['pvp'] as Map));
-    if (_pvpGame == null) {
-      _game = ArithmancerGame.fromJson(
-          Map<String, dynamic>.from(state['engine'] as Map));
-      _currentEnemy = _game.currentEnemy;
-      _deckCards = List.from(_game.drawPile);
-      _discardCards = List.from(_game.discardPile);
-    } else {
-      _currentAIOpponent = _pvpGame!.player2AI;
-      _deckCards = List.from(_pvpGame!.player1State.gameInstance.drawPile);
-      _discardCards =
-          List.from(_pvpGame!.player1State.gameInstance.discardPile);
-    }
-    _handCards = (state['hand'] as List)
-        .map((v) => MathCard.fromJson(Map<String, dynamic>.from(v as Map)))
-        .toList();
-    _battlefieldCards
-      ..clear()
-      ..addAll((state['battlefield'] as List)
-          .map((v) => MathCard.fromJson(Map<String, dynamic>.from(v as Map))));
-    _opponentBattlefield
-      ..clear()
-      ..addAll((state['opponent'] as List)
-          .map((v) => MathCard.fromJson(Map<String, dynamic>.from(v as Map))));
+_enemiesDefeated = state["_enemiesDefeated"] as int;
+_accumulatedEnergy = state["_accumulatedEnergy"] as int;
+_lastExpression = state["_lastExpression"] as String;
+_lastDamage = state["_lastDamage"] as int;
+_lastProperties = (state["_lastProperties"] as List).map((v0) => v0 as String).toList();
+    _restoredMode = GameMode.values.byName(state['mode'] as String); _pvpGame = state['pvp'] == null ? null : PvPGame.fromJson(Map<String, dynamic>.from(state['pvp'] as Map)); if (_pvpGame == null) { _game = ArithmancerGame.fromJson(Map<String, dynamic>.from(state['engine'] as Map)); _currentEnemy = _game.currentEnemy; _deckCards = List.from(_game.drawPile); _discardCards = List.from(_game.discardPile); } else { _currentAIOpponent = _pvpGame!.player2AI; _deckCards = List.from(_pvpGame!.player1State.gameInstance.drawPile); _discardCards = List.from(_pvpGame!.player1State.gameInstance.discardPile); } _handCards = (state['hand'] as List).map((v) => MathCard.fromJson(Map<String, dynamic>.from(v as Map))).toList(); _battlefieldCards..clear()..addAll((state['battlefield'] as List).map((v) => MathCard.fromJson(Map<String, dynamic>.from(v as Map)))); _opponentBattlefield..clear()..addAll((state['opponent'] as List).map((v) => MathCard.fromJson(Map<String, dynamic>.from(v as Map))));
     final engine = _pvpGame?.player1State.gameInstance ?? _game;
-    final cards = {
-      for (final c in [
-        ...engine.deck,
-        ...engine.drawPile,
-        ...engine.hand,
-        ...engine.discardPile
-      ])
-        c.id: c
-    };
+    final cards = {for (final c in [...engine.deck, ...engine.drawPile, ...engine.hand, ...engine.discardPile]) c.id: c};
     _handCards = _handCards.map((c) => cards[c.id] ?? c).toList();
     final battlefield = _battlefieldCards.map((c) => cards[c.id] ?? c).toList();
-    _battlefieldCards
-      ..clear()
-      ..addAll(battlefield);
-    _isCalculating = false;
-    _isOpponentTurn = false;
-    _showingResult = false;
+    _battlefieldCards..clear()..addAll(battlefield);
+    _isCalculating = false; _isOpponentTurn = false; _showingResult = false;
   }
-
   Future<void> _restoreOrGenerate() async {
-    if (!await restorePuzzleSession() && mounted) {
-      await Future<void>.sync(_initializeGame);
-    }
+    if (!await restorePuzzleSession() && mounted) { await Future<void>.sync(_initializeGame); }
     if (mounted) setState(() => _sessionReady = true);
   }
 
+  
   // Animation Controllers
   late AnimationController _pulseController;
   late AnimationController _combatController;
@@ -154,7 +93,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   late AnimationController _discardController;
   late AnimationController _shieldController;
   late AnimationController _bonusController;
-
+  
   late Animation<double> _pulseAnimation;
   late Animation<double> _cardGlowAnimation;
   late Animation<double> _energyTransferAnimation;
@@ -171,15 +110,15 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   final List<MathCard> _battlefieldCards = [];
   List<MathCard> _deckCards = [];
   List<MathCard> _discardCards = [];
-
+  
   // Opponent State (for PvP)
   final List<MathCard> _opponentBattlefield = [];
   bool _isOpponentTurn = false;
-
+  
   // Current Opponent
   MathematicalEnemy? _currentEnemy;
   AIPersonality? _currentAIOpponent;
-
+  
   // UI State
   bool _isCalculating = false;
   String _lastExpression = "";
@@ -187,12 +126,12 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   List<String> _lastProperties = [];
   bool _showingResult = false;
   bool _isDraggingCard = false;
-
+  
   // Game Mode State
   int _ladderProgress = 0;
   final int _totalLadderSteps = 12; // (3 programs + 1 player) * 3
   int _enemiesDefeated = 0;
-
+  
   // Visual Effects
   final List<CombatParticle> _particles = [];
   final List<EnergyOrb> _energyOrbs = [];
@@ -209,9 +148,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   void initState() {
     super.initState();
     _setupAnimations();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _restoreOrGenerate();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
   }
 
   void _setupAnimations() {
@@ -219,9 +156,10 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-
+    
     _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-        CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut)
+    );
 
     _combatController = AnimationController(
       duration: const Duration(milliseconds: 1500),
@@ -231,76 +169,87 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     _particleController = AnimationController(
       duration: const Duration(milliseconds: 16),
       vsync: this,
-    )
-      ..addListener(_updateEffects)
-      ..repeat();
+    )..addListener(_updateEffects)..repeat();
 
     _shakeController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
-
+    
     _cardGlowController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
-
+    
     _cardGlowAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
-        CurvedAnimation(parent: _cardGlowController, curve: Curves.easeInOut));
+      CurvedAnimation(parent: _cardGlowController, curve: Curves.easeInOut)
+    );
 
     _energyTransferController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-
+    
     _energyTransferAnimation = CurvedAnimation(
-        parent: _energyTransferController, curve: Curves.easeInOut);
+      parent: _energyTransferController, 
+      curve: Curves.easeInOut
+    );
 
     _damageController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-
-    _damageAnimation =
-        CurvedAnimation(parent: _damageController, curve: Curves.elasticOut);
+    
+    _damageAnimation = CurvedAnimation(
+      parent: _damageController, 
+      curve: Curves.elasticOut
+    );
 
     _drawController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-
-    _drawAnimation =
-        CurvedAnimation(parent: _drawController, curve: Curves.easeOut);
+    
+    _drawAnimation = CurvedAnimation(
+      parent: _drawController, 
+      curve: Curves.easeOut
+    );
 
     _discardController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
-
-    _discardAnimation =
-        CurvedAnimation(parent: _discardController, curve: Curves.easeIn);
+    
+    _discardAnimation = CurvedAnimation(
+      parent: _discardController, 
+      curve: Curves.easeIn
+    );
 
     _shieldController = AnimationController(
       duration: const Duration(milliseconds: 2500),
       vsync: this,
     )..repeat(reverse: true);
-
-    _shieldAnimation =
-        CurvedAnimation(parent: _shieldController, curve: Curves.easeInOut);
+    
+    _shieldAnimation = CurvedAnimation(
+      parent: _shieldController, 
+      curve: Curves.easeInOut
+    );
 
     _bonusController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-
-    _bonusAnimation =
-        CurvedAnimation(parent: _bonusController, curve: Curves.elasticOut);
+    
+    _bonusAnimation = CurvedAnimation(
+      parent: _bonusController, 
+      curve: Curves.elasticOut
+    );
   }
 
   void _initializeGame() {
     beginPuzzleSession();
     final random = math.Random();
-
+    
     switch (_sessionMode) {
       case GameMode.vsPrograms:
         _initializeProgramMode(random);
@@ -320,13 +269,14 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     _game.startNewBattle();
     _syncGameState();
     _createShieldEffects();
-  }
+    }
+
 
   void _initializePlayerMode(math.Random random) {
     final player1AI = PrimeHunterAI(); // Human placeholder
     final player2AI = _selectAIPersonality(widget.level % 3);
     _currentAIOpponent = player2AI;
-
+    
     _pvpGame = PvPGame(
       player1AI: player1AI,
       player2AI: player2AI,
@@ -351,20 +301,17 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   AIPersonality _selectAIPersonality(int index) {
     switch (index % 3) {
-      case 0:
-        return PrimeHunterAI();
-      case 1:
-        return SequenceWeaverAI();
-      default:
-        return DefensiveMathAI();
+        case 0: return PrimeHunterAI();
+        case 1: return SequenceWeaverAI();
+        default: return DefensiveMathAI();
     }
-  }
+    }
 
   void _syncGameState() {
     if (_game.hand.length < 7) {
       _drawCardsFromDeck(7 - _game.hand.length);
     }
-
+    
     setState(() {
       _handCards = List.from(_game.hand);
       _deckCards = List.from(_game.drawPile);
@@ -407,9 +354,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   void _syncPvPState() {
     if (_pvpGame == null) return;
-
+    
     final playerState = _pvpGame!.player1State;
-
+    
     setState(() {
       _handCards = List.from(playerState.gameInstance.hand);
       _deckCards = List.from(playerState.gameInstance.drawPile);
@@ -420,15 +367,13 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         playerState.energy += _accumulatedEnergy;
         _accumulatedEnergy = 0;
       }
-
+      
       // Remove Fibonacci Seed cards to simplify the game
       _handCards.removeWhere((card) => card.name.contains("Fibonacci"));
       _deckCards.removeWhere((card) => card.name.contains("Fibonacci"));
-      playerState.gameInstance.hand
-          .removeWhere((card) => card.name.contains("Fibonacci"));
-      playerState.gameInstance.drawPile
-          .removeWhere((card) => card.name.contains("Fibonacci"));
-
+      playerState.gameInstance.hand.removeWhere((card) => card.name.contains("Fibonacci"));
+      playerState.gameInstance.drawPile.removeWhere((card) => card.name.contains("Fibonacci"));
+      
       _battlefieldCards.clear();
       _opponentBattlefield.clear();
       _showingResult = false;
@@ -469,7 +414,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         _handCards.add(card);
         _game.hand.add(card);
         _game.drawPile.remove(card);
-
+        
         // Animate card draw
         _drawController.forward(from: 0.0).then((_) {
           _drawController.reset();
@@ -481,7 +426,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         _deckCards.shuffle();
         _game.drawPile.addAll(_deckCards);
         _game.discardPile.clear();
-
+        
         // Draw the card
         if (_deckCards.isNotEmpty) {
           final card = _deckCards.removeLast();
@@ -497,7 +442,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     for (final card in cards) {
       _discardCards.add(card);
       _game.discardPile.add(card);
-
+      
       // Animate card discard
       _discardController.forward(from: 0.0).then((_) {
         _discardController.reset();
@@ -507,17 +452,17 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   void _executeBattlefield() async {
     if (_battlefieldCards.isEmpty || _isCalculating) return;
-
+    
     // Check energy cost first
     final cost = _battlefieldCards.fold(0, (sum, card) => sum + card.cost);
-
+    
     int currentEnergy;
     if (_pvpGame != null) {
       currentEnergy = _pvpGame!.player1State.energy;
     } else {
       currentEnergy = _game.playerEnergy;
     }
-
+    
     if (cost > currentEnergy) {
       _showStatus(S.of(context)!.arithmancerNotEnoughEnergy);
       return;
@@ -534,70 +479,61 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     _energyTransferController.forward(from: 0.0);
 
     await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
+    if (!mounted) return ;
     await GamePauseScope.of(context)?.waitUntilResumed();
-    if (!mounted) return;
+    if (!mounted) return ;
 
     // Calculate the mathematical result using the exact same evaluator as the CLI
     final evaluator = ExpressionEvaluator();
     final allResults = evaluator.generateAllResults(_battlefieldCards);
-
+    
     // Find the result that uses exactly our battlefield cards
     MathResult? result;
-    for (final r in allResults) {
-      if (r.usedCards.length == _battlefieldCards.length) {
-        final usedIds = r.usedCards.map((c) => c.id).toSet();
-        final battlefieldIds = _battlefieldCards.map((c) => c.id).toSet();
-        if (usedIds.containsAll(battlefieldIds) &&
-            battlefieldIds.containsAll(usedIds)) {
-          result = r;
-          break;
+      for (final r in allResults) {
+        if (r.usedCards.length == _battlefieldCards.length) {
+          final usedIds = r.usedCards.map((c) => c.id).toSet();
+          final battlefieldIds = _battlefieldCards.map((c) => c.id).toSet();
+          if (usedIds.containsAll(battlefieldIds) && battlefieldIds.containsAll(usedIds)) {
+            result = r;
+            break;
+          }
         }
       }
-    }
-
-    if (result == null) {
-      if (!mounted) return;
-      _showStatus(S.of(context)!.arithmancerInvalidExpression);
-      setState(() => _isCalculating = false);
-      _energyTransferController.reverse();
-      return;
-    }
+      
+      if (result == null) {
+        if (!mounted) return;
+        _showStatus(S.of(context)!.arithmancerInvalidExpression);
+        setState(() => _isCalculating = false);
+        _energyTransferController.reverse();
+        return;
+      }
 
     // Apply the result - using non-null result
     final nonNullResult = result;
-
+    
     // Debug print the mathematical properties for troubleshooting
     // Enhanced debug logging for troubleshooting
     if (kDebugMode) debugPrint("🔢 === DAMAGE CALCULATION DEBUG ===");
     if (nonNullResult.isChained) {
       debugPrint("🔢 CHAINED EXPRESSION: ${nonNullResult.expression}");
-      debugPrint(
-          "🔢 Left: ${nonNullResult.leftResult!.expression} = ${nonNullResult.leftResult!.value}");
-      if (kDebugMode)
-        debugPrint(
-            "🔢 Right: ${nonNullResult.rightResult!.expression} = ${nonNullResult.rightResult!.value}");
+      debugPrint("🔢 Left: ${nonNullResult.leftResult!.expression} = ${nonNullResult.leftResult!.value}");
+      if (kDebugMode) debugPrint("🔢 Right: ${nonNullResult.rightResult!.expression} = ${nonNullResult.rightResult!.value}");
       debugPrint("🔢 Combined display value: ${nonNullResult.value}");
     } else {
-      debugPrint(
-          "🔢 Expression: ${nonNullResult.expression} = ${nonNullResult.value}");
+      debugPrint("🔢 Expression: ${nonNullResult.expression} = ${nonNullResult.value}");
       if (kDebugMode) debugPrint("🔢 Raw damage: ${nonNullResult.damage}");
     }
 
     if (_currentEnemy != null) {
       if (kDebugMode) debugPrint("🔢 Enemy: ${_currentEnemy!.name}");
-      debugPrint(
-          "🔢 Enemy health: ${_currentEnemy!.health}/${_currentEnemy!.maxHealth}");
+      debugPrint("🔢 Enemy health: ${_currentEnemy!.health}/${_currentEnemy!.maxHealth}");
       debugPrint("🔢 Enemy shields: ${_currentEnemy!.mathematicalShields}");
-
+      
       // FIXED: Check shields for each side of chained results
       if (nonNullResult.isChained) {
-        if (kDebugMode)
-          debugPrint(
-              "🔢 Checking LEFT side (${nonNullResult.leftResult!.value}):");
+        if (kDebugMode) debugPrint("🔢 Checking LEFT side (${nonNullResult.leftResult!.value}):");
         _debugShieldCheck(nonNullResult.leftResult!, _currentEnemy!);
-        debugPrint(
-            "🔢 Checking RIGHT side (${nonNullResult.rightResult!.value}):");
+        debugPrint("🔢 Checking RIGHT side (${nonNullResult.rightResult!.value}):");
         _debugShieldCheck(nonNullResult.rightResult!, _currentEnemy!);
       } else {
         _debugShieldCheck(nonNullResult, _currentEnemy!);
@@ -606,8 +542,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
     // TRACK ARITHMETIC: Extract and record all math problems from the expression
     final mathProblems = _extractMathProblemsFromExpression(result);
-    if (kDebugMode)
-      debugPrint('[ARITHMANCER] Expression: ${result.expression}');
+    if (kDebugMode) debugPrint('[ARITHMANCER] Expression: ${result.expression}');
     debugPrint('[ARITHMANCER] Extracted ${mathProblems.length} math problems:');
     for (final p in mathProblems) {
       debugPrint('  - ${p.expression} = ${p.answer}');
@@ -622,44 +557,33 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     // Record each arithmetic operation with SRI
     for (final problem in mathProblems) {
       sriService.recordResponse(problem, wasSuccessful);
-      if (kDebugMode)
-        debugPrint(
-            '[ARITHMANCER] Tracked arithmetic: ${problem.expression} = ${problem.answer}');
+      if (kDebugMode) debugPrint('[ARITHMANCER] Tracked arithmetic: ${problem.expression} = ${problem.answer}');
     }
 
     if (_currentEnemy != null) {
-      if (kDebugMode) debugPrint("🔢 Enemy: ${_currentEnemy!.name}");
-      debugPrint(
-          "🔢 Enemy health: ${_currentEnemy!.health}/${_currentEnemy!.maxHealth}");
-      debugPrint("🔢 Enemy shields: ${_currentEnemy!.mathematicalShields}");
-
-      // Check each shield type
-      _currentEnemy!.mathematicalShields.forEach((shieldType, threshold) {
-        if (kDebugMode)
-          debugPrint("🔢 Shield check - $shieldType: threshold=$threshold");
+    if (kDebugMode) debugPrint("🔢 Enemy: ${_currentEnemy!.name}");
+    debugPrint("🔢 Enemy health: ${_currentEnemy!.health}/${_currentEnemy!.maxHealth}");
+    debugPrint("🔢 Enemy shields: ${_currentEnemy!.mathematicalShields}");
+    
+    // Check each shield type
+    _currentEnemy!.mathematicalShields.forEach((shieldType, threshold) {
+        if (kDebugMode) debugPrint("🔢 Shield check - $shieldType: threshold=$threshold");
         switch (shieldType) {
-          case 'prime_shield':
-            debugPrint(
-                "🔢   - Value ${nonNullResult.value} is prime: ${nonNullResult.isPrime}");
-            if (kDebugMode)
-              debugPrint(
-                  "🔢   - Threshold check: ${nonNullResult.value} >= $threshold = ${nonNullResult.value >= threshold}");
+        case 'prime_shield':
+            debugPrint("🔢   - Value ${nonNullResult.value} is prime: ${nonNullResult.isPrime}");
+            if (kDebugMode) debugPrint("🔢   - Threshold check: ${nonNullResult.value} >= $threshold = ${nonNullResult.value >= threshold}");
             break;
-          case 'square_immune':
-            debugPrint(
-                "🔢   - Value ${nonNullResult.value} is perfect square: ${nonNullResult.isPerfectSquare}");
+        case 'square_immune':
+            debugPrint("🔢   - Value ${nonNullResult.value} is perfect square: ${nonNullResult.isPerfectSquare}");
             break;
-          case 'fibonacci_only':
-            if (kDebugMode)
-              debugPrint(
-                  "🔢   - Value ${nonNullResult.value} is fibonacci: ${nonNullResult.isFibonacci}");
+        case 'fibonacci_only':
+            if (kDebugMode) debugPrint("🔢   - Value ${nonNullResult.value} is fibonacci: ${nonNullResult.isFibonacci}");
             break;
-          case 'power_of_two_only':
-            debugPrint(
-                "🔢   - Value ${nonNullResult.value} is power of two: ${nonNullResult.isPowerOfTwo}");
+        case 'power_of_two_only':
+            debugPrint("🔢   - Value ${nonNullResult.value} is power of two: ${nonNullResult.isPowerOfTwo}");
             break;
         }
-      });
+    });
     }
 
     if (_pvpGame != null) {
@@ -667,35 +591,32 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     } else {
       _game.playerEnergy -= cost;
     }
-
+    
     // Remove used cards from hand and discard them
     for (final card in nonNullResult.usedCards) {
       _handCards.removeWhere((c) => c.id == card.id);
       if (_pvpGame != null) {
-        _pvpGame!.player1State.gameInstance.hand
-            .removeWhere((c) => c.id == card.id);
+        _pvpGame!.player1State.gameInstance.hand.removeWhere((c) => c.id == card.id);
       } else {
         _game.hand.removeWhere((c) => c.id == card.id);
       }
     }
     _discardCardsToDiscard(List.from(nonNullResult.usedCards));
-
+    
     // Apply damage to opponent
     if (nonNullResult.damage > 0) {
       if (_pvpGame != null) {
         // PvP damage
-        final actualDamage = math.max<int>(
-            0, nonNullResult.damage - _pvpGame!.player2State.block);
+        final actualDamage = math.max<int>(0, nonNullResult.damage - _pvpGame!.player2State.block);
         _pvpGame!.player2State.health -= actualDamage;
         _lastDamage = actualDamage;
-        _pvpGame!.player2State.block = math.max<int>(
-            0, _pvpGame!.player2State.block - nonNullResult.damage);
+        _pvpGame!.player2State.block = math.max<int>(0, _pvpGame!.player2State.block - nonNullResult.damage);
       } else {
         // Program mode damage
         final damageDealt = _currentEnemy!.takeDamage(nonNullResult, _game);
         _lastDamage = damageDealt;
       }
-
+      
       // Add combat effects
       _addCombatParticles();
       _damageController.forward(from: 0.0);
@@ -703,7 +624,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     } else {
       _lastDamage = 0;
     }
-
+    
     // Apply block if negative result
     if (nonNullResult.block > 0) {
       if (_pvpGame != null) {
@@ -715,7 +636,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
     // Create visual bonus effects for mathematical properties
     _createBonusEffects(nonNullResult);
-
+    
     setState(() {
       final gameProvider = context.read<GameProvider>();
       _lastExpression = nonNullResult.expression
@@ -731,10 +652,10 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     _drawCardsFromDeck(7 - _handCards.length);
 
     await Future.delayed(const Duration(milliseconds: 1500));
-    if (!mounted) return;
+    if (!mounted) return ;
     await GamePauseScope.of(context)?.waitUntilResumed();
-    if (!mounted) return;
-
+    if (!mounted) return ;
+    
     if (_pvpGame != null) {
       _handlePvPResult();
     } else {
@@ -744,28 +665,20 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   void _debugShieldCheck(MathResult result, MathematicalEnemy enemy) {
     enemy.mathematicalShields.forEach((shieldType, threshold) {
-      if (kDebugMode)
-        debugPrint("🔢 Shield check - $shieldType: threshold=$threshold");
+      if (kDebugMode) debugPrint("🔢 Shield check - $shieldType: threshold=$threshold");
       switch (shieldType) {
         case 'prime_shield':
-          debugPrint(
-              "🔢   - Value ${result.value} is prime: ${result.isPrime}");
-          if (kDebugMode)
-            debugPrint(
-                "🔢   - Threshold check: ${result.value} >= $threshold = ${result.value >= threshold}");
+          debugPrint("🔢   - Value ${result.value} is prime: ${result.isPrime}");
+          if (kDebugMode) debugPrint("🔢   - Threshold check: ${result.value} >= $threshold = ${result.value >= threshold}");
           break;
         case 'square_immune':
-          debugPrint(
-              "🔢   - Value ${result.value} is perfect square: ${result.isPerfectSquare}");
+          debugPrint("🔢   - Value ${result.value} is perfect square: ${result.isPerfectSquare}");
           break;
         case 'fibonacci_only':
-          if (kDebugMode)
-            debugPrint(
-                "🔢   - Value ${result.value} is fibonacci: ${result.isFibonacci}");
+          if (kDebugMode) debugPrint("🔢   - Value ${result.value} is fibonacci: ${result.isFibonacci}");
           break;
         case 'power_of_two_only':
-          debugPrint(
-              "🔢   - Value ${result.value} is power of two: ${result.isPowerOfTwo}");
+          debugPrint("🔢   - Value ${result.value} is power of two: ${result.isPowerOfTwo}");
           break;
       }
     });
@@ -773,27 +686,11 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   void _createBonusEffects(MathResult result) {
     _bonusEffects.clear();
-    if (result.isPrime)
-      _bonusEffects.add(BonusEffect(
-          type: S.of(context)!.arithmancerBonusPrime,
-          value: "",
-          color: Colors.cyan));
-    if (result.isPerfectSquare)
-      _bonusEffects.add(BonusEffect(
-          type: S.of(context)!.arithmancerBonusSquare,
-          value: "",
-          color: Colors.purple));
-    if (result.isFibonacci)
-      _bonusEffects.add(BonusEffect(
-          type: S.of(context)!.arithmancerBonusFibonacci,
-          value: "",
-          color: Colors.orange));
-    if (result.isPowerOfTwo)
-      _bonusEffects.add(BonusEffect(
-          type: S.of(context)!.arithmancerBonusBinary,
-          value: "",
-          color: Colors.lightBlue));
-
+    if (result.isPrime) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusPrime, value: "", color: Colors.cyan));
+    if (result.isPerfectSquare) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusSquare, value: "", color: Colors.purple));
+    if (result.isFibonacci) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusFibonacci, value: "", color: Colors.orange));
+    if (result.isPowerOfTwo) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusBinary, value: "", color: Colors.lightBlue));
+    
     if (_bonusEffects.isNotEmpty) {
       _bonusController.forward(from: 0.0);
     }
@@ -821,26 +718,23 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     });
 
     await Future.delayed(const Duration(milliseconds: 1000));
-    if (!mounted) return;
+    if (!mounted) return ;
     await GamePauseScope.of(context)?.waitUntilResumed();
-    if (!mounted) return;
+    if (!mounted) return ;
 
     // AI opponent plays
-    final opponentResults =
-        _currentAIOpponent!.decideTurn(_pvpGame!.player2State.gameInstance);
-
+    final opponentResults = _currentAIOpponent!.decideTurn(_pvpGame!.player2State.gameInstance);
+    
     if (opponentResults.isNotEmpty) {
       final result = opponentResults.first;
-
+      
       // Apply opponent's result
       final damage = result.damage;
       if (damage > 0) {
-        final actualDamage =
-            math.max<int>(0, damage - _pvpGame!.player1State.block);
+        final actualDamage = math.max<int>(0, damage - _pvpGame!.player1State.block);
         _pvpGame!.player1State.health -= actualDamage;
-        _pvpGame!.player1State.block =
-            math.max<int>(0, _pvpGame!.player1State.block - damage);
-
+        _pvpGame!.player1State.block = math.max<int>(0, _pvpGame!.player1State.block - damage);
+        
         _addEnemyAttackParticles();
         _shakeController.forward(from: 0.0);
         if (mounted) {
@@ -850,9 +744,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     }
 
     await Future.delayed(const Duration(milliseconds: 1500));
-    if (!mounted) return;
+    if (!mounted) return ;
     await GamePauseScope.of(context)?.waitUntilResumed();
-    if (!mounted) return;
+    if (!mounted) return ;
 
     if (_pvpGame!.player1State.health <= 0) {
       _handleDefeat();
@@ -872,14 +766,14 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     // Arithmetic was already tracked during each _executeBattlefield() call
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-          skillLevel: widget.grade,
-          gameType: 'arithmancer_duel',
-          difficulty: widget.level,
-          score: baseScore,
-          // Winning the duel barely scratched is the flawless run.
-          performance: Perf.fromLives(_pvpGame!.player1State.health, 120),
-        ));
-
+      skillLevel: widget.grade,
+      gameType: 'arithmancer_duel',
+      difficulty: widget.level,
+      score: baseScore,
+      // Winning the duel barely scratched is the flawless run.
+      performance: Perf.fromLives(_pvpGame!.player1State.health, 120),
+    ));
+    
     if (_sessionMode == GameMode.ladder) {
       _ladderProgress++;
       if (_ladderProgress >= _totalLadderSteps) {
@@ -942,21 +836,21 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   List<String> _getPropertyStrings(MathResult result) {
     List<String> properties = [];
     final l10n = S.of(context)!;
-
+    
     if (result.isPrime) properties.add(l10n.arithmancerPropertyPrime);
     if (result.isPerfectSquare) properties.add(l10n.arithmancerPropertySquare);
     if (result.isFibonacci) properties.add(l10n.arithmancerPropertyFibonacci);
     if (result.isEven) properties.add(l10n.arithmancerPropertyEven);
     if (result.isOdd) properties.add(l10n.arithmancerPropertyOdd);
     if (result.isPowerOfTwo) properties.add(l10n.arithmancerPropertyPowerOfTwo);
-
+    
     return properties;
   }
 
   void _handleEnemyDefeated() {
     _enemiesDefeated++; // Increment our counter
     _game.enemiesDefeated = _enemiesDefeated; // Sync with game instance
-
+    
     final baseScore = 200 * widget.grade;
     final bonusScore = (_game.playerHealth / _game.maxHealth * 100).round();
     final totalScore = baseScore + bonusScore;
@@ -965,39 +859,39 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     // The arithmetic was already tracked during _executeBattlefield()
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-          skillLevel: widget.grade,
-          gameType: 'arithmancer_duel',
-          difficulty: widget.level,
-          score: totalScore,
-          performance: Perf.fromLives(_game.playerHealth, _game.maxHealth),
-        ));
+      skillLevel: widget.grade,
+      gameType: 'arithmancer_duel',
+      difficulty: widget.level,
+      score: totalScore,
+      performance: Perf.fromLives(_game.playerHealth, _game.maxHealth),
+    ));
 
     context.read<GameProvider>().addScore(baseScore + bonusScore);
-
+    
     if (_sessionMode == GameMode.ladder) {
-      _ladderProgress++;
-      if (_ladderProgress >= _totalLadderSteps) {
+        _ladderProgress++;
+        if (_ladderProgress >= _totalLadderSteps) {
         showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => ArithmancerLadderCompleteDialog(
-            score: baseScore + bonusScore,
-            onReturnToBridge: () => Navigator.of(context).pop(),
-          ),
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => ArithmancerLadderCompleteDialog(
+              score: baseScore + bonusScore,
+              onReturnToBridge: () => Navigator.of(context).pop(),
+            ),
         );
-      } else {
+        } else {
         showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => ArithmancerLadderStepDialog(
-            ladderProgress: _ladderProgress,
-            totalLadderSteps: _totalLadderSteps,
-            onContinue: _advanceToNextEnemy,
-          ),
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => ArithmancerLadderStepDialog(
+              ladderProgress: _ladderProgress,
+              totalLadderSteps: _totalLadderSteps,
+              onContinue: _advanceToNextEnemy,
+            ),
         );
-      }
+        }
     } else {
-      showDialog(
+        showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => ArithmancerVictoryDialog(
@@ -1005,19 +899,19 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
           onNextChallenge: _advanceToNextEnemy,
           onReturnToBridge: () => Navigator.of(context).pop(),
         ),
-      );
+        );
     }
-  }
+    }
 
   void _advanceToNextEnemy() {
     final random = math.Random();
 
     // Save current hand before advancing
     final currentHand = List<MathCard>.from(_handCards);
-
+    
     if (_sessionMode == GameMode.ladder) {
-      // Ladder mode: cycle through pattern
-      if (_ladderProgress % 4 < 3) {
+        // Ladder mode: cycle through pattern
+        if (_ladderProgress % 4 < 3) {
         // Program mode - preserve enemy progress
         final aiPersonality = _selectAIPersonality(_enemiesDefeated);
         _game = ArithmancerGame(aiPersonality, random, verbose: false);
@@ -1029,40 +923,40 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
         _syncGameState();
         _createShieldEffects();
-      } else {
+        } else {
         // Player mode for 4th step
         _initializePlayerMode(random);
-      }
+        }
     } else if (_sessionMode == GameMode.vsPrograms) {
-      // Continue with existing game instance to preserve progress
-      _game.startNewBattle();
+        // Continue with existing game instance to preserve progress
+        _game.startNewBattle();
 
-      // Restore hand after battle start
-      _game.hand = currentHand;
+        // Restore hand after battle start
+        _game.hand = currentHand;
 
-      _syncGameState();
-      _createShieldEffects();
+        _syncGameState();
+        _createShieldEffects();
     } else {
-      // vs Players mode - new AI player
-      _initializePlayerMode(random);
+        // vs Players mode - new AI player
+        _initializePlayerMode(random);
     }
-  }
+    }
 
   void _handleEnemyTurn() {
     _shakeController.forward(from: 0.0);
-
+    
     final intent = _currentEnemy!.getIntent();
     final damage = intent['attack'] ?? 0;
-
+    
     if (damage > 0) {
       final actualDamage = math.max<int>(0, damage - _game.currentBlock);
       _game.playerHealth -= actualDamage;
       _showStatus(S.of(context)!.arithmancerEnemyAttack(damage));
-
+      
       // Add enemy attack effects
       _addEnemyAttackParticles();
       AppHaptics.vibrate();
-
+      
       if (_game.playerHealth <= 0) {
         _handleDefeat();
         return;
@@ -1091,11 +985,11 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     // Arithmetic tracking already happened during gameplay
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-          skillLevel: widget.grade,
-          gameType: 'arithmancer_duel',
-          difficulty: widget.level,
-        ));
-
+      skillLevel: widget.grade,
+      gameType: 'arithmancer_duel',
+      difficulty: widget.level,
+    ));
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1110,8 +1004,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     setVisualState(() {
       _particles.removeWhere((p) => p.update());
-      _energyOrbs
-          .removeWhere((orb) => orb.update(_energyTransferAnimation.value));
+      _energyOrbs.removeWhere((orb) => orb.update(_energyTransferAnimation.value));
       for (var shield in _shieldEffects) {
         shield.update(_shieldAnimation.value);
       }
@@ -1125,7 +1018,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     setState(() {
       _statusMessage = message;
     });
-
+    
     _statusTimer?.cancel();
     _statusTimer = Timer(const Duration(seconds: 2), () {
       if (mounted) {
@@ -1138,10 +1031,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady)
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final screenWidth = MediaQuery.of(context).size.width;
-    final sideBarWidth = screenWidth * 0.15;
+    final sideBarWidth = screenWidth * 0.15; 
 
     return Scaffold(
       body: SpaceBackground(
@@ -1178,8 +1070,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                                 child: _buildPlayerArea(),
                               ),
                               Expanded(
-                                flex:
-                                    11, // OLD: 4 - Greatly expanded for larger cards
+                                flex: 11, // OLD: 4 - Greatly expanded for larger cards
                                 child: _buildHandArea(),
                               ),
                             ],
@@ -1216,95 +1107,70 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                   ),
                 ),
 
-              // info overlay
-              if (_showInstructions)
-                Positioned.fill(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _showInstructions = false),
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.85),
-                      child: Center(
-                        child: GestureDetector(
-                          onTap: () {}, // prevent close on card tap
-                          child: Container(
-                            margin: const EdgeInsets.all(16),
-                            padding: const EdgeInsets.all(16),
-                            constraints: const BoxConstraints(maxWidth: 600),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  SpaceTheme.deepSpace,
-                                  SpaceTheme.nebulaPurple.withValues(alpha: 0.3)
-                                ],
+                // info overlay
+                if (_showInstructions)
+                  Positioned.fill(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _showInstructions = false),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.85),
+                        child: Center(
+                          child: GestureDetector(
+                            onTap: () {}, // prevent close on card tap
+                            child: Container(
+                              margin: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(16),
+                              constraints: const BoxConstraints(maxWidth: 600),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple.withValues(alpha: 0.3)],
+                                ),
+                                borderRadius: BorderRadius.circular(15),
+                                border: Border.all(color: SpaceTheme.alienGreen, width: 2),
                               ),
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(
-                                  color: SpaceTheme.alienGreen, width: 2),
-                            ),
-                            child: SingleChildScrollView(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          S
-                                              .of(context)!
-                                              .arithmancerGameplayGuide,
-                                          style: SpaceTheme.headlineStyle
-                                              .copyWith(
-                                                  color: SpaceTheme.alienGreen,
-                                                  fontSize: 18),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            S.of(context)!.arithmancerGameplayGuide,
+                                            style: SpaceTheme.headlineStyle.copyWith(
+                                              color: SpaceTheme.alienGreen, fontSize: 18),
+                                          ),
                                         ),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.close,
-                                            color: Colors.white),
-                                        onPressed: () => setState(
-                                            () => _showInstructions = false),
-                                      ),
+                                        IconButton(
+                                          icon: const Icon(Icons.close, color: Colors.white),
+                                          onPressed: () => setState(() => _showInstructions = false),
+                                        ),
+                                      ],
+                                    ),
+                                    // Enemy-specific math concept explanation
+                                    if (_currentEnemy != null) ...[
+                                      const Divider(color: SpaceTheme.starYellow),
+                                      _buildEnemyMathHelp(),
+                                      const Divider(color: Colors.white24),
                                     ],
-                                  ),
-                                  // Enemy-specific math concept explanation
-                                  if (_currentEnemy != null) ...[
-                                    const Divider(color: SpaceTheme.starYellow),
-                                    _buildEnemyMathHelp(),
-                                    const Divider(color: Colors.white24),
+                                    const SizedBox(height: 8),
+                                    Text(S.of(context)!.arithmancerGuideBasics, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                                    const SizedBox(height: 8),
+                                    Text(S.of(context)!.arithmancerGuideCards, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                                    const SizedBox(height: 8),
+                                    Text(S.of(context)!.arithmancerGuideCombat, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                                    const SizedBox(height: 8),
+                                    Text(S.of(context)!.arithmancerGuideProperties, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                                    const SizedBox(height: 8),
+                                    Text(S.of(context)!.arithmancerGuideShields, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                                    const SizedBox(height: 8),
+                                    Text(S.of(context)!.arithmancerGuideDiscard, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                                    const SizedBox(height: 8),
+                                    Text(S.of(context)!.arithmancerGuideSkip, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
                                   ],
-                                  const SizedBox(height: 8),
-                                  Text(S.of(context)!.arithmancerGuideBasics,
-                                      style: SpaceTheme.bodyStyle
-                                          .copyWith(fontSize: 12)),
-                                  const SizedBox(height: 8),
-                                  Text(S.of(context)!.arithmancerGuideCards,
-                                      style: SpaceTheme.bodyStyle
-                                          .copyWith(fontSize: 12)),
-                                  const SizedBox(height: 8),
-                                  Text(S.of(context)!.arithmancerGuideCombat,
-                                      style: SpaceTheme.bodyStyle
-                                          .copyWith(fontSize: 12)),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                      S.of(context)!.arithmancerGuideProperties,
-                                      style: SpaceTheme.bodyStyle
-                                          .copyWith(fontSize: 12)),
-                                  const SizedBox(height: 8),
-                                  Text(S.of(context)!.arithmancerGuideShields,
-                                      style: SpaceTheme.bodyStyle
-                                          .copyWith(fontSize: 12)),
-                                  const SizedBox(height: 8),
-                                  Text(S.of(context)!.arithmancerGuideDiscard,
-                                      style: SpaceTheme.bodyStyle
-                                          .copyWith(fontSize: 12)),
-                                  const SizedBox(height: 8),
-                                  Text(S.of(context)!.arithmancerGuideSkip,
-                                      style: SpaceTheme.bodyStyle
-                                          .copyWith(fontSize: 12)),
-                                ],
+                                ),
                               ),
                             ),
                           ),
@@ -1312,7 +1178,8 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                       ),
                     ),
                   ),
-                ),
+
+
             ],
           ),
         ),
@@ -1335,20 +1202,18 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     if (_currentEnemy == null && _currentAIOpponent == null) {
       return S.of(context)!.arithmancerInstructionsGeneral;
     }
-
+    
     if (_pvpGame != null && _currentAIOpponent != null) {
-      return S
-          .of(context)!
-          .arithmancerInstructionsAiPlayer(_currentAIOpponent!.name);
+      return S.of(context)!.arithmancerInstructionsAiPlayer(_currentAIOpponent!.name);
     }
-
+    
     if (_currentEnemy != null) {
       // Get the dominant shield type to provide specific instructions
       String? dominantShield;
       if (_currentEnemy!.mathematicalShields.isNotEmpty) {
         dominantShield = _currentEnemy!.mathematicalShields.keys.first;
       }
-
+      
       switch (dominantShield) {
         case 'prime_shield':
           return S.of(context)!.arithmancerInstructionsPrimeShield;
@@ -1364,15 +1229,14 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
           return S.of(context)!.arithmancerInstructionsGeneral;
       }
     }
-
+    
     return S.of(context)!.arithmancerInstructionsGeneral;
   }
 
   Widget _buildEnemyMathHelp() {
     final s = S.of(context)!;
     String? dominantShield;
-    if (_currentEnemy != null &&
-        _currentEnemy!.mathematicalShields.isNotEmpty) {
+    if (_currentEnemy != null && _currentEnemy!.mathematicalShields.isNotEmpty) {
       dominantShield = _currentEnemy!.mathematicalShields.keys.first;
     }
 
@@ -1418,9 +1282,8 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
           children: [
             const Icon(Icons.school, color: SpaceTheme.starYellow, size: 18),
             const SizedBox(width: 8),
-            Text(title,
-                style: SpaceTheme.titleStyle
-                    .copyWith(color: SpaceTheme.starYellow, fontSize: 15)),
+            Text(title, style: SpaceTheme.titleStyle.copyWith(
+              color: SpaceTheme.starYellow, fontSize: 15)),
           ],
         ),
         const SizedBox(height: 8),
@@ -1431,14 +1294,10 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
           decoration: BoxDecoration(
             color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(8),
-            border:
-                Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.4)),
+            border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.4)),
           ),
-          child: Text(examples,
-              style: SpaceTheme.bodyStyle.copyWith(
-                  fontSize: 13,
-                  color: SpaceTheme.starYellow,
-                  fontFamily: 'monospace')),
+          child: Text(examples, style: SpaceTheme.bodyStyle.copyWith(
+            fontSize: 13, color: SpaceTheme.starYellow, fontFamily: 'monospace')),
         ),
         const SizedBox(height: 6),
         Row(
@@ -1447,9 +1306,8 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             const Icon(Icons.lightbulb, color: SpaceTheme.alienGreen, size: 14),
             const SizedBox(width: 6),
             Flexible(
-              child: Text(strategy,
-                  style: SpaceTheme.bodyStyle
-                      .copyWith(fontSize: 12, color: SpaceTheme.alienGreen)),
+              child: Text(strategy, style: SpaceTheme.bodyStyle.copyWith(
+                fontSize: 12, color: SpaceTheme.alienGreen)),
             ),
           ],
         ),
@@ -1459,22 +1317,20 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   void _skipTurn() {
     if (_isOpponentTurn || _isCalculating) return;
-
+    
     AppHaptics.lightImpact();
-
+    
     setState(() {
       // Save current energy for next turn
       int currentEnergy = _pvpGame?.player1State.energy ?? _game.playerEnergy;
       _accumulatedEnergy += currentEnergy;
-
+      
       // Clear battlefield cards back to hand
       for (final card in _battlefieldCards) {
-        if (card.name == "Open Parenthesis" ||
-            card.name == "Close Parenthesis") {
+        if (card.name == "Open Parenthesis" || card.name == "Close Parenthesis") {
           // Reset parentheses usage
           for (var handCard in _handCards) {
-            if (handCard.type == CardType.parentheses &&
-                handCard.name == "Parentheses") {
+            if (handCard.type == CardType.parentheses && handCard.name == "Parentheses") {
               handCard.properties.remove('open_used');
               handCard.properties.remove('close_used');
               break;
@@ -1485,13 +1341,13 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         }
       }
       _battlefieldCards.clear();
-
+      
       // Fill hand back to 7 cards
       _drawCardsFromDeck(7 - _handCards.length);
     });
-
+    
     _showStatus(S.of(context)!.arithmancerTurnSkipped);
-
+    
     // Handle enemy turn
     if (_pvpGame != null) {
       _handleOpponentTurn();
@@ -1502,7 +1358,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   List<MathProblem> _extractMathProblemsFromExpression(MathResult result) {
     List<MathProblem> problems = [];
-
+    
     // FIXED: Use the preserved chain structure
     if (result.isChained) {
       // Process left side
@@ -1511,33 +1367,31 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       }
       // Process right side
       if (result.rightResult != null) {
-        problems
-            .addAll(_extractMathProblemsFromExpression(result.rightResult!));
+        problems.addAll(_extractMathProblemsFromExpression(result.rightResult!));
       }
     } else {
       // Single expression - parse it
-      final problem =
-          _parseExpressionToProblem(result.expression, widget.grade);
+      final problem = _parseExpressionToProblem(result.expression, widget.grade);
       if (problem != null) problems.add(problem);
     }
-
+    
     return problems;
   }
 
   MathProblem? _parseExpressionToProblem(String expression, int difficulty) {
     // Remove parentheses for simpler parsing
     expression = expression.replaceAll('(', '').replaceAll(')', '').trim();
-
+    
     // Try to parse simple binary operations: "a op b"
     final operators = ['+', '-', '*', '/'];
-
+    
     for (final opSymbol in operators) {
       if (expression.contains(' $opSymbol ')) {
         final parts = expression.split(' $opSymbol ');
         if (parts.length == 2) {
           final a = int.tryParse(parts[0].trim());
           final b = int.tryParse(parts[1].trim());
-
+          
           if (a != null && b != null) {
             MathOperation operation;
             switch (opSymbol) {
@@ -1556,7 +1410,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
               default:
                 return null;
             }
-
+            
             // Calculate the answer
             int answer;
             switch (operation) {
@@ -1573,7 +1427,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                 answer = b != 0 ? (a ~/ b) : 0;
                 break;
             }
-
+            
             return MathProblem(
               operandA: a,
               operandB: b,
@@ -1586,7 +1440,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         }
       }
     }
-
+    
     return null; // Complex expression or single number - skip SRI tracking
   }
 
@@ -1596,10 +1450,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            SpaceTheme.deepSpace.withValues(alpha: 0.9),
-            Colors.transparent
-          ],
+          colors: [SpaceTheme.deepSpace.withValues(alpha: 0.9), Colors.transparent],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -1636,8 +1487,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
           // Info button
           IconButton(
             icon: const Icon(Icons.info_outline, color: Colors.white, size: 20),
-            onPressed: () =>
-                setState(() => _showInstructions = !_showInstructions),
+            onPressed: () => setState(() => _showInstructions = !_showInstructions),
           ),
           const SizedBox(width: 12), // ADD THIS SPACING
           if (_sessionMode == GameMode.ladder)
@@ -1650,8 +1500,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
               ),
               child: Text(
                 "${_ladderProgress + 1}/$_totalLadderSteps",
-                style: SpaceTheme.titleStyle
-                    .copyWith(fontSize: 14, color: SpaceTheme.starYellow),
+                style: SpaceTheme.titleStyle.copyWith(fontSize: 14, color: SpaceTheme.starYellow),
               ),
             ),
         ],
@@ -1689,38 +1538,35 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
           DragTarget<MathCard>(
             onWillAcceptWithDetails: (details) => !_isOpponentTurn,
             onAcceptWithDetails: (details) {
-              final card = details.data;
-              AppHaptics.lightImpact();
-              setState(() {
+                final card = details.data;
+                AppHaptics.lightImpact();
+                setState(() {
                 // Handle parentheses halves specially
-                if (card.name == "Open Parenthesis" ||
-                    card.name == "Close Parenthesis") {
-                  // Find the original parentheses card and mark it as fully used
-                  for (var handCard in _handCards) {
-                    if (handCard.type == CardType.parentheses &&
-                        handCard.name == "Parentheses") {
-                      // Remove the entire parentheses card from hand and discard it
-                      _handCards.remove(handCard);
-                      _discardCards.add(handCard);
-                      _game.hand.remove(handCard);
-                      _game.discardPile.add(handCard);
-                      break;
+                if (card.name == "Open Parenthesis" || card.name == "Close Parenthesis") {
+                    // Find the original parentheses card and mark it as fully used
+                    for (var handCard in _handCards) {
+                    if (handCard.type == CardType.parentheses && handCard.name == "Parentheses") {
+                        // Remove the entire parentheses card from hand and discard it
+                        _handCards.remove(handCard);
+                        _discardCards.add(handCard);
+                        _game.hand.remove(handCard);
+                        _game.discardPile.add(handCard);
+                        break;
                     }
-                  }
+                    }
                 } else {
-                  // Regular card handling
-                  _handCards.remove(card);
-                  _discardCards.add(card);
-                  _game.hand.remove(card);
-                  _game.discardPile.add(card);
+                    // Regular card handling
+                    _handCards.remove(card);
+                    _discardCards.add(card);
+                    _game.hand.remove(card);
+                    _game.discardPile.add(card);
                 }
-              });
+                });
             },
             builder: (context, candidateData, rejectedData) {
-              return _buildTronDiscardPile(_discardCards.length,
-                  isTarget: candidateData.isNotEmpty);
+                return _buildTronDiscardPile(_discardCards.length, isTarget: candidateData.isNotEmpty);
             },
-          ),
+            ),
           const SizedBox(height: 8),
           Text(
             S.of(context)!.arithmancerUsed,
@@ -1744,8 +1590,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   }
 
   Widget _buildAIPlayerArea() {
-    if (_pvpGame == null || _currentAIOpponent == null)
-      return const SizedBox.shrink();
+    if (_pvpGame == null || _currentAIOpponent == null) return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.all(8),
@@ -1791,17 +1636,12 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: const RadialGradient(
-                              colors: [
-                                SpaceTheme.rocketRed,
-                                SpaceTheme.deepSpace
-                              ],
+                              colors: [SpaceTheme.rocketRed, SpaceTheme.deepSpace],
                             ),
-                            border: Border.all(
-                                color: SpaceTheme.rocketRed, width: 2),
+                            border: Border.all(color: SpaceTheme.rocketRed, width: 2),
                             boxShadow: [
                               BoxShadow(
-                                color:
-                                    SpaceTheme.rocketRed.withValues(alpha: 0.8),
+                                color: SpaceTheme.rocketRed.withValues(alpha: 0.8),
                                 blurRadius: 10,
                                 spreadRadius: 2,
                               ),
@@ -1830,18 +1670,15 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                           ),
                         ),
                         const SizedBox(height: 4),
-                        _buildCompactHealthBar(_pvpGame!.player2State.health,
-                            120, SpaceTheme.rocketRed),
+                        _buildCompactHealthBar(_pvpGame!.player2State.health, 120, SpaceTheme.rocketRed),
                       ],
                     ),
                   ),
                   Column(
                     children: [
-                      _buildCompactStat("E", "${_pvpGame!.player2State.energy}",
-                          SpaceTheme.starYellow),
+                      _buildCompactStat("E", "${_pvpGame!.player2State.energy}", SpaceTheme.starYellow),
                       const SizedBox(height: 4),
-                      _buildCompactStat("S", "${_pvpGame!.player2State.block}",
-                          SpaceTheme.alienGreen),
+                      _buildCompactStat("S", "${_pvpGame!.player2State.block}", SpaceTheme.alienGreen),
                     ],
                   ),
                 ],
@@ -1917,17 +1754,14 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(9),
-                  border: Border.all(
-                      color: SpaceTheme.rocketRed.withValues(alpha: 0.5)),
+                  border: Border.all(color: SpaceTheme.rocketRed.withValues(alpha: 0.5)),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(9),
                   child: LinearProgressIndicator(
-                    value: (_currentEnemy!.health / _currentEnemy!.maxHealth)
-                        .clamp(0.0, 1.0),
+                    value: (_currentEnemy!.health / _currentEnemy!.maxHealth).clamp(0.0, 1.0),
                     backgroundColor: Colors.transparent,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                        SpaceTheme.rocketRed),
+                    valueColor: const AlwaysStoppedAnimation<Color>(SpaceTheme.rocketRed),
                   ),
                 ),
               ),
@@ -1950,11 +1784,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   }
 
   Widget _buildPlayerArea() {
-    final int currentHealth =
-        _pvpGame?.player1State.health ?? _game.playerHealth;
+    final int currentHealth = _pvpGame?.player1State.health ?? _game.playerHealth;
     final int maxHealth = _pvpGame != null ? 120 : _game.maxHealth;
-    final int currentEnergy =
-        _pvpGame?.player1State.energy ?? _game.playerEnergy;
+    final int currentEnergy = _pvpGame?.player1State.energy ?? _game.playerEnergy;
     final int currentBlock = _pvpGame?.player1State.block ?? _game.currentBlock;
 
     return Container(
@@ -2003,16 +1835,14 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(9),
-                    border: Border.all(
-                        color: SpaceTheme.alienGreen.withValues(alpha: 0.5)),
+                    border: Border.all(color: SpaceTheme.alienGreen.withValues(alpha: 0.5)),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(9),
                     child: LinearProgressIndicator(
                       value: (currentHealth / maxHealth).clamp(0.0, 1.0),
                       backgroundColor: Colors.transparent,
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                          SpaceTheme.alienGreen),
+                      valueColor: const AlwaysStoppedAnimation<Color>(SpaceTheme.alienGreen),
                     ),
                   ),
                 ),
@@ -2041,8 +1871,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   Widget _buildBattlefield() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Stack(
-        // Changed from Column to Stack
+      child: Stack( // Changed from Column to Stack
         children: [
           // Battle zone with TRON styling
           DragTarget<MathCard>(
@@ -2059,11 +1888,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
               setState(() {
                 _battlefieldCards.add(card);
 
-                if (card.name == "Open Parenthesis" ||
-                    card.name == "Close Parenthesis") {
+                if (card.name == "Open Parenthesis" || card.name == "Close Parenthesis") {
                   for (var handCard in _handCards) {
-                    if (handCard.type == CardType.parentheses &&
-                        handCard.name == "Parentheses") {
+                    if (handCard.type == CardType.parentheses && handCard.name == "Parentheses") {
                       if (card.name == "Open Parenthesis") {
                         handCard.properties['open_used'] = true;
                       } else {
@@ -2084,7 +1911,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: _isDraggingCard
+                    colors: _isDraggingCard 
                         ? [
                             SpaceTheme.starYellow.withValues(alpha: 0.3),
                             SpaceTheme.alienGreen.withValues(alpha: 0.2),
@@ -2098,20 +1925,16 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                   ),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: _isDraggingCard
-                        ? SpaceTheme.starYellow
-                        : SpaceTheme.nebulaPurple,
+                    color: _isDraggingCard ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
                     width: 2,
                   ),
-                  boxShadow: _isDraggingCard
-                      ? [
-                          BoxShadow(
-                            color: SpaceTheme.starYellow.withValues(alpha: 0.7),
-                            blurRadius: 15,
-                            spreadRadius: 3,
-                          ),
-                        ]
-                      : [],
+                  boxShadow: _isDraggingCard ? [
+                    BoxShadow(
+                      color: SpaceTheme.starYellow.withValues(alpha: 0.7),
+                      blurRadius: 15,
+                      spreadRadius: 3,
+                    ),
+                  ] : [],
                 ),
                 child: Stack(
                   children: [
@@ -2135,18 +1958,14 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
-                                    _isOpponentTurn
-                                        ? Icons.hourglass_empty
-                                        : Icons.skip_next,
+                                    _isOpponentTurn ? Icons.hourglass_empty : Icons.skip_next,
                                     color: Colors.white30,
                                     size: 32,
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    _isOpponentTurn
-                                        ? S
-                                            .of(context)!
-                                            .arithmancerOpponentProcessing
+                                    _isOpponentTurn 
+                                        ? S.of(context)!.arithmancerOpponentProcessing
                                         : S.of(context)!.arithmancerDragCards,
                                     style: SpaceTheme.bodyStyle.copyWith(
                                       color: Colors.white30,
@@ -2172,66 +1991,43 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                                     child: Wrap(
                                       spacing: 8,
                                       runSpacing: 8,
-                                      children: _battlefieldCards
-                                          .asMap()
-                                          .entries
-                                          .map((entry) {
+                                      children: _battlefieldCards.asMap().entries.map((entry) {
                                         return Semantics(
-                                          label: S
-                                              .of(context)!
-                                              .a11yBattlefieldCard(
-                                                  entry.value.name),
+                                          label: S.of(context)!.a11yBattlefieldCard(entry.value.name),
                                           hint: 'Tap to return to hand',
                                           button: true,
                                           child: GestureDetector(
-                                            onTap: () {
-                                              if (!_isOpponentTurn) {
-                                                AppHaptics.lightImpact();
-                                                setState(() {
-                                                  final card = _battlefieldCards
-                                                      .removeAt(entry.key);
-
-                                                  if (card.name ==
-                                                          "Open Parenthesis" ||
-                                                      card.name ==
-                                                          "Close Parenthesis") {
-                                                    bool foundParenthesesCard =
-                                                        false;
-                                                    for (var handCard
-                                                        in _handCards) {
-                                                      if (handCard.type ==
-                                                              CardType
-                                                                  .parentheses &&
-                                                          handCard.name ==
-                                                              "Parentheses") {
-                                                        handCard.properties
-                                                            .remove(
-                                                                'open_used');
-                                                        handCard.properties
-                                                            .remove(
-                                                                'close_used');
-                                                        foundParenthesesCard =
-                                                            true;
-                                                        break;
-                                                      }
+                                          onTap: () {
+                                            if (!_isOpponentTurn) {
+                                              AppHaptics.lightImpact();
+                                              setState(() {
+                                                final card = _battlefieldCards.removeAt(entry.key);
+                                                
+                                                if (card.name == "Open Parenthesis" || card.name == "Close Parenthesis") {
+                                                  bool foundParenthesesCard = false;
+                                                  for (var handCard in _handCards) {
+                                                    if (handCard.type == CardType.parentheses && handCard.name == "Parentheses") {
+                                                      handCard.properties.remove('open_used');
+                                                      handCard.properties.remove('close_used');
+                                                      foundParenthesesCard = true;
+                                                      break;
                                                     }
-
-                                                    if (!foundParenthesesCard) {
-                                                      _handCards.add(MathCard(
-                                                        name: "Parentheses",
-                                                        type: CardType
-                                                            .parentheses,
-                                                        cost: 1,
-                                                      ));
-                                                    }
-                                                  } else {
-                                                    _handCards.add(card);
                                                   }
-                                                });
-                                              }
-                                            },
-                                            child: _buildBattlefieldCard(
-                                                entry.value),
+                                                  
+                                                  if (!foundParenthesesCard) {
+                                                    _handCards.add(MathCard(
+                                                      name: "Parentheses",
+                                                      type: CardType.parentheses,
+                                                      cost: 1,
+                                                    ));
+                                                  }
+                                                } else {
+                                                  _handCards.add(card);
+                                                }
+                                              });
+                                            }
+                                          },
+                                          child: _buildBattlefieldCard(entry.value),
                                           ),
                                         );
                                       }).toList(),
@@ -2262,8 +2058,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: SpaceTheme.alienGreen
-                                    .withValues(alpha: 0.7),
+                                color: SpaceTheme.alienGreen.withValues(alpha: 0.7),
                                 blurRadius: 20,
                                 spreadRadius: 3,
                               ),
@@ -2279,8 +2074,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                     shadows: [
-                                      const Shadow(
-                                          color: Colors.black, blurRadius: 3),
+                                      const Shadow(color: Colors.black, blurRadius: 3),
                                     ],
                                   ),
                                 ),
@@ -2292,9 +2086,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                                     color: SpaceTheme.starYellow,
                                     fontWeight: FontWeight.bold,
                                     shadows: [
-                                      const Shadow(
-                                          color: SpaceTheme.starYellow,
-                                          blurRadius: 8),
+                                      const Shadow(color: SpaceTheme.starYellow, blurRadius: 8),
                                     ],
                                   ),
                                 ),
@@ -2302,32 +2094,22 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                                   const SizedBox(height: 8),
                                   Wrap(
                                     spacing: 8,
-                                    children: _lastProperties
-                                        .map((prop) => Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 4),
-                                              decoration: BoxDecoration(
-                                                color: Colors.black
-                                                    .withValues(alpha: 0.8),
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                border: Border.all(
-                                                    color:
-                                                        SpaceTheme.starYellow),
-                                              ),
-                                              child: Text(
-                                                prop.toUpperCase(),
-                                                style: SpaceTheme.bodyStyle
-                                                    .copyWith(
-                                                  fontSize: 10,
-                                                  color: SpaceTheme.starYellow,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ))
-                                        .toList(),
+                                    children: _lastProperties.map((prop) => Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.8),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: SpaceTheme.starYellow),
+                                      ),
+                                      child: Text(
+                                        prop.toUpperCase(),
+                                        style: SpaceTheme.bodyStyle.copyWith(
+                                          fontSize: 10,
+                                          color: SpaceTheme.starYellow,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    )).toList(),
                                   ),
                                 ],
                               ],
@@ -2340,7 +2122,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
               );
             },
           ),
-
+          
           // Status message - absolutely positioned at bottom
           if (_statusMessage.isNotEmpty)
             Positioned(
@@ -2349,8 +2131,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
               right: 0,
               child: Center(
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -2389,7 +2170,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   Widget _buildTronSkipButton() {
     return Container(
-      width: 80, // Increased from 60
+      width: 80,  // Increased from 60
       height: 80, // Increased from 60
       decoration: BoxDecoration(
         shape: BoxShape.circle,
@@ -2417,8 +2198,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize:
-                  MainAxisSize.min, // Important for preventing overflow
+              mainAxisSize: MainAxisSize.min, // Important for preventing overflow
               children: [
                 const Icon(
                   Icons.skip_next,
@@ -2426,8 +2206,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                   size: 28, // Slightly larger
                 ),
                 const SizedBox(height: 4),
-                Flexible(
-                  // Wrap text in Flexible to prevent overflow
+                Flexible( // Wrap text in Flexible to prevent overflow
                   child: Text(
                     S.of(context)!.arithmancerSkipTurn,
                     style: const TextStyle(
@@ -2454,8 +2233,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
       ),
       child: Column(
         children: [
@@ -2530,12 +2308,10 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     );
   }
 
-  Widget _buildCompactHealthBarInner(
-      int current, int max, Color color, double percentage) {
+  Widget _buildCompactHealthBarInner(int current, int max, Color color, double percentage) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize:
-          MainAxisSize.min, // Constrains the Column's size to its children
+      mainAxisSize: MainAxisSize.min, // Constrains the Column's size to its children
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2561,8 +2337,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             ),
           ],
         ),
-        const SizedBox(
-            height: 2), // Unchanged, but feels right with smaller fonts
+        const SizedBox(height: 2), // Unchanged, but feels right with smaller fonts
         Container(
           height: 5, // CHANGED from 6
           decoration: BoxDecoration(
@@ -2739,22 +2514,18 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             height: 80,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: isTarget
+                colors: isTarget 
                     ? [SpaceTheme.starYellow, SpaceTheme.nebulaPurple]
                     : [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple],
               ),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color:
-                    isTarget ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
+                color: isTarget ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple, 
                 width: isTarget ? 3 : 2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: (isTarget
-                          ? SpaceTheme.starYellow
-                          : SpaceTheme.nebulaPurple)
-                      .withValues(alpha: 0.5),
+                  color: (isTarget ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple).withValues(alpha: 0.5),
                   blurRadius: isTarget ? 15 : 8,
                   spreadRadius: isTarget ? 3 : 1,
                 ),
@@ -2925,7 +2696,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         ],
       );
     }
-
+    
     // Regular card dragging. Semantics on the visual child — see note
     // in word_sort_game.
     return Draggable<MathCard>(
@@ -2954,8 +2725,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     );
   }
 
-  Widget _buildCard(MathCard card,
-      {bool isBeingDragged = false, int? handIndex}) {
+  Widget _buildCard(MathCard card, {bool isBeingDragged = false, int? handIndex}) {
     return AnimatedBuilder(
       animation: _cardGlowAnimation,
       builder: (context, child) {
@@ -2964,15 +2734,16 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             gradient: _getCardGradient(card),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: _getCardBorderColor(card).withValues(
-                  alpha: isBeingDragged ? 1.0 : _cardGlowAnimation.value),
+              color: _getCardBorderColor(card).withValues(alpha: 
+                isBeingDragged ? 1.0 : _cardGlowAnimation.value
+              ),
               width: isBeingDragged ? 3 : 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: _getCardBorderColor(card).withValues(
-                    alpha:
-                        isBeingDragged ? 0.9 : _cardGlowAnimation.value * 0.6),
+                color: _getCardBorderColor(card).withValues(alpha: 
+                  isBeingDragged ? 0.9 : _cardGlowAnimation.value * 0.6
+                ),
                 blurRadius: isBeingDragged ? 15 : 8,
                 spreadRadius: isBeingDragged ? 3 : 1,
               ),
@@ -2987,8 +2758,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                   width: double.infinity,
                   height: double.infinity,
                   child: CustomPaint(
-                    painter:
-                        CardPatternPainter(color: _getCardBorderColor(card)),
+                    painter: CardPatternPainter(color: _getCardBorderColor(card)),
                     size: const Size(80, 120), // Fixed size
                   ),
                 ),
@@ -3036,8 +2806,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                       "${card.cost}",
                       style: TextStyle(
                         color: Colors.black,
-                        fontSize:
-                            isBeingDragged ? 12 : 11, // Increased from 10:9
+                        fontSize: isBeingDragged ? 12 : 11, // Increased from 10:9
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -3053,10 +2822,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   Widget _buildHalfCard(String symbol, MathCard originalCard) {
     // Check if this half has been used
-    bool isUsed =
-        (symbol == "(" && originalCard.properties['open_used'] == true) ||
-            (symbol == ")" && originalCard.properties['close_used'] == true);
-
+    bool isUsed = (symbol == "(" && originalCard.properties['open_used'] == true) ||
+                  (symbol == ")" && originalCard.properties['close_used'] == true);
+    
     return AnimatedBuilder(
       animation: _cardGlowAnimation,
       builder: (context, child) {
@@ -3065,14 +2833,16 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             gradient: _getCardGradient(originalCard),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: _getCardBorderColor(originalCard)
-                  .withValues(alpha: isUsed ? 0.3 : _cardGlowAnimation.value),
+              color: _getCardBorderColor(originalCard).withValues(alpha: 
+                isUsed ? 0.3 : _cardGlowAnimation.value
+              ),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: _getCardBorderColor(originalCard).withValues(
-                    alpha: isUsed ? 0.2 : _cardGlowAnimation.value * 0.6),
+                color: _getCardBorderColor(originalCard).withValues(alpha: 
+                  isUsed ? 0.2 : _cardGlowAnimation.value * 0.6
+                ),
                 blurRadius: 8,
                 spreadRadius: 1,
               ),
@@ -3087,8 +2857,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                   width: double.infinity,
                   height: double.infinity,
                   child: CustomPaint(
-                    painter: CardPatternPainter(
-                        color: _getCardBorderColor(originalCard)),
+                    painter: CardPatternPainter(color: _getCardBorderColor(originalCard)),
                     size: const Size(40, 120),
                   ),
                 ),
@@ -3121,10 +2890,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: const RadialGradient(
-                        colors: [
-                          SpaceTheme.starYellow,
-                          SpaceTheme.planetOrange
-                        ],
+                        colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange],
                       ),
                       border: Border.all(color: Colors.black, width: 1),
                     ),
@@ -3221,3 +2987,4 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     super.dispose();
   }
 }
+

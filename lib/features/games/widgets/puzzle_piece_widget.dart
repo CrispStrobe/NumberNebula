@@ -9,7 +9,7 @@ class PuzzlePieceData {
   final ui.Image image;
   final Offset targetPosition; // Position on the final board
   final Size size;
-
+  
   PuzzlePieceData({
     required this.id,
     required this.value,
@@ -32,13 +32,12 @@ class PuzzlePieceWidget extends StatelessWidget {
         image: piece.image,
         value: piece.value,
         textStyle: Theme.of(context).textTheme.headlineMedium!.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          shadows: [
-            const Shadow(
-                blurRadius: 2.0, color: Colors.black, offset: Offset(2, 2)),
-          ],
-        ),
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              shadows: [
+                const Shadow(blurRadius: 2.0, color: Colors.black, offset: Offset(2, 2)),
+              ],
+            ),
       ),
     );
   }
@@ -49,13 +48,12 @@ class PuzzlePiecePainter extends CustomPainter {
   final int value;
   final TextStyle textStyle;
 
-  PuzzlePiecePainter(
-      {required this.image, required this.value, required this.textStyle});
+  PuzzlePiecePainter({required this.image, required this.value, required this.textStyle});
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
-
+    
     // Draw the piece's image content
     canvas.drawImageRect(
       image,
@@ -63,7 +61,7 @@ class PuzzlePiecePainter extends CustomPainter {
       Rect.fromLTWH(0, 0, size.width, size.height),
       paint,
     );
-
+    
     // Draw a semi-transparent overlay to make the number more readable
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height),

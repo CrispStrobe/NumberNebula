@@ -107,8 +107,7 @@ void main() {
             expect(ch == '#' || ch == ' ', isTrue);
           }
         }
-        expect(keys.add(t.join('|')), isTrue,
-            reason: 'templates must be unique');
+        expect(keys.add(t.join('|')), isTrue, reason: 'templates must be unique');
       }
     });
   });
@@ -265,7 +264,8 @@ void main() {
           if (lv.stats['meets_target'] == true) {
             expect(lv.stats['pushes'], greaterThanOrEqualTo(P.minPushes),
                 reason: '$where: min pushes');
-            expect(lv.stats['box_changes'], greaterThanOrEqualTo(P.minChanges),
+            expect(lv.stats['box_changes'],
+                greaterThanOrEqualTo(P.minChanges),
                 reason: '$where: min changes');
             expect((lv.stats['score'] as double),
                 greaterThanOrEqualTo(P.scoreLo.toDouble()),

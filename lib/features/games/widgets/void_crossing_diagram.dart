@@ -89,15 +89,13 @@ class VoidConflictDiagram extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _case(
-          bank: _Bank(
-              occupants: [predator, prey], shuttleHere: false, safe: false),
+          bank: _Bank(occupants: [predator, prey], shuttleHere: false, safe: false),
           caption: 'left alone',
           colour: SpaceTheme.rocketRed,
         ),
         const SizedBox(width: 18),
         _case(
-          bank:
-              _Bank(occupants: [predator, prey], shuttleHere: true, safe: true),
+          bank: _Bank(occupants: [predator, prey], shuttleHere: true, safe: true),
           caption: 'you are here',
           colour: SpaceTheme.alienGreen,
         ),

@@ -15,7 +15,8 @@ class MissionPersistence {
     final json = prefs.getString(_key);
     if (json == null) return null;
     try {
-      return MissionState.fromJson(jsonDecode(json) as Map<String, dynamic>);
+      return MissionState.fromJson(
+          jsonDecode(json) as Map<String, dynamic>);
     } catch (_) {
       return null;
     }

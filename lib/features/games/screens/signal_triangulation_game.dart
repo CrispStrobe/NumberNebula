@@ -26,8 +26,7 @@ class SignalTriangulationGame extends StatefulWidget {
   });
 
   @override
-  State<SignalTriangulationGame> createState() =>
-      _SignalTriangulationGameState();
+  State<SignalTriangulationGame> createState() => _SignalTriangulationGameState();
 }
 
 class _SignalTriangulationGameState extends State<SignalTriangulationGame>
@@ -38,7 +37,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   late AnimationController _feedbackController;
   late AnimationController _glyphController;
   late AnimationController _headerController;
-
+  
   late Animation<double> _pulseAnimation;
   late Animation<double> _scanAnimation;
   late Animation<double> _successAnimation;
@@ -54,18 +53,18 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   bool gameActive = true;
   bool hasWon = false;
   int currentPosition = 0;
-
+  
   // UI State
   bool showHeader = true;
   Timer? _headerTimer;
   Timer? _autoSubmitTimer;
   Timer? _resultTimer;
   int _roundEpoch = 0;
-
+  
   // Visual Effects
   List<SignalParticle> particles = [];
   double scanProgress = 0.0;
-
+  
   // Available glyphs based on difficulty
   late List<SignalGlyph> availableGlyphs;
 
@@ -75,55 +74,28 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     updateDecorativeMotion([_scanController], reduced, reverse: false);
   }
 
-  @override
-  String get sessionGameKey => 'signal_triangulation';
-  @override
-  int get sessionGrade => widget.grade;
-  @override
-  int get sessionLevel => widget.level;
-  @override
-  Map<String, dynamic>? capturePuzzleSession() {
+  @override String get sessionGameKey => 'signal_triangulation';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
     if (!gameActive) return null;
-    return {
-      'secret': secretSequence.map((g) => g.name).toList(),
-      'guess': currentGuess.map((g) => g.name).toList(),
-      'position': currentPosition,
-      'history': previousGuesses
-          .map((r) => {
-                'guess': r.guess.map((g) => g.name).toList(),
-                'correct': r.correctPosition,
-                'present': r.correctGlyph
-              })
-          .toList(),
-      'length': sequenceLength,
-      'maxGuesses': maxGuesses,
-      'glyphs': availableGlyphs.map((g) => g.name).toList()
-    };
+    return {'secret': secretSequence.map((g) => g.name).toList(),
+      'guess': currentGuess.map((g) => g.name).toList(), 'position': currentPosition,
+      'history': previousGuesses.map((r) => {'guess': r.guess.map((g) => g.name).toList(),
+        'correct': r.correctPosition, 'present': r.correctGlyph}).toList(),
+      'length': sequenceLength, 'maxGuesses': maxGuesses,
+      'glyphs': availableGlyphs.map((g) => g.name).toList()};
   }
-
-  @override
-  void applyPuzzleSession(Map<String, dynamic> state) {
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
     _cancelRoundCallbacks();
-    SignalGlyph glyph(String name) => [
-          SignalGlyph.empty,
-          ...SignalGlyph.getAllGlyphs()
-        ].firstWhere((g) => g.name == name);
-    List<SignalGlyph> glyphs(dynamic raw) =>
-        (raw as List).map((v) => glyph(v as String)).toList();
-    secretSequence = glyphs(state['secret']);
-    currentGuess = glyphs(state['guess']);
-    availableGlyphs = glyphs(state['glyphs']);
-    sequenceLength = state['length'];
-    maxGuesses = state['maxGuesses'];
+    SignalGlyph glyph(String name) => [SignalGlyph.empty, ...SignalGlyph.getAllGlyphs()].firstWhere((g) => g.name == name);
+    List<SignalGlyph> glyphs(dynamic raw) => (raw as List).map((v) => glyph(v as String)).toList();
+    secretSequence = glyphs(state['secret']); currentGuess = glyphs(state['guess']);
+    availableGlyphs = glyphs(state['glyphs']); sequenceLength = state['length']; maxGuesses = state['maxGuesses'];
     currentPosition = state['position'];
-    previousGuesses = (state['history'] as List)
-        .map((r) => GuessResult(
-            guess: glyphs(r['guess']),
-            correctPosition: r['correct'],
-            correctGlyph: r['present']))
-        .toList();
-    gameActive = true;
-    hasWon = false;
+    previousGuesses = (state['history'] as List).map((r) => GuessResult(guess: glyphs(r['guess']),
+      correctPosition: r['correct'], correctGlyph: r['present'])).toList();
+    gameActive = true; hasWon = false;
     particles.clear();
     _successController.reset();
     _feedbackController.reset();
@@ -136,14 +108,12 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   @override
   void initState() {
     super.initState();
-    if (kDebugMode)
-      debugPrint(
-          "🎯 [SignalTriangulation] Initializing game - Grade: ${widget.grade}, Level: ${widget.level}");
-
+    if (kDebugMode) debugPrint("🎯 [SignalTriangulation] Initializing game - Grade: ${widget.grade}, Level: ${widget.level}");
+    
     _setupAnimationControllers();
     _initializeGameParameters();
     _generateSecretSequence();
-
+    
     // Start header timer after a brief delay to ensure proper initialization
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
@@ -151,10 +121,8 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
         if (mounted) _startHeaderTimer();
       }
     });
-
-    if (kDebugMode)
-      debugPrint(
-          "🎯 [SignalTriangulation] Secret sequence: ${secretSequence.map((g) => g.name).join(', ')}");
+    
+    if (kDebugMode) debugPrint("🎯 [SignalTriangulation] Secret sequence: ${secretSequence.map((g) => g.name).join(', ')}");
   }
 
   void _setupAnimationControllers() {
@@ -162,22 +130,22 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
-        CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+    _pulseAnimation = Tween<double>(begin: 0.7, end: 1.0)
+        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
     _scanController = AnimationController(
       duration: const Duration(milliseconds: 3000),
       vsync: this,
     )..repeat();
-    _scanAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _scanController, curve: Curves.linear));
+    _scanAnimation = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(CurvedAnimation(parent: _scanController, curve: Curves.linear));
 
     _successController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _successAnimation =
-        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+    _successAnimation = CurvedAnimation(
+        parent: _successController, curve: Curves.elasticOut);
 
     _feedbackController = AnimationController(
       duration: const Duration(milliseconds: 600),
@@ -187,15 +155,15 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
-    _glyphAnimation =
-        CurvedAnimation(parent: _glyphController, curve: Curves.elasticOut);
+    _glyphAnimation = CurvedAnimation(
+        parent: _glyphController, curve: Curves.elasticOut);
 
     _headerController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _headerAnimation =
-        CurvedAnimation(parent: _headerController, curve: Curves.easeInOut);
+    _headerAnimation = CurvedAnimation(
+        parent: _headerController, curve: Curves.easeInOut);
   }
 
   void _cancelRoundCallbacks() {
@@ -226,43 +194,34 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
 
   void _initializeGameParameters() {
     // Determine difficulty based on grade and level
-    final parameters = generateSignalRound(widget.grade, widget.level);
-    sequenceLength = parameters['length'] as int;
-    maxGuesses = parameters['maxGuesses'] as int;
-    availableGlyphs = SignalGlyph.getAllGlyphs()
-        .where((g) => (parameters['glyphs'] as List).contains(g.name))
-        .toList();
+    final parameters=generateSignalRound(widget.grade,widget.level);
+ sequenceLength=parameters['length'] as int;maxGuesses=parameters['maxGuesses'] as int;
+ availableGlyphs=SignalGlyph.getAllGlyphs().where((g)=>(parameters['glyphs'] as List).contains(g.name)).toList();
     currentGuess = List.filled(sequenceLength, SignalGlyph.empty);
     previousGuesses = [];
     currentPosition = 0;
-
-    if (kDebugMode)
-      debugPrint(
-          "🎯 [SignalTriangulation] Game parameters: length=$sequenceLength, guesses=$maxGuesses, glyphs=${availableGlyphs.length}");
+    
+    if (kDebugMode) debugPrint("🎯 [SignalTriangulation] Game parameters: length=$sequenceLength, guesses=$maxGuesses, glyphs=${availableGlyphs.length}");
   }
 
   void _generateSecretSequence() {
-    final parameters = generateSignalRound(widget.grade, widget.level);
-    secretSequence = (parameters['secret'] as List)
-        .map((name) => availableGlyphs.firstWhere((g) => g.name == name))
-        .toList();
+    final parameters=generateSignalRound(widget.grade,widget.level);
+ secretSequence=(parameters['secret'] as List).map((name)=>availableGlyphs.firstWhere((g)=>g.name==name)).toList();
   }
 
   void _selectGlyph(SignalGlyph glyph) {
     if (!gameActive || currentPosition >= sequenceLength) return;
-
+    
     AppHaptics.lightImpact();
     _glyphController.forward(from: 0.0);
-
+    
     setState(() {
       currentGuess[currentPosition] = glyph;
       currentPosition++;
     });
-
-    if (kDebugMode)
-      debugPrint(
-          "🎯 [SignalTriangulation] Selected glyph: ${glyph.name} at position $currentPosition");
-
+    
+    if (kDebugMode) debugPrint("🎯 [SignalTriangulation] Selected glyph: ${glyph.name} at position $currentPosition");
+    
     // Auto-submit when sequence is complete
     if (currentPosition >= sequenceLength) {
       _autoSubmitTimer?.cancel();
@@ -277,7 +236,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     if (!gameActive) return;
     _autoSubmitTimer?.cancel();
     _autoSubmitTimer = null;
-
+    
     setState(() {
       currentGuess = List.filled(sequenceLength, SignalGlyph.empty);
       currentPosition = 0;
@@ -285,16 +244,12 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   }
 
   void _submitGuess() async {
-    if (!mounted ||
-        !gameActive ||
-        currentGuess.any((g) => g == SignalGlyph.empty)) return;
+    if (!mounted || !gameActive || currentGuess.any((g) => g == SignalGlyph.empty)) return;
     _autoSubmitTimer?.cancel();
     _autoSubmitTimer = null;
-
-    if (kDebugMode)
-      debugPrint(
-          "🎯 [SignalTriangulation] Submitting guess: ${currentGuess.map((g) => g.name).join(', ')}");
-
+    
+    if (kDebugMode) debugPrint("🎯 [SignalTriangulation] Submitting guess: ${currentGuess.map((g) => g.name).join(', ')}");
+    
     // Calculate feedback
     final feedback = _calculateFeedback(currentGuess, secretSequence);
     final result = GuessResult(
@@ -302,17 +257,17 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       correctPosition: feedback['correct']!,
       correctGlyph: feedback['present']!,
     );
-
+    
     setState(() {
       previousGuesses.add(result);
       currentGuess = List.filled(sequenceLength, SignalGlyph.empty);
       currentPosition = 0;
     });
-
+    
     // Record response for SRI tracking
     // final sriService = context.read<SriService>();
     final isCorrect = result.correctPosition == sequenceLength;
-
+    
     /* Create a simple problem for SRI tracking
     final problem = MathProblem(
       operandA: previousGuesses.length,
@@ -325,10 +280,10 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     sriService.recordResponse(problem, isCorrect); */
 
     _feedbackController.forward(from: 0.0);
-
+    
     // Add feedback particles
     _addFeedbackParticles(result);
-
+    
     if (isCorrect) {
       _handleSuccess();
     } else if (previousGuesses.length >= maxGuesses) {
@@ -336,36 +291,35 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     }
   }
 
-  Map<String, int> _calculateFeedback(
-      List<SignalGlyph> guess, List<SignalGlyph> secret) {
+  Map<String, int> _calculateFeedback(List<SignalGlyph> guess, List<SignalGlyph> secret) {
     int correctPosition = 0;
     int correctGlyph = 0;
-
+    
     // Count exact matches
     for (int i = 0; i < guess.length; i++) {
       if (guess[i] == secret[i]) {
         correctPosition++;
       }
     }
-
+    
     // Count color matches (including exact matches)
     final guessCount = <SignalGlyph, int>{};
     final secretCount = <SignalGlyph, int>{};
-
+    
     for (final glyph in guess) {
       guessCount[glyph] = (guessCount[glyph] ?? 0) + 1;
     }
     for (final glyph in secret) {
       secretCount[glyph] = (secretCount[glyph] ?? 0) + 1;
     }
-
+    
     for (final glyph in guessCount.keys) {
       correctGlyph += math.min(guessCount[glyph]!, secretCount[glyph] ?? 0);
     }
-
+    
     // Subtract exact matches to get wrong-position matches
     correctGlyph -= correctPosition;
-
+    
     return {'correct': correctPosition, 'present': correctGlyph};
   }
 
@@ -373,14 +327,14 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     final random = math.Random();
     final screenSize = MediaQuery.of(context).size;
     final centerX = screenSize.width / 2;
-
+    
     // Success particles for correct positions
     for (int i = 0; i < result.correctPosition; i++) {
       particles.add(SignalParticle.success(
         Offset(centerX + (random.nextDouble() - 0.5) * 100, 300),
       ));
     }
-
+    
     // Warning particles for correct glyphs in wrong positions
     for (int i = 0; i < result.correctGlyph; i++) {
       particles.add(SignalParticle.warning(
@@ -391,45 +345,42 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
 
   void _handleSuccess() {
     finishPuzzleSession();
-    if (kDebugMode)
-      debugPrint(
-          "🎉 [SignalTriangulation] Success! Signal triangulated successfully");
-
+    if (kDebugMode) debugPrint("🎉 [SignalTriangulation] Success! Signal triangulated successfully");
+    
     setState(() {
       gameActive = false;
       hasWon = true;
     });
-
+    
     _successController.forward();
     AppHaptics.heavyImpact();
-
+    
     // Calculate score based on performance
     final baseScore = 200 * widget.grade;
-    final efficiencyBonus =
-        math.max(0, (maxGuesses - previousGuesses.length) * 50);
+    final efficiencyBonus = math.max(0, (maxGuesses - previousGuesses.length) * 50);
     final difficultyBonus = (sequenceLength - 3) * 100;
     final totalScore = baseScore + efficiencyBonus + difficultyBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-          skillLevel: widget.grade,
-          gameType: 'signal_triangulation',
-          difficulty: widget.grade + (widget.level ~/ 5),
-          score: totalScore,
-          // Half the guess allowance is the par for real deduction.
-          performance:
-              Perf.fromMoves(previousGuesses.length, (maxGuesses / 2).ceil()),
+      skillLevel: widget.grade,
+      gameType: 'signal_triangulation',
+      difficulty: widget.grade + (widget.level ~/ 5),
+      score: totalScore,
+      // Half the guess allowance is the par for real deduction.
+      performance: Perf.fromMoves(
+          previousGuesses.length, (maxGuesses / 2).ceil()),
 
-          movesUsed: previousGuesses.length,
-          optimalMoves: (maxGuesses / 2).ceil(),
-        ));
-
+      movesUsed: previousGuesses.length,
+      optimalMoves: (maxGuesses / 2).ceil(),
+    ));
+    
     // Add celebration particles
     for (int i = 0; i < 50; i++) {
       particles.add(SignalParticle.celebration(
         MediaQuery.of(context).size.center(Offset.zero),
       ));
     }
-
+    
     _resultTimer?.cancel();
     final epoch = _roundEpoch;
     _resultTimer = Timer(const Duration(milliseconds: 1000), () {
@@ -437,8 +388,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) =>
-              _buildSuccessDialog(totalScore, efficiencyBonus),
+          builder: (context) => _buildSuccessDialog(totalScore, efficiencyBonus),
         );
       }
     });
@@ -446,9 +396,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
 
   void _handleFailure() {
     finishPuzzleSession();
-    if (kDebugMode)
-      debugPrint(
-          "❌ [SignalTriangulation] Failed - Signal source remains hidden");
+    if (kDebugMode) debugPrint("❌ [SignalTriangulation] Failed - Signal source remains hidden");
 
     setState(() {
       gameActive = false;
@@ -456,20 +404,20 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     });
 
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-          skillLevel: widget.grade,
-          gameType: 'signal_triangulation',
-          difficulty: widget.grade + (widget.level ~/ 5),
-        ));
+      skillLevel: widget.grade,
+      gameType: 'signal_triangulation',
+      difficulty: widget.grade + (widget.level ~/ 5),
+    ));
 
     AppHaptics.vibrate();
-
+    
     // Add failure particles
     for (int i = 0; i < 30; i++) {
       particles.add(SignalParticle.failure(
         MediaQuery.of(context).size.center(Offset.zero),
       ));
     }
-
+    
     _resultTimer?.cancel();
     final epoch = _roundEpoch;
     _resultTimer = Timer(const Duration(milliseconds: 1000), () {
@@ -487,7 +435,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isWideScreen = screenWidth > 700;
-
+    
     return Scaffold(
       backgroundColor: SpaceTheme.deepSpace, // Ensure no white background flash
       body: Container(
@@ -501,8 +449,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                 // Animated background effects
                 Positioned.fill(
                   child: AnimatedBuilder(
-                    animation:
-                        Listenable.merge([_pulseController, _scanController]),
+                    animation: Listenable.merge([_pulseController, _scanController]),
                     builder: (context, child) {
                       return CustomPaint(
                         painter: SignalBackgroundPainter(
@@ -514,10 +461,10 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                     },
                   ),
                 ),
-
+                
                 // Particles
                 ...particles.map((p) => p.build()),
-
+                
                 // Always visible minimal header (when full header is hidden)
                 if (!showHeader)
                   Positioned(
@@ -526,8 +473,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                     right: 0,
                     child: Container(
                       height: 50,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
@@ -542,40 +488,31 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                         children: [
                           IconButton(
                             onPressed: () => Navigator.of(context).pop(),
-                            icon: const Icon(Icons.arrow_back_ios,
-                                color: Colors.white, size: 18),
+                            icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
                             style: IconButton.styleFrom(
-                              backgroundColor:
-                                  SpaceTheme.deepSpace.withValues(alpha: 0.7),
+                              backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.7),
                               padding: const EdgeInsets.all(6),
                               minimumSize: const Size(32, 32),
                             ),
                           ),
                           const Spacer(),
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color:
-                                  SpaceTheme.deepSpace.withValues(alpha: 0.7),
+                              color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                  color: SpaceTheme.alienGreen
-                                      .withValues(alpha: 0.3)),
+                              border: Border.all(color: SpaceTheme.alienGreen.withValues(alpha: 0.3)),
                             ),
                             child: Text(
                               '${previousGuesses.length}/$maxGuesses',
-                              style: const TextStyle(
-                                  color: SpaceTheme.alienGreen,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold),
+                              style: const TextStyle(color: SpaceTheme.alienGreen, fontSize: 11, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
-
+                
                 // Full header (shows for 12 seconds)
                 if (showHeader)
                   AnimatedBuilder(
@@ -590,16 +527,14 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                       );
                     },
                   ),
-
+                
                 // Main game content with two-column layout
                 Positioned(
                   top: showHeader ? 80 : 55,
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  child: isWideScreen
-                      ? _buildTwoColumnLayout()
-                      : _buildMobileLayout(),
+                  child: isWideScreen ? _buildTwoColumnLayout() : _buildMobileLayout(),
                 ),
               ],
             ),
@@ -627,15 +562,14 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
         children: [
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon:
-                const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
             style: IconButton.styleFrom(
               backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.6),
               padding: const EdgeInsets.all(8),
             ),
           ),
           const SizedBox(width: 8),
-
+          
           // Compact instructions in header
           Expanded(
             child: Container(
@@ -643,31 +577,26 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
               decoration: BoxDecoration(
                 color: SpaceTheme.deepSpace.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                    color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
+                border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
               ),
               child: Text(
                 S.of(context)!.signalTriangulationInstructions,
-                style: SpaceTheme.bodyStyle
-                    .copyWith(fontSize: 10, color: Colors.white70),
+                style: SpaceTheme.bodyStyle.copyWith(fontSize: 10, color: Colors.white70),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
           ),
-
+          
           const SizedBox(width: 8),
-          _buildCompactStat(
-              Icons.adjust, sequenceLength.toString(), SpaceTheme.starYellow),
+          _buildCompactStat(Icons.adjust, sequenceLength.toString(), SpaceTheme.starYellow),
           const SizedBox(width: 8),
-          _buildCompactStat(Icons.radio,
-              '${previousGuesses.length}/$maxGuesses', SpaceTheme.alienGreen),
+          _buildCompactStat(Icons.radio, '${previousGuesses.length}/$maxGuesses', SpaceTheme.alienGreen),
           const SizedBox(width: 8),
           Consumer<GameProvider>(
             builder: (context, gameProvider, child) {
-              return _buildCompactStat(Icons.star,
-                  gameProvider.score.toString(), SpaceTheme.cosmicPink);
+              return _buildCompactStat(Icons.star, gameProvider.score.toString(), SpaceTheme.cosmicPink);
             },
           ),
         ],
@@ -688,9 +617,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
         children: [
           Icon(icon, color: color, size: 16),
           const SizedBox(width: 4),
-          Text(value,
-              style: TextStyle(
-                  color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(value, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -709,17 +636,17 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                 // Current guess - compact
                 _buildCurrentGuess(),
                 const SizedBox(height: 8),
-
+                
                 // Glyph selector - only takes needed space
                 _buildGlyphSelector(),
-
+                
                 // Spacer to push content to top
                 const Spacer(),
               ],
             ),
           ),
         ),
-
+        
         // Right column - Previous guesses
         Expanded(
           flex: 2,
@@ -771,8 +698,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
         children: [
           Text(
             S.of(context)!.signalTriangulationCurrentSequence,
-            style: SpaceTheme.titleStyle
-                .copyWith(color: SpaceTheme.alienGreen, fontSize: 16),
+            style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.alienGreen, fontSize: 16),
           ),
           const SizedBox(height: 12),
           Row(
@@ -780,14 +706,13 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
             children: List.generate(sequenceLength, (index) {
               final glyph = currentGuess[index];
               final isActive = index == currentPosition && gameActive;
-
+              
               return AnimatedBuilder(
                 animation: _glyphAnimation,
                 builder: (context, child) {
-                  final scale = (index == currentPosition - 1)
-                      ? (1.0 + _glyphAnimation.value * 0.3)
-                      : 1.0;
-
+                  final scale = (index == currentPosition - 1) ? 
+                      (1.0 + _glyphAnimation.value * 0.3) : 1.0;
+                  
                   return Transform.scale(
                     scale: scale,
                     child: Container(
@@ -798,26 +723,21 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                         shape: BoxShape.circle,
                         color: glyph.color,
                         border: Border.all(
-                          color: isActive
-                              ? SpaceTheme.starYellow
-                              : SpaceTheme.alienGreen,
+                          color: isActive ? SpaceTheme.starYellow : SpaceTheme.alienGreen,
                           width: isActive ? 3 : 2,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: (glyph.color ?? Colors.transparent)
-                                .withValues(alpha: 0.5),
+                            color: (glyph.color ?? Colors.transparent).withValues(alpha: 0.5),
                             blurRadius: 6,
                             spreadRadius: isActive ? 2 : 1,
                           ),
                         ],
                       ),
-                      child: glyph.icon != null
-                          ? Icon(glyph.icon, color: Colors.white, size: 22)
-                          : (isActive
-                              ? const Icon(Icons.radio_button_unchecked,
-                                  color: SpaceTheme.starYellow, size: 18)
-                              : null),
+                      child: glyph.icon != null ?
+                          Icon(glyph.icon, color: Colors.white, size: 22) :
+                          (isActive ? const Icon(Icons.radio_button_unchecked, 
+                              color: SpaceTheme.starYellow, size: 18) : null),
                     ),
                   );
                 },
@@ -832,22 +752,17 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                 ElevatedButton(
                   onPressed: currentPosition > 0 ? _clearGuess : null,
                   style: SpaceTheme.secondaryButtonStyle.copyWith(
-                    padding: WidgetStateProperty.all(const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8)),
+                    padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
                   ),
-                  child: Text(S.of(context)!.signalTriangulationClear,
-                      style: const TextStyle(fontSize: 12)),
+                  child: Text(S.of(context)!.signalTriangulationClear, style: const TextStyle(fontSize: 12)),
                 ),
                 const SizedBox(width: 12),
                 ElevatedButton(
-                  onPressed:
-                      currentPosition >= sequenceLength ? _submitGuess : null,
+                  onPressed: currentPosition >= sequenceLength ? _submitGuess : null,
                   style: SpaceTheme.primaryButtonStyle.copyWith(
-                    padding: WidgetStateProperty.all(const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8)),
+                    padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
                   ),
-                  child: Text(S.of(context)!.signalTriangulationTransmit,
-                      style: const TextStyle(fontSize: 12)),
+                  child: Text(S.of(context)!.signalTriangulationTransmit, style: const TextStyle(fontSize: 12)),
                 ),
               ],
             ),
@@ -859,7 +774,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
 
   Widget _buildGlyphSelector() {
     if (!gameActive) return const SizedBox.shrink();
-
+    
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: SpaceTheme.cardDecoration,
@@ -896,19 +811,16 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: glyph.color,
-                                border: Border.all(
-                                    color: SpaceTheme.alienGreen, width: 2),
+                                border: Border.all(color: SpaceTheme.alienGreen, width: 2),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: glyph.color!.withValues(
-                                        alpha: _pulseAnimation.value * 0.5),
+                                    color: glyph.color!.withValues(alpha: _pulseAnimation.value * 0.5),
                                     blurRadius: 6,
                                     spreadRadius: 1,
                                   ),
                                 ],
                               ),
-                              child: Icon(glyph.icon,
-                                  color: Colors.white, size: 18),
+                              child: Icon(glyph.icon, color: Colors.white, size: 18),
                             ),
                           );
                         },
@@ -933,20 +845,19 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
         ),
       );
     }
-
+    
     return ListView.builder(
       itemCount: previousGuesses.length,
       reverse: true,
       itemBuilder: (context, index) {
-        return _buildGuessResult(
-            previousGuesses[previousGuesses.length - 1 - index]);
+        return _buildGuessResult(previousGuesses[previousGuesses.length - 1 - index]);
       },
     );
   }
 
   Widget _buildPreviousGuesses() {
     if (previousGuesses.isEmpty) return const SizedBox.shrink();
-
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: SpaceTheme.cardDecoration,
@@ -958,10 +869,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
           ),
           const SizedBox(height: 16),
           Column(
-            children: previousGuesses.reversed
-                .take(5)
-                .map(_buildGuessResult)
-                .toList(),
+            children: previousGuesses.reversed.take(5).map(_buildGuessResult).toList(),
           ),
         ],
       ),
@@ -975,61 +883,53 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(6),
-        border:
-            Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           // Guess sequence
           Expanded(
             child: Row(
-              children: result.guess
-                  .map((glyph) => Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 1),
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: glyph.color,
-                          border: Border.all(color: Colors.white30),
-                        ),
-                        child: Icon(glyph.icon, color: Colors.white, size: 12),
-                      ))
-                  .toList(),
+              children: result.guess.map((glyph) => Container(
+                margin: const EdgeInsets.symmetric(horizontal: 1),
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: glyph.color,
+                  border: Border.all(color: Colors.white30),
+                ),
+                child: Icon(glyph.icon, color: Colors.white, size: 12),
+              )).toList(),
             ),
           ),
-
+          
           // Feedback
           Row(
             children: [
               // Correct position indicators
               Row(
-                children: List.generate(
-                    result.correctPosition,
-                    (_) => Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 1),
-                          width: 12,
-                          height: 12,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: SpaceTheme.alienGreen,
-                          ),
-                        )),
+                children: List.generate(result.correctPosition, (_) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 1),
+                  width: 12,
+                  height: 12,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: SpaceTheme.alienGreen,
+                  ),
+                )),
               ),
               // Correct glyph, wrong position indicators
               Row(
-                children: List.generate(
-                    result.correctGlyph,
-                    (_) => Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 1),
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                                color: SpaceTheme.starYellow, width: 2),
-                          ),
-                        )),
+                children: List.generate(result.correctGlyph, (_) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 1),
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: SpaceTheme.starYellow, width: 2),
+                  ),
+                )),
               ),
             ],
           ),
@@ -1059,9 +959,8 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    RoundSummary(gameKey: 'signal_triangulation'),
-                    const Icon(Icons.radio,
-                        size: 48, color: SpaceTheme.alienGreen),
+                  RoundSummary(gameKey: 'signal_triangulation'),
+                    const Icon(Icons.radio, size: 48, color: SpaceTheme.alienGreen),
                     const SizedBox(height: 12),
                     Text(
                       S.of(context)!.signalTriangulationWinTitle,
@@ -1071,10 +970,10 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                     const SizedBox(height: 12),
                     Text(
                       S.of(context)!.signalTriangulationWinDesc(
-                            previousGuesses.length,
-                            totalScore,
-                            efficiencyBonus,
-                          ),
+                        previousGuesses.length,
+                        totalScore,
+                        efficiencyBonus,
+                      ),
                       style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
                       textAlign: TextAlign.center,
                     ),
@@ -1090,8 +989,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                               _resetGame();
                             },
                             style: SpaceTheme.secondaryButtonStyle,
-                            child: Text(S.of(context)!.nextSignal,
-                                style: const TextStyle(fontSize: 12)),
+                            child: Text(S.of(context)!.nextSignal, style: const TextStyle(fontSize: 12)),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -1102,8 +1000,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                               Navigator.of(context).pop();
                             },
                             style: SpaceTheme.primaryButtonStyle,
-                            child: Text(S.of(context)!.toTheBridge,
-                                style: const TextStyle(fontSize: 12)),
+                            child: Text(S.of(context)!.toTheBridge, style: const TextStyle(fontSize: 12)),
                           ),
                         ),
                       ],
@@ -1134,9 +1031,8 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              RoundSummary(gameKey: 'signal_triangulation'),
-              const Icon(Icons.signal_wifi_off,
-                  size: 48, color: SpaceTheme.rocketRed),
+                  RoundSummary(gameKey: 'signal_triangulation'),
+              const Icon(Icons.signal_wifi_off, size: 48, color: SpaceTheme.rocketRed),
               const SizedBox(height: 12),
               Text(
                 S.of(context)!.signalTriangulationLoseTitle,
@@ -1152,9 +1048,9 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
               const SizedBox(height: 12),
               Text(
                 S.of(context)!.signalTriangulationReveal(
-                    secretSequence.map((g) => g.displayName).join(' - ')),
-                style: SpaceTheme.bodyStyle
-                    .copyWith(color: SpaceTheme.alienGreen, fontSize: 14),
+                  secretSequence.map((g) => g.displayName).join(' - ')
+                ),
+                style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.alienGreen, fontSize: 14),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -1169,8 +1065,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                         _resetGame();
                       },
                       style: SpaceTheme.secondaryButtonStyle,
-                      child: Text(S.of(context)!.tryAgain,
-                          style: const TextStyle(fontSize: 12)),
+                      child: Text(S.of(context)!.tryAgain, style: const TextStyle(fontSize: 12)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -1181,8 +1076,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                         Navigator.of(context).pop();
                       },
                       style: SpaceTheme.primaryButtonStyle,
-                      child: Text(S.of(context)!.toTheBridge,
-                          style: const TextStyle(fontSize: 12)),
+                      child: Text(S.of(context)!.toTheBridge, style: const TextStyle(fontSize: 12)),
                     ),
                   ),
                 ],
@@ -1206,7 +1100,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       particles.clear();
       showHeader = true;
     });
-
+    
     _generateSecretSequence();
     _successController.reset();
     _feedbackController.reset();
@@ -1234,77 +1128,57 @@ class SignalGlyph {
   final String displayName;
   final IconData? icon;
   final Color? color;
-
+  
   const SignalGlyph({
     required this.name,
     required this.displayName,
     this.icon,
     this.color,
   });
-
+  
   static const empty = SignalGlyph(name: 'empty', displayName: '???');
-
+  
   static const alpha = SignalGlyph(
-    name: 'alpha',
-    displayName: 'Alpha',
-    icon: Icons.hexagon_outlined,
-    color: Colors.red,
+    name: 'alpha', displayName: 'Alpha',  
+    icon: Icons.hexagon_outlined, color: Colors.red, 
   );
   static const beta = SignalGlyph(
-    name: 'beta',
-    displayName: 'Beta',
-    icon: Icons.blur_circular,
-    color: Colors.blue,
+    name: 'beta', displayName: 'Beta',
+    icon: Icons.blur_circular, color: Colors.blue,
   );
   static const gamma = SignalGlyph(
-    name: 'gamma',
-    displayName: 'Gamma',
-    icon: Icons.grain,
-    color: Colors.green,
+    name: 'gamma', displayName: 'Gamma',
+    icon: Icons.grain, color: Colors.green,
   );
   static const delta = SignalGlyph(
-    name: 'delta',
-    displayName: 'Delta',
-    icon: Icons.change_history,
-    color: Colors.orange,
+    name: 'delta', displayName: 'Delta',
+    icon: Icons.change_history, color: Colors.orange,
   );
   static const epsilon = SignalGlyph(
-    name: 'epsilon',
-    displayName: 'Epsilon',
-    icon: Icons.electric_bolt,
-    color: Colors.yellow,
+    name: 'epsilon', displayName: 'Epsilon',
+    icon: Icons.electric_bolt, color: Colors.yellow,
   );
   static const zeta = SignalGlyph(
-    name: 'zeta',
-    displayName: 'Zeta',
-    icon: Icons.waves,
-    color: Colors.purple,
+    name: 'zeta', displayName: 'Zeta',
+    icon: Icons.waves, color: Colors.purple,
   );
   static const eta = SignalGlyph(
-    name: 'eta',
-    displayName: 'Eta',
-    icon: Icons.star,
-    color: Colors.cyan,
+    name: 'eta', displayName: 'Eta',
+    icon: Icons.star, color: Colors.cyan,
   );
   static const theta = SignalGlyph(
-    name: 'theta',
-    displayName: 'Theta',
-    icon: Icons.circle_outlined,
-    color: Colors.teal,
+    name: 'theta', displayName: 'Theta',
+    icon: Icons.circle_outlined, color: Colors.teal,
   );
-
-  static List<SignalGlyph> getBasicGlyphs() =>
-      [alpha, beta, gamma, delta, epsilon];
-
-  static List<SignalGlyph> getIntermediateGlyphs() =>
-      [alpha, beta, gamma, delta, epsilon, zeta];
-
-  static List<SignalGlyph> getAdvancedGlyphs() =>
-      [alpha, beta, gamma, delta, epsilon, zeta, eta];
-
-  static List<SignalGlyph> getAllGlyphs() =>
-      [alpha, beta, gamma, delta, epsilon, zeta, eta, theta];
-
+  
+  static List<SignalGlyph> getBasicGlyphs() => [alpha, beta, gamma, delta, epsilon];
+  
+  static List<SignalGlyph> getIntermediateGlyphs() => [alpha, beta, gamma, delta, epsilon, zeta];
+  
+  static List<SignalGlyph> getAdvancedGlyphs() => [alpha, beta, gamma, delta, epsilon, zeta, eta];
+  
+  static List<SignalGlyph> getAllGlyphs() => [alpha, beta, gamma, delta, epsilon, zeta, eta, theta];
+  
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1320,7 +1194,7 @@ class GuessResult {
   final List<SignalGlyph> guess;
   final int correctPosition;
   final int correctGlyph;
-
+  
   GuessResult({
     required this.guess,
     required this.correctPosition,
@@ -1448,36 +1322,33 @@ class SignalBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-
+    
     // Draw radar-like scanning effect
     final scanPaint = Paint()
-      ..color = (gameWon ? Colors.green : Colors.cyan)
-          .withValues(alpha: 0.1 * pulseIntensity)
+      ..color = (gameWon ? Colors.green : Colors.cyan).withValues(alpha: 0.1 * pulseIntensity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
-
+    
     // Concentric circles
     for (double r = 50; r < size.width; r += 80) {
       canvas.drawCircle(center, r, scanPaint);
     }
-
+    
     // Scanning line
     final scanAngle = scanProgress * 2 * math.pi;
     final scanRadius = size.width;
     final scanEnd = center + Offset.fromDirection(scanAngle, scanRadius);
-
+    
     final scanLinePaint = Paint()
-      ..color = (gameWon ? Colors.green : Colors.cyan)
-          .withValues(alpha: 0.3 * pulseIntensity)
+      ..color = (gameWon ? Colors.green : Colors.cyan).withValues(alpha: 0.3 * pulseIntensity)
       ..strokeWidth = 3;
-
+    
     canvas.drawLine(center, scanEnd, scanLinePaint);
-
+    
     // Central hub
     final hubPaint = Paint()
-      ..color = (gameWon ? Colors.green : Colors.cyan)
-          .withValues(alpha: 0.5 * pulseIntensity);
-
+      ..color = (gameWon ? Colors.green : Colors.cyan).withValues(alpha: 0.5 * pulseIntensity);
+    
     canvas.drawCircle(center, 8, hubPaint);
   }
 

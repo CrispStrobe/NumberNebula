@@ -63,9 +63,7 @@ class CognitiveProfileScreen extends StatelessWidget {
             )
           else ...[
             Text(
-              S
-                  .of(context)!
-                  .cognitiveProfileAttempts(totalAttempts, snapshot.length),
+              S.of(context)!.cognitiveProfileAttempts(totalAttempts, snapshot.length),
               style: SpaceTheme.bodyStyle
                   .copyWith(fontSize: 13, color: Colors.white70),
             ),
@@ -96,8 +94,9 @@ class _SkillCategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasData = stats != null && stats!.isNotEmpty;
-    final attempts =
-        !hasData ? 0 : stats!.values.fold<int>(0, (sum, s) => sum + s.attempts);
+    final attempts = !hasData
+        ? 0
+        : stats!.values.fold<int>(0, (sum, s) => sum + s.attempts);
     final successes = !hasData
         ? 0
         : stats!.values.fold<int>(0, (sum, s) => sum + s.successes);

@@ -39,63 +39,33 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   void onPuzzleSessionMotionChanged(bool reduced) {
     updateDecorativeMotion([_planetController], reduced, reverse: false);
   }
-
-  @override
-  String get sessionGameKey => 'planet_hopping';
-  @override
-  int get sessionGrade => widget.grade;
-  @override
-  int get sessionLevel => widget.level;
-  @override
-  Map<String, dynamic>? capturePuzzleSession() {
+  @override String get sessionGameKey => 'planet_hopping';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
     if (!_sessionReady) return null;
     return {
       'planets': planets.map((v0) => v0.toJson()).toList(),
       'targetSequence': targetSequence.map((v0) => v0).toList(),
       'lives': lives,
       'nextTargetIndex': nextTargetIndex,
-      '_attemptedProblems':
-          _attemptedProblems.map((v0) => v0.toJson()).toList(),
+      '_attemptedProblems': _attemptedProblems.map((v0) => v0.toJson()).toList(),
       '_gameWidth': _gameWidth,
       '_gameHeight': _gameHeight,
-      '_hopper': {
-        'position': [hopper.position.dx, hopper.position.dy],
-        'velocity': [hopper.velocity.dx, hopper.velocity.dy],
-        'landed': hopper.isLanded,
-        'planet': hopper.landedOnPlanetId
-      }
+      '_hopper': {'position': [hopper.position.dx, hopper.position.dy], 'velocity': [hopper.velocity.dx, hopper.velocity.dy], 'landed': hopper.isLanded, 'planet': hopper.landedOnPlanetId}
     };
   }
-
-  @override
-  void applyPuzzleSession(Map<String, dynamic> state) {
-    planets = (state["planets"] as List)
-        .map((v0) => Planet.fromJson(Map<String, dynamic>.from(v0 as Map)))
-        .toList();
-    targetSequence =
-        (state["targetSequence"] as List).map((v0) => v0 as int).toList();
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    planets = (state["planets"] as List).map((v0) => Planet.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+    targetSequence = (state["targetSequence"] as List).map((v0) => v0 as int).toList();
     lives = state["lives"] as int;
     nextTargetIndex = state["nextTargetIndex"] as int;
-    _attemptedProblems
-      ..clear()
-      ..addAll((state["_attemptedProblems"] as List)
-          .map((v0) =>
-              MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map)))
-          .toList());
+    _attemptedProblems..clear()..addAll((state["_attemptedProblems"] as List).map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map))).toList());
     _gameWidth = (state["_gameWidth"] as num).toDouble();
     _gameHeight = (state["_gameHeight"] as num).toDouble();
-    final h = state['_hopper'];
-    hopper.position = Offset((h['position'][0] as num).toDouble(),
-        (h['position'][1] as num).toDouble());
-    hopper.velocity = Offset((h['velocity'][0] as num).toDouble(),
-        (h['velocity'][1] as num).toDouble());
-    hopper.isLanded = h['landed'] as bool;
-    hopper.landedOnPlanetId = h['planet'] as int?;
-    gameActive = true;
-    _showInstructions = false;
-    _startHintTimer();
+    final h = state['_hopper']; hopper.position = Offset((h['position'][0] as num).toDouble(), (h['position'][1] as num).toDouble()); hopper.velocity = Offset((h['velocity'][0] as num).toDouble(), (h['velocity'][1] as num).toDouble()); hopper.isLanded = h['landed'] as bool; hopper.landedOnPlanetId = h['planet'] as int?;
+    gameActive = true; _showInstructions = false; _startHintTimer();
   }
-
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_initializeGame);
@@ -125,8 +95,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   Planet? _targetPlanet; // NEW: Track which planet we're flying to
 
   // --- Progression Tracking ---
-  final List<MathProblem> _attemptedProblems =
-      []; // Track problems we've attempted
+  final List<MathProblem> _attemptedProblems = []; // Track problems we've attempted
 
   // --- UI State ---
   bool _showInstructions = true;
@@ -137,8 +106,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   @override
   void initState() {
     super.initState();
-    if (kDebugMode)
-      debugPrint("[Game Init] 🚀 Planet Hopping game initializing...");
+    if (kDebugMode) debugPrint("[Game Init] 🚀 Planet Hopping game initializing...");
 
     _gameController = AnimationController(
       duration: const Duration(milliseconds: 16), // ~60 FPS
@@ -154,7 +122,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       duration: const Duration(seconds: 10),
       vsync: this,
     )..repeat();
-
+    
     // Defer initialization until the first frame is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -172,8 +140,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   @override
   void dispose() {
     disposePuzzleSession();
-    if (kDebugMode)
-      debugPrint("[Game Dispose] 🛑 Disposing all controllers and timers.");
+    if (kDebugMode) debugPrint("[Game Dispose] 🛑 Disposing all controllers and timers.");
     _gameController.dispose();
     _gravityController.dispose();
     _planetController.dispose();
@@ -218,8 +185,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     final random = math.Random();
     for (int i = 0; i < 80; i++) {
       backgroundStars.add(Star(
-          position:
-              Offset(random.nextDouble() * 1500, random.nextDouble() * 1000),
+          position: Offset(random.nextDouble() * 1500, random.nextDouble() * 1000),
           size: random.nextDouble() * 2 + 1,
           brightness: random.nextDouble() * 0.8 + 0.2));
     }
@@ -231,23 +197,20 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     final random = math.Random();
     final difficulty = widget.grade + widget.level;
     final planetCount = (5 + (difficulty / 4)).clamp(5, 8).toInt();
-
+    
     final problems = <MathProblem>[];
-    if (kDebugMode)
-      debugPrint("[Gameplay] Generating $planetCount unique planets...");
+    if (kDebugMode) debugPrint("[Gameplay] Generating $planetCount unique planets...");
 
     final sriService = context.read<SriService>();
     final gameProvider = context.read<GameProvider>();
     final screenSize = MediaQuery.of(context).size;
 
-    problems.addAll(generatePlanetProblems(
-        gameProvider, widget.level, sriService, planetCount));
+    problems.addAll(generatePlanetProblems(gameProvider,widget.level,sriService,planetCount));
     for (int i = 0; i < problems.length; i++) {
       final planetRadius = (32.0 + random.nextDouble() * 16).clamp(30.0, 45.0);
-
+      
       // This helper function now ensures the position is valid.
-      final position =
-          _findNonOverlappingPosition(screenSize, planetRadius, planets);
+      final position = _findNonOverlappingPosition(screenSize, planetRadius, planets);
 
       planets.add(Planet(
         id: i,
@@ -262,24 +225,17 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   // This is the helper function to prevent overlaps.
-  Offset _findNonOverlappingPosition(
-      Size screenSize, double newPlanetRadius, List<Planet> existingPlanets) {
+  Offset _findNonOverlappingPosition(Size screenSize, double newPlanetRadius, List<Planet> existingPlanets) {
     final random = math.Random();
     const int maxAttempts = 100;
     const double padding = 15.0; // Extra space between planets
 
     for (int i = 0; i < maxAttempts; i++) {
       // Generate a random position within safe screen bounds
-      final double x =
-          random.nextDouble() * (screenSize.width - newPlanetRadius * 2 - 100) +
-              newPlanetRadius +
-              50;
-      final double y = random.nextDouble() *
-              (screenSize.height - newPlanetRadius * 2 - 200) +
-          newPlanetRadius +
-          100;
+      final double x = random.nextDouble() * (screenSize.width - newPlanetRadius * 2 - 100) + newPlanetRadius + 50;
+      final double y = random.nextDouble() * (screenSize.height - newPlanetRadius * 2 - 200) + newPlanetRadius + 100;
       final newPosition = Offset(x, y);
-
+      
       bool hasOverlap = false;
       // Check against all previously placed planets
       for (final existingPlanet in existingPlanets) {
@@ -290,23 +246,18 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
           break; // Overlap found, break inner loop to try a new position
         }
       }
-
+      
       // If no overlaps were found after checking all existing planets, this position is valid
       if (!hasOverlap) {
         return newPosition;
       }
     }
-
+    
     // Fallback if no position could be found after many attempts (rare)
-    if (kDebugMode)
-      debugPrint(
-          "Could not find a non-overlapping position after $maxAttempts attempts. Placing randomly.");
+    if (kDebugMode) debugPrint("Could not find a non-overlapping position after $maxAttempts attempts. Placing randomly.");
     return Offset(
-      random.nextDouble() * (screenSize.width - newPlanetRadius * 2) +
-          newPlanetRadius,
-      random.nextDouble() * (screenSize.height - newPlanetRadius * 2 - 150) +
-          newPlanetRadius +
-          75,
+      random.nextDouble() * (screenSize.width - newPlanetRadius * 2) + newPlanetRadius,
+      random.nextDouble() * (screenSize.height - newPlanetRadius * 2 - 150) + newPlanetRadius + 75,
     );
   }
   // ### END: MODIFIED PLANET GENERATION LOGIC ###
@@ -327,9 +278,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       targetSequence.sort(); // Ascending
     }
     nextTargetIndex = 0;
-    if (kDebugMode)
-      debugPrint(
-          "[Gameplay] 🎯 Target sequence (${_orderMode == 0 ? 'asc' : 'desc'}): $targetSequence");
+    if (kDebugMode) debugPrint("[Gameplay] 🎯 Target sequence (${_orderMode == 0 ? 'asc' : 'desc'}): $targetSequence");
   }
 
   String _getOrderInstructions() {
@@ -338,26 +287,21 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   void _landOnPlanet(Planet planet) {
-    if (kDebugMode)
-      debugPrint(
-          "[Gameplay] 💥 Landing attempt on Planet ${planet.id} (${planet.answer})");
+    if (kDebugMode) debugPrint("[Gameplay] 💥 Landing attempt on Planet ${planet.id} (${planet.answer})");
     setState(() => _showNextTargetHint = false);
     _startHintTimer();
 
     _lastLandedPlanetId = planet.id;
     _targetPlanet = null;
     _reLandingCooldown?.cancel();
-    _reLandingCooldown = Timer(
-        const Duration(milliseconds: 500), () => _lastLandedPlanetId = null);
+    _reLandingCooldown = Timer(const Duration(milliseconds: 500), () => _lastLandedPlanetId = null);
 
     final bool isCorrect = nextTargetIndex < targetSequence.length &&
-        planet.answer == targetSequence[nextTargetIndex];
+                          planet.answer == targetSequence[nextTargetIndex];
 
     // Track this attempt - we'll report all attempts at the end
     _attemptedProblems.add(planet.problem);
-    if (kDebugMode)
-      debugPrint(
-          "[Gameplay] 📝 Tracked problem: ${planet.problem.expression} (${isCorrect ? 'correct' : 'incorrect'})");
+    if (kDebugMode) debugPrint("[Gameplay] 📝 Tracked problem: ${planet.problem.expression} (${isCorrect ? 'correct' : 'incorrect'})");
 
     if (isCorrect) {
       debugPrint("[Gameplay] ✅ CORRECT landing!");
@@ -396,25 +340,21 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     if (!hopper.isLanded) {
       Offset gravityForce = Offset.zero;
       const baseGravityStrength = 0.8; // Increased from 0.2
-      final gravityStrength = baseGravityStrength +
-          (_gravityController.value * 0.6); // More pronounced pulsation
+      final gravityStrength = baseGravityStrength + (_gravityController.value * 0.6); // More pronounced pulsation
 
       for (final planet in planets) {
         final distanceVector = planet.position - hopper.position;
         final distance = distanceVector.distance;
 
         // When targeting a specific planet, suppress gravity from others
-        final isTarget =
-            _targetPlanet != null && planet.id == _targetPlanet!.id;
+        final isTarget = _targetPlanet != null && planet.id == _targetPlanet!.id;
         final gravityScale = _targetPlanet != null && !isTarget ? 0.1 : 1.0;
 
         if (distance < (planet.radius + 200) && distance > 1) {
           final direction = distanceVector.normalize();
-          final pullMagnitude = (gravityStrength * planet.mass * 15) /
-              (distance * 0.05) *
-              gravityScale;
+          final pullMagnitude = (gravityStrength * planet.mass * 15) / (distance * 0.05) * gravityScale;
           gravityForce += direction * pullMagnitude;
-
+          
           // NEW: Create visual gravity waves occasionally
           if (math.Random().nextDouble() < 0.03) {
             gravityWaves.add(GravityWave(
@@ -425,10 +365,10 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
           }
         }
       }
-
+      
       // Apply the gravitational force to velocity (more realistic physics)
       hopper.velocity += gravityForce * dt;
-
+      
       // Also add some position drift for immediate visual feedback
       hopper.position += gravityForce * dt * 0.3;
     }
@@ -439,29 +379,24 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       const double margin = 15;
       if (hopper.position.dx < margin) {
         hopper.position = Offset(margin, hopper.position.dy);
-        hopper.velocity =
-            Offset(-hopper.velocity.dx * bounceDamping, hopper.velocity.dy);
+        hopper.velocity = Offset(-hopper.velocity.dx * bounceDamping, hopper.velocity.dy);
       } else if (hopper.position.dx > _gameWidth - margin) {
         hopper.position = Offset(_gameWidth - margin, hopper.position.dy);
-        hopper.velocity =
-            Offset(-hopper.velocity.dx * bounceDamping, hopper.velocity.dy);
+        hopper.velocity = Offset(-hopper.velocity.dx * bounceDamping, hopper.velocity.dy);
       }
       if (hopper.position.dy < margin) {
         hopper.position = Offset(hopper.position.dx, margin);
-        hopper.velocity =
-            Offset(hopper.velocity.dx, -hopper.velocity.dy * bounceDamping);
+        hopper.velocity = Offset(hopper.velocity.dx, -hopper.velocity.dy * bounceDamping);
       } else if (hopper.position.dy > _gameHeight - margin) {
         hopper.position = Offset(hopper.position.dx, _gameHeight - margin);
-        hopper.velocity =
-            Offset(hopper.velocity.dx, -hopper.velocity.dy * bounceDamping);
+        hopper.velocity = Offset(hopper.velocity.dx, -hopper.velocity.dy * bounceDamping);
       }
     }
-
+    
     // Update visual effects
     particles.removeWhere((p) => p.update(dt));
-    gravityWaves
-        .removeWhere((wave) => wave.update(dt)); // NEW: Update gravity waves
-
+    gravityWaves.removeWhere((wave) => wave.update(dt)); // NEW: Update gravity waves
+    
     // Check for planet collisions
     for (final planet in planets) {
       if (_checkPlanetLanding(planet)) {
@@ -472,25 +407,24 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
     setVisualState(() {});
   }
-
+  
   bool _checkPlanetLanding(Planet planet) {
     if (hopper.isLanded || planet.visited || planet.id == _lastLandedPlanetId) {
       return false;
     }
-
+    
     // NEW: If we have a target planet, only allow landing on that specific planet
     if (_targetPlanet != null && planet.id != _targetPlanet!.id) {
       return false;
     }
-
+    
     final distance = (hopper.position - planet.position).distance;
     return distance < planet.radius;
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady)
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -532,26 +466,25 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.9),
         border: Border(
-            bottom: BorderSide(
-                color: SpaceTheme.starYellow.withValues(alpha: 0.3), width: 2)),
+            bottom:
+                BorderSide(color: SpaceTheme.starYellow.withValues(alpha: 0.3), width: 2)),
       ),
       child: Row(
         children: [
           IconButton(
             onPressed: () {
-              if (kDebugMode)
-                debugPrint("[UI] 🔙 Back button pressed, popping navigator.");
+              if (kDebugMode) debugPrint("[UI] 🔙 Back button pressed, popping navigator.");
               Navigator.of(context).pop();
             },
             icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           ),
           Expanded(
               child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(S.of(context)!.planetHoppingTitle,
-                style: SpaceTheme.titleStyle),
-          )),
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(S.of(context)!.planetHoppingTitle,
+                    style: SpaceTheme.titleStyle),
+              )),
           Semantics(
             label: S.of(context)!.a11yLivesRemaining(lives, 3),
             container: true,
@@ -559,12 +492,8 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
               child: Row(
                   children: List.generate(
                       3,
-                      (index) => Icon(
-                          index < lives
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: SpaceTheme.rocketRed,
-                          size: 22))),
+                      (index) => Icon(index < lives ? Icons.favorite : Icons.favorite_border,
+                          color: SpaceTheme.rocketRed, size: 22))),
             ),
           ),
           const SizedBox(width: 16),
@@ -600,15 +529,12 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
           ),
           const SizedBox(width: 8),
           Semantics(
-            label: S
-                .of(context)!
-                .a11yProgress(nextTargetIndex, targetSequence.length),
+            label: S.of(context)!.a11yProgress(nextTargetIndex, targetSequence.length),
             liveRegion: true,
             container: true,
             child: ExcludeSemantics(
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                     color: SpaceTheme.alienGreen.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12)),
@@ -629,10 +555,10 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   Widget _buildHintDisplay() {
-    final bool shouldShow = _showNextTargetHint &&
-        gameActive &&
-        nextTargetIndex < targetSequence.length;
-
+    final bool shouldShow = _showNextTargetHint && 
+                           gameActive && 
+                           nextTargetIndex < targetSequence.length;
+                           
     return Positioned(
       top: 10,
       left: 0,
@@ -649,8 +575,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                 border: Border.all(color: SpaceTheme.starYellow, width: 1.5)),
             child: Text(
                 shouldShow
-                    ? S.of(context)!.planetHoppingNextTarget(
-                        targetSequence[nextTargetIndex])
+                    ? S.of(context)!.planetHoppingNextTarget(targetSequence[nextTargetIndex])
                     : '',
                 style: SpaceTheme.titleStyle
                     .copyWith(color: SpaceTheme.starYellow, fontSize: 16)),
@@ -666,39 +591,37 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         label: S.of(context)!.a11yGameArea,
         hint: 'Tap a planet to launch toward it',
         child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTapDown: (details) {
-            if (!gameActive) return;
-            final tapPosition = details.localPosition;
-
-            // NEW: Check if player clicked on a planet
-            Planet? clickedPlanet;
-            for (final planet in planets) {
-              final distance = (tapPosition - planet.position).distance;
-              if (distance < planet.radius) {
-                clickedPlanet = planet;
-                break;
-              }
+        behavior: HitTestBehavior.translucent,
+        onTapDown: (details) {
+          if (!gameActive) return;
+          final tapPosition = details.localPosition;
+          
+          // NEW: Check if player clicked on a planet
+          Planet? clickedPlanet;
+          for (final planet in planets) {
+            final distance = (tapPosition - planet.position).distance;
+            if (distance < planet.radius) {
+              clickedPlanet = planet;
+              break;
             }
-
-            if (clickedPlanet != null) {
-              // Player clicked on a planet - fly directly to it at high speed
-              _targetPlanet = clickedPlanet;
-              final dist = (clickedPlanet.position - hopper.position).distance;
-              final speed = (dist * 2.5).clamp(600.0, 2000.0);
-              hopper.takeOffFast(clickedPlanet.position, speed);
-              if (kDebugMode)
-                debugPrint(
-                    "[Gameplay] 🎯 Fast-flying to planet ${clickedPlanet.id} (speed=$speed)");
-            } else {
-              // Player clicked on empty space - normal takeoff
-              _targetPlanet = null;
-              hopper.takeOff(tapPosition);
-            }
-            setState(() {});
-          },
-          child: Container(color: Colors.transparent),
-        ),
+          }
+          
+          if (clickedPlanet != null) {
+            // Player clicked on a planet - fly directly to it at high speed
+            _targetPlanet = clickedPlanet;
+            final dist = (clickedPlanet.position - hopper.position).distance;
+            final speed = (dist * 2.5).clamp(600.0, 2000.0);
+            hopper.takeOffFast(clickedPlanet.position, speed);
+            if (kDebugMode) debugPrint("[Gameplay] 🎯 Fast-flying to planet ${clickedPlanet.id} (speed=$speed)");
+          } else {
+            // Player clicked on empty space - normal takeoff
+            _targetPlanet = null;
+            hopper.takeOff(tapPosition);
+          }
+          setState(() {});
+        },
+        child: Container(color: Colors.transparent),
+      ),
       ),
     );
   }
@@ -715,13 +638,13 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
               decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: star.brightness),
                   shape: BoxShape.circle)))),
-
+      
       // NEW: Gravity wave effects
       ...gravityWaves.map((wave) => Positioned(
           left: wave.center.dx - wave.currentRadius,
           top: wave.center.dy - wave.currentRadius,
           child: GravityWaveWidget(wave: wave))),
-
+      
       // Planets
       ...planets.asMap().entries.map((entry) => Positioned(
           left: entry.value.position.dx - entry.value.radius,
@@ -734,19 +657,19 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                       entry.value.answer == targetSequence[nextTargetIndex],
                   rotationAnimation:
                       _planetController.value + (entry.key * 0.3))))),
-
+      
       // Space hopper
       Positioned(
           left: hopper.position.dx - 15,
           top: hopper.position.dy - 15,
           child: SpaceHopperWidget(hopper: hopper)),
-
+      
       // Particles
       ...particles.map((particle) => Positioned(
           left: particle.position.dx,
           top: particle.position.dy,
           child: ParticleWidget(particle: particle))),
-
+      
       // Instructions
       Positioned(
         bottom: 10,
@@ -764,10 +687,9 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: SpaceTheme.alienGreen, width: 1)),
               child: Text(_getOrderInstructions(),
-                  style: SpaceTheme.bodyStyle.copyWith(
-                      fontSize: 13,
-                      color: SpaceTheme.alienGreen,
-                      fontWeight: FontWeight.w600),
+                  style: SpaceTheme.bodyStyle
+                      .copyWith(fontSize: 13, color: SpaceTheme.alienGreen,
+                          fontWeight: FontWeight.w600),
                   textAlign: TextAlign.center),
             ),
           ),
@@ -778,21 +700,14 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
   Color _getPlanetColor(int index) {
     final colors = [
-      SpaceTheme.planetOrange,
-      SpaceTheme.alienGreen,
-      SpaceTheme.cosmicPink,
-      SpaceTheme.starYellow,
-      Colors.cyan,
-      Colors.purple.shade300,
-      Colors.teal
+      SpaceTheme.planetOrange, SpaceTheme.alienGreen, SpaceTheme.cosmicPink,
+      SpaceTheme.starYellow, Colors.cyan, Colors.purple.shade300, Colors.teal
     ];
     return colors[index % colors.length];
   }
 
   void _addSuccessParticles(Planet planet) {
-    if (kDebugMode)
-      debugPrint(
-          "[Animation] ✨ Spawning SUCCESS particles at ${planet.position}");
+    if (kDebugMode) debugPrint("[Animation] ✨ Spawning SUCCESS particles at ${planet.position}");
     for (int i = 0; i < 15; i++) {
       particles.add(ParticleEffect(
           position: planet.position,
@@ -805,9 +720,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   void _addErrorParticles(Planet planet) {
-    if (kDebugMode)
-      debugPrint(
-          "[Animation] 🔥 Spawning ERROR particles at ${planet.position}");
+    if (kDebugMode) debugPrint("[Animation] 🔥 Spawning ERROR particles at ${planet.position}");
     for (int i = 0; i < 10; i++) {
       particles.add(ParticleEffect(
           position: planet.position,
@@ -824,25 +737,23 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     if (kDebugMode) debugPrint("[Gameplay] 🎉 WIN! Game finished.");
     gameActive = false;
     _hintTimer?.cancel();
-
+    
     final bonus = lives * 200;
     final totalScore = bonus + (100 * widget.grade * targetSequence.length);
-
+    
     // UNIFIED PROGRESSION: Report all attempted problems
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-          skillLevel: widget.grade,
-          gameType: 'planet_hopping',
-          difficulty: widget.level,
-          score: totalScore,
-          mathProblems: _attemptedProblems,
-          performance: Perf.fromLives(lives, 3),
-        ));
-
-    if (kDebugMode)
-      debugPrint(
-          "[Gameplay] 📊 Reported ${_attemptedProblems.length} attempted problems");
-
+      skillLevel: widget.grade,
+      gameType: 'planet_hopping',
+      difficulty: widget.level,
+      score: totalScore,
+      mathProblems: _attemptedProblems,
+      performance: Perf.fromLives(lives, 3),
+    ));
+    
+    if (kDebugMode) debugPrint("[Gameplay] 📊 Reported ${_attemptedProblems.length} attempted problems");
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -855,23 +766,21 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     if (kDebugMode) debugPrint("[Gameplay] ☠️ GAME OVER! Ran out of lives.");
     gameActive = false;
     _hintTimer?.cancel();
-
+    
     // UNIFIED PROGRESSION: Report failure with attempted problems for learning
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-          skillLevel: widget.grade,
-          gameType: 'planet_hopping',
-          difficulty: widget.level,
-          mathProblems: _attemptedProblems,
-          progress: targetSequence.isEmpty
-              ? 0.0
-              : nextTargetIndex / targetSequence.length,
-        ));
-
-    if (kDebugMode)
-      debugPrint(
-          "[Gameplay] 📊 Reported ${_attemptedProblems.length} attempted problems (loss)");
-
+      skillLevel: widget.grade,
+      gameType: 'planet_hopping',
+      difficulty: widget.level,
+      mathProblems: _attemptedProblems,
+      progress: targetSequence.isEmpty
+          ? 0.0
+          : nextTargetIndex / targetSequence.length,
+    ));
+    
+    if (kDebugMode) debugPrint("[Gameplay] 📊 Reported ${_attemptedProblems.length} attempted problems (loss)");
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -902,7 +811,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
             padding: const EdgeInsets.all(24),
             decoration: SpaceTheme.cardDecoration,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              RoundSummary(gameKey: 'planet_hopping'),
+                  RoundSummary(gameKey: 'planet_hopping'),
               const Icon(Icons.public, size: 64, color: SpaceTheme.starYellow),
               const SizedBox(height: 16),
               Text(S.of(context)!.planetHoppingWinTitle,
@@ -939,7 +848,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
             padding: const EdgeInsets.all(24),
             decoration: SpaceTheme.cardDecoration,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              RoundSummary(gameKey: 'planet_hopping'),
+                  RoundSummary(gameKey: 'planet_hopping'),
               const Icon(Icons.warning, size: 64, color: SpaceTheme.rocketRed),
               const SizedBox(height: 16),
               Text(S.of(context)!.planetHoppingLoseTitle,
@@ -989,8 +898,7 @@ class SpaceHopper {
   }
 
   void takeOff(Offset tapPosition) {
-    if (kDebugMode)
-      debugPrint("[Physics] 🚀 Hopper takeoff towards $tapPosition");
+    if (kDebugMode) debugPrint("[Physics] 🚀 Hopper takeoff towards $tapPosition");
     isLanded = false;
     landedOnPlanetId = null;
     final direction = (tapPosition - position).normalize();
@@ -1009,24 +917,23 @@ class SpaceHopper {
 class Planet {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'position': [position.dx, position.dy],
-        'radius': radius,
-        'mass': mass,
-        'problem': problem.toJson(),
-        'color': color.toARGB32(),
-        'visited': visited
-      };
+    'id': id,
+    'position': [position.dx, position.dy],
+    'radius': radius,
+    'mass': mass,
+    'problem': problem.toJson(),
+    'color': color.toARGB32(),
+    'visited': visited
+  };
   factory Planet.fromJson(Map<String, dynamic> json) => Planet(
-      id: json['id'] as int,
-      position: Offset((json['position'][0] as num).toDouble(),
-          (json['position'][1] as num).toDouble()),
-      radius: (json['radius'] as num).toDouble(),
-      mass: (json['mass'] as num).toDouble(),
-      problem: MathProblem.fromJson(
-          Map<String, dynamic>.from(json['problem'] as Map)),
-      color: Color(json['color'] as int),
-      visited: json['visited'] as bool);
+    id: json['id'] as int,
+    position: Offset((json['position'][0] as num).toDouble(), (json['position'][1] as num).toDouble()),
+    radius: (json['radius'] as num).toDouble(),
+    mass: (json['mass'] as num).toDouble(),
+    problem: MathProblem.fromJson(Map<String, dynamic>.from(json['problem'] as Map)),
+    color: Color(json['color'] as int),
+    visited: json['visited'] as bool
+  );
 
   final int id;
   Offset position;
@@ -1152,8 +1059,7 @@ class PlanetWidget extends StatelessWidget {
               1.0
             ]),
             border: Border.all(
-                color:
-                    planet.visited ? SpaceTheme.alienGreen : Colors.transparent,
+                color: planet.visited ? SpaceTheme.alienGreen : Colors.transparent,
                 width: planet.visited ? 2 : 0),
             boxShadow: [
               BoxShadow(
@@ -1162,8 +1068,7 @@ class PlanetWidget extends StatelessWidget {
                   spreadRadius: 2),
             ]),
         child: Stack(children: [
-          Positioned.fill(
-              child: CustomPaint(painter: PlanetSurfacePainter(planet.color))),
+          Positioned.fill(child: CustomPaint(painter: PlanetSurfacePainter(planet.color))),
           Center(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -1172,10 +1077,8 @@ class PlanetWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8)),
               child: Text(
                   planet.problemExpression
-                      .replaceAll(
-                          '÷', context.read<GameProvider>().divisionSymbol)
-                      .replaceAll('×',
-                          context.read<GameProvider>().multiplicationSymbol),
+                      .replaceAll('÷', context.read<GameProvider>().divisionSymbol)
+                      .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
                   style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -1192,8 +1095,7 @@ class PlanetWidget extends StatelessWidget {
                     height: 20,
                     decoration: const BoxDecoration(
                         color: SpaceTheme.alienGreen, shape: BoxShape.circle),
-                    child: const Icon(Icons.check,
-                        color: Colors.white, size: 14))),
+                    child: const Icon(Icons.check, color: Colors.white, size: 14))),
         ]),
       ),
     );
@@ -1211,8 +1113,7 @@ class ParticleWidget extends StatelessWidget {
         width: particle.size,
         height: particle.size,
         decoration: BoxDecoration(
-            color: particle.color.withValues(alpha: opacity),
-            shape: BoxShape.circle));
+            color: particle.color.withValues(alpha: opacity), shape: BoxShape.circle));
   }
 }
 

@@ -166,10 +166,10 @@ void main() {
     });
 
     test('different seeds produce different puzzles (usually)', () {
-      final p1 =
-          DarkMatterGridPuzzle.generate(gridSize: 4, toggleCount: 4, seed: 1);
-      final p2 =
-          DarkMatterGridPuzzle.generate(gridSize: 4, toggleCount: 4, seed: 999);
+      final p1 = DarkMatterGridPuzzle.generate(
+          gridSize: 4, toggleCount: 4, seed: 1);
+      final p2 = DarkMatterGridPuzzle.generate(
+          gridSize: 4, toggleCount: 4, seed: 999);
 
       bool anyDiff = false;
       for (int r = 0; r < 4; r++) {

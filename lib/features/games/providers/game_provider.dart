@@ -88,10 +88,7 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
   String _divisionSymbol = '÷'; // Options: '÷', '/', ':', '%'
 
   bool _useCustomProblemSettings = false;
-  Set<String> _customOperations = {
-    'addition',
-    'subtraction'
-  }; // Default to basic ops
+  Set<String> _customOperations = {'addition', 'subtraction'}; // Default to basic ops
   int _customRangeMin = 1;
   int _customRangeMax = 20;
 
@@ -99,9 +96,9 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
     required ProgressService progressService,
     required SriService sriService,
     required CognitiveProfileService cognitiveProfileService,
-  })  : _progressService = progressService,
-        _sriService = sriService,
-        _cognitiveProfileService = cognitiveProfileService {
+  }) : _progressService = progressService,
+       _sriService = sriService,
+       _cognitiveProfileService = cognitiveProfileService {
     if (!AppConfig.inappsActive) {
       _isFullVersionUnlocked = true;
     }
@@ -111,7 +108,6 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
 
   /// Best star rating achieved per game (1-3). Persisted.
   Map<String, int> _bestStars = {};
-
   /// Star rating from the most recent reportOutcome call.
   int _lastStars = 0;
 
@@ -155,23 +151,20 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
   void debugSetGameLevels(int newLevel, List<String> gameKeys) {
     if (gameKeys.isEmpty) return; // Do nothing if no keys are selected
 
-    if (kDebugMode)
-      debugPrint(
-          '[DEBUG] Forcing ${gameKeys.length} game(s) to level $newLevel');
-
+    if (kDebugMode) debugPrint('[DEBUG] Forcing ${gameKeys.length} game(s) to level $newLevel');
+    
     for (final gameKey in gameKeys) {
       // We check if the key is valid by looking in the official gameSkillMap
       if (gameSkillMap.containsKey(gameKey)) {
         _gameProgress[gameKey] = newLevel;
       } else {
-        if (kDebugMode)
-          debugPrint('[DEBUG] Unknown game key: $gameKey. Skipping.');
+        if (kDebugMode) debugPrint('[DEBUG] Unknown game key: $gameKey. Skipping.');
       }
     }
-
+    
     // Clear the session win history for any affected games
     _currentLevelWins.removeWhere((key, value) => gameKeys.contains(key));
-
+    
     notifyListeners();
     _saveProgress();
   }
@@ -188,7 +181,8 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
   /// Grade with the current [difficultyMode] shift applied, clamped to 1-6.
   /// Use this when launching games so the player can sample easier/harder
   /// content without changing their official grade.
-  int get effectiveGrade => (_grade + _difficultyMode.gradeShift).clamp(1, 6);
+  int get effectiveGrade =>
+      (_grade + _difficultyMode.gradeShift).clamp(1, 6);
 
   void setDifficultyMode(DifficultyMode mode) {
     if (_difficultyMode == mode) return;
@@ -196,25 +190,15 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
     notifyListeners();
     _saveProgress();
   }
-
   int get lives => _lives;
   bool get soundEnabled => _soundEnabled;
   bool get musicEnabled => _musicEnabled;
   bool get hapticEnabled => _hapticEnabled;
   bool get reduceMotion => _reduceMotion;
-  void setHapticEnabled(bool value) {
-    _hapticEnabled = value;
-    AppHaptics.enabled = value;
-    notifyListeners();
-  }
-
-  void setReduceMotion(bool value) {
-    _reduceMotion = value;
-    notifyListeners();
-  }
-
+  void setHapticEnabled(bool value) { _hapticEnabled = value; AppHaptics.enabled = value; notifyListeners(); }
+  void setReduceMotion(bool value) { _reduceMotion = value; notifyListeners(); }
   bool get puzzleTimerEnabled => _puzzleTimerEnabled;
-
+  
   bool get useAdaptiveDifficulty => _useAdaptiveDifficulty;
 
   Map<String, int> get gameProgress => _gameProgress;
@@ -247,20 +231,18 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
       outcome = outcome.withCoachingHints(coachingHintsUsed!);
     }
     if (kDebugMode) {
-      debugPrint('[GAME_PROVIDER] 🎯 Recording ${outcome.gameType} result: '
-          '${outcome.wasSuccessful ? "WIN" : "LOSS"} at difficulty ${outcome.difficulty}');
+      debugPrint(
+        '[GAME_PROVIDER] 🎯 Recording ${outcome.gameType} result: '
+        '${outcome.wasSuccessful ? "WIN" : "LOSS"} at difficulty ${outcome.difficulty}');
     }
 
     if (outcome.wasSuccessful) addScore(outcome.score);
 
     _lastOutcome = outcome;
     final now = DateTime.now();
-    _roundHistory.add(LearningRound.fromOutcome(outcome, now,
-        grade: outcome.skillLevel ?? effectiveGrade));
-    _roundHistory.removeWhere(
-        (r) => r.playedAt.isBefore(now.subtract(const Duration(days: 90))));
-    if (_roundHistory.length > 1000)
-      _roundHistory = _roundHistory.sublist(_roundHistory.length - 1000);
+    _roundHistory.add(LearningRound.fromOutcome(outcome, now, grade: outcome.skillLevel ?? effectiveGrade));
+    _roundHistory.removeWhere((r) => r.playedAt.isBefore(now.subtract(const Duration(days: 90))));
+    if (_roundHistory.length > 1000) _roundHistory = _roundHistory.sublist(_roundHistory.length - 1000);
     _outcomeCount++;
     if (kDebugMode) {
       debugPrint('[GAME_PROVIDER] 📊 Performance: '
@@ -279,9 +261,7 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
     if (_lastStars > (_bestStars[outcome.gameType] ?? 0)) {
       _bestStars[outcome.gameType] = _lastStars;
     }
-    if (kDebugMode)
-      debugPrint(
-          '[GAME_PROVIDER] ⭐ Stars: $_lastStars (best: ${_bestStars[outcome.gameType]})');
+    if (kDebugMode) debugPrint('[GAME_PROVIDER] ⭐ Stars: $_lastStars (best: ${_bestStars[outcome.gameType]})');
 
     _currentLevelWins[outcome.gameType] =
         (_currentLevelWins[outcome.gameType] ?? 0) +
@@ -289,8 +269,7 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
 
     final skill = gameSkillMap[outcome.gameType];
     if (skill == null) {
-      if (kDebugMode)
-        debugPrint('[GAME_PROVIDER] ⚠️ Unknown game type: ${outcome.gameType}');
+      if (kDebugMode) debugPrint('[GAME_PROVIDER] ⚠️ Unknown game type: ${outcome.gameType}');
       return false;
     }
 
@@ -301,12 +280,12 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
         }
         if (kDebugMode) {
           debugPrint(
-              '[GAME_PROVIDER] Recorded ${outcome.mathProblems.length} math problem(s) for ${outcome.gameType}');
+            '[GAME_PROVIDER] Recorded ${outcome.mathProblems.length} math problem(s) for ${outcome.gameType}');
         }
       } else {
         if (kDebugMode) {
           debugPrint(
-              '[GAME_PROVIDER] ⚠️ Arithmetic game ${outcome.gameType} missing MathProblem data');
+            '[GAME_PROVIDER] ⚠️ Arithmetic game ${outcome.gameType} missing MathProblem data');
         }
       }
     } else {
@@ -354,7 +333,7 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
     if ((_currentLevelWins[gameType] ?? 0) < kWinsRequiredForLevelUp) {
       if (kDebugMode) {
         debugPrint('[GAME_PROVIDER] ❌ $gameType: '
-            'Only ${_currentLevelWins[gameType] ?? 0}/$kWinsRequiredForLevelUp wins');
+          'Only ${_currentLevelWins[gameType] ?? 0}/$kWinsRequiredForLevelUp wins');
       }
       return false;
     }
@@ -370,32 +349,26 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
   }
 
   void advanceLevel(String gameType) {
-    if (kDebugMode)
-      debugPrint(
-          '[GAME_PROVIDER] 📈 $gameType advancing to level ${(_gameProgress[gameType] ?? 1) + 1}');
+    if (kDebugMode) debugPrint('[GAME_PROVIDER] 📈 $gameType advancing to level ${(_gameProgress[gameType] ?? 1) + 1}');
     updateGameProgress(gameType, (_gameProgress[gameType] ?? 1) + 1);
     _currentLevelWins[gameType] = 0;
   }
 
   bool _checkArithmeticMastery(int difficulty) {
     final breakdown = _sriService.getDetailedBreakdown();
-
+    
     List<MathOperation> relevantOps;
     if (difficulty <= 5) {
       relevantOps = [MathOperation.addition, MathOperation.subtraction];
     } else if (difficulty <= 10) {
-      relevantOps = [
-        MathOperation.addition,
-        MathOperation.subtraction,
-        MathOperation.multiplication
-      ];
+      relevantOps = [MathOperation.addition, MathOperation.subtraction, MathOperation.multiplication];
     } else {
       relevantOps = MathOperation.values.toList();
     }
 
     int totalTracked = 0;
     int totalMastered = 0;
-
+    
     for (var op in relevantOps) {
       for (var range in NumberRange.values) {
         final stat = breakdown[op]?[range];
@@ -405,12 +378,10 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
         }
       }
     }
-
+    
     final hasMastery = totalTracked >= kMinTrackedProblemsForMastery &&
         (totalMastered / totalTracked) >= kDefaultPassThreshold;
-    if (kDebugMode)
-      debugPrint(
-          '[GAME_PROVIDER] Arithmetic mastery @ $difficulty: $totalMastered/$totalTracked ${hasMastery ? "✓" : "✗"}');
+    if (kDebugMode) debugPrint('[GAME_PROVIDER] Arithmetic mastery @ $difficulty: $totalMastered/$totalTracked ${hasMastery ? "✓" : "✗"}');
     return hasMastery;
   }
 
@@ -550,59 +521,32 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
   // Achievement system
   void _checkAchievements() {
     final newAchievements = <Achievement>[];
-
-    if (_score >= 100 && !hasAchievement('first_century')) {
-      newAchievements.add(Achievement(id: 'first_century'));
-    }
-    if (_score >= 500 && !hasAchievement('score_master')) {
-      newAchievements.add(Achievement(id: 'score_master'));
-    }
-    if (_score >= 1000 && !hasAchievement('thousand_club')) {
-      newAchievements.add(Achievement(id: 'thousand_club'));
-    }
-    if (_level >= 5 && !hasAchievement('level_explorer')) {
-      newAchievements.add(Achievement(id: 'level_explorer'));
-    }
-    if (_level >= 10 && !hasAchievement('space_commander')) {
-      newAchievements.add(Achievement(id: 'space_commander'));
-    }
-    if (getGameProgress('magic_triangles') >= 3 &&
-        !hasAchievement('triangle_wizard')) {
-      newAchievements.add(Achievement(id: 'triangle_wizard'));
-    }
-    if (getGameProgress('asteroid_math') >= 3 &&
-        !hasAchievement('bubble_popper')) {
-      newAchievements.add(Achievement(id: 'bubble_popper'));
-    }
-    if (getGameProgress('puzzle_math') >= 3 &&
-        !hasAchievement('puzzle_solver')) {
-      newAchievements.add(Achievement(id: 'puzzle_solver'));
-    }
-    if (getGameProgress('number_walls') >= 3 &&
-        !hasAchievement('number_walls_pro')) {
-      newAchievements.add(Achievement(id: 'number_walls_pro'));
-    }
-    if (getGameProgress('codebreaker') >= 3 &&
-        !hasAchievement('codebreaker_pro')) {
-      newAchievements.add(Achievement(id: 'codebreaker_pro'));
-    }
+    
+    if (_score >= 100 && !hasAchievement('first_century')) { newAchievements.add(Achievement(id: 'first_century')); }
+    if (_score >= 500 && !hasAchievement('score_master')) { newAchievements.add(Achievement(id: 'score_master')); }
+    if (_score >= 1000 && !hasAchievement('thousand_club')) { newAchievements.add(Achievement(id: 'thousand_club')); }
+    if (_level >= 5 && !hasAchievement('level_explorer')) { newAchievements.add(Achievement(id: 'level_explorer')); }
+    if (_level >= 10 && !hasAchievement('space_commander')) { newAchievements.add(Achievement(id: 'space_commander')); }
+    if (getGameProgress('magic_triangles') >= 3 && !hasAchievement('triangle_wizard')) { newAchievements.add(Achievement(id: 'triangle_wizard')); }
+    if (getGameProgress('asteroid_math') >= 3 && !hasAchievement('bubble_popper')) { newAchievements.add(Achievement(id: 'bubble_popper')); }
+    if (getGameProgress('puzzle_math') >= 3 && !hasAchievement('puzzle_solver')) { newAchievements.add(Achievement(id: 'puzzle_solver')); }
+    if (getGameProgress('number_walls') >= 3 && !hasAchievement('number_walls_pro')) { newAchievements.add(Achievement(id: 'number_walls_pro')); }
+    if (getGameProgress('codebreaker') >= 3 && !hasAchievement('codebreaker_pro')) { newAchievements.add(Achievement(id: 'codebreaker_pro')); }
 
     // Arithmetic Ace (Level 5 in both Arithmetic Square and Crosswords)
-    if (getGameProgress('arithmatic_square') >=
-            5 && // Assuming 'arithmatic_square' is the key
+    if (getGameProgress('arithmatic_square') >= 5 && // Assuming 'arithmatic_square' is the key
         getGameProgress('arithmancer_crosswords') >= 5 &&
-        !hasAchievement('arithmetic_ace')) {
-      newAchievements.add(Achievement(id: 'arithmetic_ace'));
+        !hasAchievement('arithmetic_ace')) { 
+        newAchievements.add(Achievement(id: 'arithmetic_ace')); 
     }
 
     // Logic Grid Master (Level 5 in Kenken, indicating larger grid complexity)
-    if (getGameProgress('kenken') >= 5 &&
-        !hasAchievement('logic_grid_master')) {
-      newAchievements.add(Achievement(id: 'logic_grid_master'));
+    if (getGameProgress('kenken') >= 5 && 
+        !hasAchievement('logic_grid_master')) { 
+        newAchievements.add(Achievement(id: 'logic_grid_master')); 
     }
 
-    final gamesCompleted =
-        _gameProgress.values.where((level) => level >= 1).length;
+    final gamesCompleted = _gameProgress.values.where((level) => level >= 1).length;
     if (gamesCompleted >= 3 && !hasAchievement('all_rounder')) {
       newAchievements.add(Achievement(id: 'all_rounder'));
     }
@@ -639,20 +583,18 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
     if (_gameProgress.isEmpty) return 0;
     return _gameProgress.values.reduce((a, b) => a + b);
   }
-
+  
   int get totalAchievements => _achievements.length;
 
   double get averageLevel {
     if (_gameProgress.isEmpty) return 0.0;
-    final totalLevels =
-        _gameProgress.values.fold(0, (sum, level) => sum + level);
+    final totalLevels = _gameProgress.values.fold(0, (sum, level) => sum + level);
     return totalLevels / _gameProgress.length;
   }
 
   // Grade progression
   bool canProgressToNextGrade() {
-    final totalLevelsInGrade =
-        _gameProgress.values.fold(0, (sum, level) => sum + level);
+    final totalLevelsInGrade = _gameProgress.values.fold(0, (sum, level) => sum + level);
     final requiredLevels = _grade * 3;
     return totalLevelsInGrade >= requiredLevels;
   }
@@ -691,10 +633,9 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
       'isFullVersionUnlocked': _isFullVersionUnlocked,
       'multiplicationSymbol': _multiplicationSymbol,
       'divisionSymbol': _divisionSymbol,
-
+      
       'useCustomProblemSettings': _useCustomProblemSettings,
-      'customOperations':
-          _customOperations.toList(), // Convert set to list for JSON
+      'customOperations': _customOperations.toList(), // Convert set to list for JSON
       'customRangeMin': _customRangeMin,
       'customRangeMax': _customRangeMax,
       'currentLevelWins': _currentLevelWins,
@@ -704,10 +645,7 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
   void fromJson(Map<String, dynamic> json) {
     _roundHistory = [];
     for (final raw in (json['roundHistory'] as List? ?? [])) {
-      try {
-        _roundHistory
-            .add(LearningRound.fromJson(Map<String, dynamic>.from(raw)));
-      } catch (_) {/* Skip damaged history entries. */}
+      try { _roundHistory.add(LearningRound.fromJson(Map<String, dynamic>.from(raw))); } catch (_) { /* Skip damaged history entries. */ }
     }
     _score = json['score'] ?? 0;
     _level = json['level'] ?? 1;
@@ -718,12 +656,11 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
     _gameProgress = Map<String, int>.from(json['gameProgress'] ?? {});
     _bestStars = Map<String, int>.from(json['bestStars'] ?? {});
     _useAdaptiveDifficulty = json['useAdaptiveDifficulty'] ?? false;
-    final modeIndex =
-        json['difficultyMode'] as int? ?? DifficultyMode.normal.index;
-    _difficultyMode = DifficultyMode
-        .values[modeIndex.clamp(0, DifficultyMode.values.length - 1)];
-    _isFullVersionUnlocked =
-        _isFullVersionUnlocked || (json['isFullVersionUnlocked'] ?? false);
+    final modeIndex = json['difficultyMode'] as int? ??
+        DifficultyMode.normal.index;
+    _difficultyMode = DifficultyMode.values[
+        modeIndex.clamp(0, DifficultyMode.values.length - 1)];
+    _isFullVersionUnlocked = _isFullVersionUnlocked || (json['isFullVersionUnlocked'] ?? false);
 
     // overridhere to handle loading a saved state where the user hadn't purchased the app yet.
     if (!AppConfig.inappsActive) {
@@ -735,8 +672,7 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
 
     // --- Load custom settings ---
     _useCustomProblemSettings = json['useCustomProblemSettings'] ?? false;
-    _customOperations = Set<String>.from(
-        json['customOperations'] ?? {'addition', 'subtraction'});
+    _customOperations = Set<String>.from(json['customOperations'] ?? {'addition', 'subtraction'});
     _customRangeMin = json['customRangeMin'] ?? 1;
     _customRangeMax = json['customRangeMax'] ?? 20;
 
@@ -755,7 +691,7 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
     }
 
     _currentLevelWins = Map<String, int>.from(json['currentLevelWins'] ?? {});
-
+    
     notifyListeners();
   }
 }

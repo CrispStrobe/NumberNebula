@@ -98,8 +98,7 @@ void main() {
         for (final clue in puzzle.structuredClues) {
           if (clue.type == ClueType.positive) {
             expect(puzzle.solution[clue.crewName], clue.itemName,
-                reason:
-                    'positive clue for ${clue.crewName} must match solution');
+                reason: 'positive clue for ${clue.crewName} must match solution');
           }
         }
       }
@@ -116,8 +115,7 @@ void main() {
         for (final clue in puzzle.structuredClues) {
           if (clue.type == ClueType.negative) {
             expect(puzzle.solution[clue.crewName], isNot(equals(clue.itemName)),
-                reason:
-                    'negative clue for ${clue.crewName} must be consistent');
+                reason: 'negative clue for ${clue.crewName} must be consistent');
           }
         }
       }

@@ -80,9 +80,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                       child: Text(
                         entries.isEmpty
                             ? S.of(context)!.diagnosticsNoCrashes
-                            : S
-                                .of(context)!
-                                .diagnosticsCrashCount(entries.length),
+                            : S.of(context)!.diagnosticsCrashCount(entries.length),
                         style: SpaceTheme.bodyStyle,
                       ),
                     ),

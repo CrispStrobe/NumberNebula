@@ -21,17 +21,17 @@ class GameCoaching {
   String label(int choice, bool german) =>
       (german ? lesson.optionsDe : lesson.optionsEn)[choice];
   OnboardingStep practice(bool german) => OnboardingStep(
-        icon: Icons.school_outlined,
-        practiceBoard: german ? lesson.boardDe : lesson.boardEn,
-        substituteChoiceIntoBoard: false,
-        choices: choices,
-        choiceLabels: {for (final i in choices) i: label(i, german)},
-        answer: answer,
-        body: german
-            ? '${lesson.rulesDe}\n\n${lesson.questionDe}'
-            : '${lesson.rulesEn}\n\n${lesson.questionEn}',
-        explanation: german ? lesson.explanationDe : lesson.explanationEn,
-      );
+    icon: Icons.school_outlined,
+    practiceBoard: german ? lesson.boardDe : lesson.boardEn,
+    substituteChoiceIntoBoard: false,
+    choices: choices,
+    choiceLabels: {for (final i in choices) i: label(i, german)},
+    answer: answer,
+    body: german
+        ? '${lesson.rulesDe}\n\n${lesson.questionDe}'
+        : '${lesson.rulesEn}\n\n${lesson.questionEn}',
+    explanation: german ? lesson.explanationDe : lesson.explanationEn,
+  );
 }
 
 final gameCoaching = <String, GameCoaching>{

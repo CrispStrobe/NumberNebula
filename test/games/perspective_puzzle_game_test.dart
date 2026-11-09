@@ -31,8 +31,7 @@ void main() {
   ];
 
   group('PerspectivePuzzle.generate invariants', () {
-    test('structure & derived fields are internally consistent (250 iters)',
-        () {
+    test('structure & derived fields are internally consistent (250 iters)', () {
       for (final params in paramSets) {
         // Re-derive the deterministic difficulty/gridSize the source computes,
         // so we can check generate() agrees with its own documented formulas.
@@ -141,8 +140,7 @@ void main() {
       }
     });
 
-    test('Front view picks the max-z block per (x,y) and bottom-anchors it',
-        () {
+    test('Front view picks the max-z block per (x,y) and bottom-anchors it', () {
       // Verify the actual projection semantics documented in _getFrontView:
       //   row index = maxHeight - y  (so the highest y is at the top, y=0 at
       //   bottom), col index = x, and the visible block is the one with the
@@ -158,7 +156,8 @@ void main() {
             final sameXY = puzzle.structure
                 .where((o) => o.x == b.x && o.y == b.y)
                 .toList();
-            final maxZ = sameXY.map((o) => o.z).reduce((a, c) => a > c ? a : c);
+            final maxZ =
+                sameXY.map((o) => o.z).reduce((a, c) => a > c ? a : c);
             final visible = sameXY.firstWhere((o) => o.z == maxZ);
 
             final cell = front[maxH - b.y][b.x];
@@ -185,7 +184,8 @@ void main() {
             final sameXY = puzzle.structure
                 .where((o) => o.x == b.x && o.y == b.y)
                 .toList();
-            final minZ = sameXY.map((o) => o.z).reduce((a, c) => a < c ? a : c);
+            final minZ =
+                sameXY.map((o) => o.z).reduce((a, c) => a < c ? a : c);
             final visible = sameXY.firstWhere((o) => o.z == minZ);
 
             final cell = back[maxH - b.y][size - 1 - b.x];

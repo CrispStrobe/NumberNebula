@@ -29,7 +29,8 @@ void main() {
           difficulty: 1,
         );
 
-    test('recordResponse schedules next review relative to injected clock', () {
+    test('recordResponse schedules next review relative to injected clock',
+        () {
       final p = makeProblem();
       service.recordResponse(p, true);
 

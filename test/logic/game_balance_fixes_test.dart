@@ -59,8 +59,7 @@ class FakeCognitiveProfileService extends CognitiveProfileService {
   void recordAttempt(SkillCategory skill, int difficulty, bool success) {}
   @override
   bool hasMastery(SkillCategory skill, int difficulty,
-          {double threshold = kDefaultPassThreshold}) =>
-      false;
+      {double threshold = kDefaultPassThreshold}) => false;
 }
 
 GameProvider _provider(FakeSriService sri) {
@@ -168,9 +167,9 @@ void main() {
     test('cargo_bay_arranger win routes problems to SRI', () {
       // Simulate what the game now does: extract addition problems from rows
       final rowProblems = [
-        MathProblem.addition(3, 5), // 3+5=8
-        MathProblem.addition(8, 7), // 8+7=15
-        MathProblem.addition(15, 6), // 15+6=21 (=targetSum)
+        MathProblem.addition(3, 5),    // 3+5=8
+        MathProblem.addition(8, 7),    // 8+7=15
+        MathProblem.addition(15, 6),   // 15+6=21 (=targetSum)
       ];
 
       provider.reportOutcome(GameOutcome.win(
@@ -187,8 +186,8 @@ void main() {
   group('Fix: Gravity Well SRI reporting', () {
     test('gravity_well win routes balance-scale problems to SRI', () {
       final scaleProblems = [
-        MathProblem.subtraction(15, 7), // unknown = 15 - 7 = 8
-        MathProblem.addition(3, 5), // 3 + unknown = total
+        MathProblem.subtraction(15, 7),  // unknown = 15 - 7 = 8
+        MathProblem.addition(3, 5),       // 3 + unknown = total
       ];
 
       provider.reportOutcome(GameOutcome.win(

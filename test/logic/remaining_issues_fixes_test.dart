@@ -110,8 +110,7 @@ void main() {
         // Check it's not just types[i % types.length]
         bool isTrivialPattern = true;
         for (int i = 0; i < puzzle.solution.length; i++) {
-          if (puzzle.solution[i] !=
-              puzzle.ionTypes[i % puzzle.ionTypes.length]) {
+          if (puzzle.solution[i] != puzzle.ionTypes[i % puzzle.ionTypes.length]) {
             isTrivialPattern = false;
             break;
           }
@@ -162,7 +161,8 @@ void main() {
 
         // Revealed hints should be a subset of all hints
         expect(
-          puzzle.revealedHints.every(puzzle.numberHints.containsKey),
+          puzzle.revealedHints.every(
+              puzzle.numberHints.containsKey),
           isTrue,
         );
       }

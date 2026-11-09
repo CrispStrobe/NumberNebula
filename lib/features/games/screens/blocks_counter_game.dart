@@ -28,48 +28,42 @@ class _VisualConfig {
   // --- Camera ---
   // static const double cameraDistanceFactor = 2.0; // How far the camera is based on puzzle size
   static const double cameraDistanceFactor = 0.4;
-  static final cube.Vector3 cameraTarget = cube.Vector3(
-      0, -0.5, 0); // Aim slightly below center for better view angle
+  static final cube.Vector3 cameraTarget = cube.Vector3(0, -0.5, 0); // Aim slightly below center for better view angle
 
   // --- Lighting ---
   // static final cube.Vector3 lightPosition = cube.Vector3(15, 20, 20); // Position of the main light
   static final cube.Vector3 lightPosition = cube.Vector3(5, 30, 15);
   static const Color lightColor = Colors.white; // Color of the light
   // static const double ambientIntensity = 0.6; // Overall ambient light
-  static const double ambientIntensity = 0.9;
+  static const double ambientIntensity = 0.9; 
   // static const double diffuseIntensity = 1.0; // Directional light contribution
-  static const double diffuseIntensity = 1.5;
+  static const double diffuseIntensity = 1.5; 
   static const double specularIntensity = 0.2; // Highlight intensity
 
   // --- Material ---
-  static final cube.Vector3 materialSpecular =
-      cube.Vector3(0.8, 0.8, 0.8); // How much light is reflected
-  static const double materialShininess =
-      10.0; // Sharpness of the specular highlight (higher = shinier)
+  static final cube.Vector3 materialSpecular = cube.Vector3(0.8, 0.8, 0.8); // How much light is reflected
+  static const double materialShininess = 10.0; // Sharpness of the specular highlight (higher = shinier)
 
   // --- Cube Appearance ---
   static const double cubeSize = 0.98;
   static const double cubeSpacing = 1.0;
-
+  
   // --- Animation & UI ---
   static const int rotationDurationSeconds = 15;
   // static const double containerHeight = 350.0;
   static const double containerBorderRadius = 16.0;
-
+  
   // --- More vivid, saturated cube colors (adjusted for better contrast) ---
+
 }
 
 // --- Helper class to manually define Cube geometry for flutter_cube v0.1.1 ---
 class _CubeGeometry {
   final List<cube.Vector3> vertices = [
-    cube.Vector3(-0.5, -0.5, -0.5),
-    cube.Vector3(0.5, -0.5, -0.5),
-    cube.Vector3(0.5, 0.5, -0.5),
-    cube.Vector3(-0.5, 0.5, -0.5),
-    cube.Vector3(-0.5, -0.5, 0.5),
-    cube.Vector3(0.5, -0.5, 0.5),
-    cube.Vector3(0.5, 0.5, 0.5),
-    cube.Vector3(-0.5, 0.5, 0.5),
+    cube.Vector3(-0.5, -0.5, -0.5), cube.Vector3(0.5, -0.5, -0.5),
+    cube.Vector3(0.5, 0.5, -0.5), cube.Vector3(-0.5, 0.5, -0.5),
+    cube.Vector3(-0.5, -0.5, 0.5), cube.Vector3(0.5, -0.5, 0.5),
+    cube.Vector3(0.5, 0.5, 0.5), cube.Vector3(-0.5, 0.5, 0.5),
   ];
 
   final List<cube.Polygon> indices = [
@@ -93,19 +87,19 @@ class _CubeGeometry {
 class BlockPosition3D {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-        'x': x,
-        'y': y,
-        'z': z,
-        'isVisible': isVisible,
-        'color': color.toARGB32()
-      };
-  factory BlockPosition3D.fromJson(Map<String, dynamic> json) =>
-      BlockPosition3D(
-          x: json['x'] as int,
-          y: json['y'] as int,
-          z: json['z'] as int,
-          isVisible: json['isVisible'] as bool,
-          color: Color(json['color'] as int));
+    'x': x,
+    'y': y,
+    'z': z,
+    'isVisible': isVisible,
+    'color': color.toARGB32()
+  };
+  factory BlockPosition3D.fromJson(Map<String, dynamic> json) => BlockPosition3D(
+    x: json['x'] as int,
+    y: json['y'] as int,
+    z: json['z'] as int,
+    isVisible: json['isVisible'] as bool,
+    color: Color(json['color'] as int)
+  );
 
   final int x, y, z;
   final bool isVisible;
@@ -124,19 +118,17 @@ class BlockPosition3D {
 class BlockStructure {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-        'blocks': blocks.map((v0) => v0.toJson()).toList(),
-        'gridWidth': gridWidth,
-        'gridDepth': gridDepth,
-        'maxHeight': maxHeight
-      };
+    'blocks': blocks.map((v0) => v0.toJson()).toList(),
+    'gridWidth': gridWidth,
+    'gridDepth': gridDepth,
+    'maxHeight': maxHeight
+  };
   factory BlockStructure.fromJson(Map<String, dynamic> json) => BlockStructure(
-      blocks: (json['blocks'] as List)
-          .map((v0) =>
-              BlockPosition3D.fromJson(Map<String, dynamic>.from(v0 as Map)))
-          .toList(),
-      gridWidth: json['gridWidth'] as int,
-      gridDepth: json['gridDepth'] as int,
-      maxHeight: json['maxHeight'] as int);
+    blocks: (json['blocks'] as List).map((v0) => BlockPosition3D.fromJson(Map<String, dynamic>.from(v0 as Map))).toList(),
+    gridWidth: json['gridWidth'] as int,
+    gridDepth: json['gridDepth'] as int,
+    maxHeight: json['maxHeight'] as int
+  );
 
   final List<BlockPosition3D> blocks;
   final int gridWidth, gridDepth, maxHeight;
@@ -153,36 +145,35 @@ class BlockStructure {
 class BlockCountingPuzzle {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-        'blockStructure': blockStructure.toJson(),
-        'correctAnswer': correctAnswer,
-        'answerChoices': answerChoices.map((v0) => v0).toList(),
-        'difficulty': difficulty
-      };
-  factory BlockCountingPuzzle.fromJson(Map<String, dynamic> json) =>
-      BlockCountingPuzzle(
-          blockStructure: BlockStructure.fromJson(
-              Map<String, dynamic>.from(json['blockStructure'] as Map)),
-          correctAnswer: json['correctAnswer'] as int,
-          answerChoices:
-              (json['answerChoices'] as List).map((v0) => v0 as int).toList(),
-          difficulty: json['difficulty'] as int);
+    'blockStructure': blockStructure.toJson(),
+    'correctAnswer': correctAnswer,
+    'answerChoices': answerChoices.map((v0) => v0).toList(),
+    'difficulty': difficulty
+  };
+  factory BlockCountingPuzzle.fromJson(Map<String, dynamic> json) => BlockCountingPuzzle(
+    blockStructure: BlockStructure.fromJson(Map<String, dynamic>.from(json['blockStructure'] as Map)),
+    correctAnswer: json['correctAnswer'] as int,
+    answerChoices: (json['answerChoices'] as List).map((v0) => v0 as int).toList(),
+    difficulty: json['difficulty'] as int
+  );
 
   final BlockStructure blockStructure;
   final int correctAnswer;
   final List<int> answerChoices;
   final int difficulty;
 
-  BlockCountingPuzzle(
-      {required this.blockStructure,
-      required this.correctAnswer,
-      required this.answerChoices,
-      required this.difficulty});
+  BlockCountingPuzzle({
+    required this.blockStructure,
+    required this.correctAnswer,
+    required this.answerChoices,
+    required this.difficulty
+  });
 
   static BlockCountingPuzzle generate(Map<String, int> args) =>
-      BlockCountingPuzzle.fromJson(
-          generation.BlockCountingPuzzle.generate(args).toJson());
+      BlockCountingPuzzle.fromJson(generation.BlockCountingPuzzle.generate(args).toJson());
 
   // Helper to determine if a block is externally visible
+
 }
 
 //##############################################################################
@@ -205,20 +196,12 @@ class BlockCounterGame extends StatefulWidget {
   State<BlockCounterGame> createState() => _BlockCounterGameState();
 }
 
-class _BlockCounterGameState extends State<BlockCounterGame>
-    with
-        TickerProviderStateMixin,
-        GameAnimationsMixin<BlockCounterGame>,
-        PuzzleSessionMixin<BlockCounterGame> {
+class _BlockCounterGameState extends State<BlockCounterGame> with TickerProviderStateMixin, GameAnimationsMixin<BlockCounterGame>, PuzzleSessionMixin<BlockCounterGame> {
   bool _sessionReady = false;
-  @override
-  String get sessionGameKey => 'block_counter';
-  @override
-  int get sessionGrade => widget.grade;
-  @override
-  int get sessionLevel => widget.level;
-  @override
-  Map<String, dynamic>? capturePuzzleSession() {
+  @override String get sessionGameKey => 'block_counter';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
     if (!_sessionReady || _isGenerating) return null;
     return {
       'currentPuzzle': (currentPuzzle?.toJson()),
@@ -228,18 +211,11 @@ class _BlockCounterGameState extends State<BlockCounterGame>
       '_wrongAnswers': _wrongAnswers
     };
   }
-
-  @override
-  void applyPuzzleSession(Map<String, dynamic> state) {
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
     _cancelRoundCallbacks();
-    currentPuzzle = (state["currentPuzzle"] == null
-        ? null
-        : BlockCountingPuzzle.fromJson(
-            Map<String, dynamic>.from(state["currentPuzzle"] as Map)));
-    userAnswer =
-        (state["userAnswer"] == null ? null : state["userAnswer"] as int);
-    answerChoices =
-        (state["answerChoices"] as List).map((v0) => v0 as int).toList();
+    currentPuzzle = (state["currentPuzzle"] == null ? null : BlockCountingPuzzle.fromJson(Map<String, dynamic>.from(state["currentPuzzle"] as Map)));
+    userAnswer = (state["userAnswer"] == null ? null : state["userAnswer"] as int);
+    answerChoices = (state["answerChoices"] as List).map((v0) => v0 as int).toList();
     _selectedAnswerIndex = state["_selectedAnswerIndex"] as int;
     _wrongAnswers = state["_wrongAnswers"] as int;
     // A saved wrong-answer highlight must not permanently lock the retry.
@@ -248,11 +224,8 @@ class _BlockCounterGameState extends State<BlockCounterGame>
       _selectedAnswerIndex = -1;
     }
     successController.reset();
-    _isGenerating = false;
-    _cubeKey = UniqueKey();
-    _createSceneObject(currentPuzzle!.blockStructure);
+    _isGenerating = false; _cubeKey = UniqueKey(); _createSceneObject(currentPuzzle!.blockStructure);
   }
-
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
@@ -266,7 +239,7 @@ class _BlockCounterGameState extends State<BlockCounterGame>
   BlockCountingPuzzle? currentPuzzle;
   int? userAnswer;
   List<int> answerChoices = [];
-
+  
   bool _isGenerating = true;
   int _selectedAnswerIndex = -1;
 
@@ -275,7 +248,7 @@ class _BlockCounterGameState extends State<BlockCounterGame>
   Timer? _answerResetTimer;
   int _roundEpoch = 0;
   cube.Object? _sceneObject;
-  cube.Scene? _scene;
+  cube.Scene? _scene; 
   Key _cubeKey = UniqueKey();
   DifficultyConfig? currentDifficulty;
 
@@ -283,7 +256,7 @@ class _BlockCounterGameState extends State<BlockCounterGame>
   void initState() {
     super.initState();
     initGameAnimations(useGlow: false, usePulse: false);
-
+    
     _rotationController = AnimationController(
       duration: const Duration(seconds: _VisualConfig.rotationDurationSeconds),
       vsync: this,
@@ -291,18 +264,16 @@ class _BlockCounterGameState extends State<BlockCounterGame>
     _rotationAnimation = Tween<double>(begin: 0, end: 2 * math.pi).animate(
       CurvedAnimation(parent: _rotationController, curve: Curves.linear),
     );
-
+    
     // Initialize difficulty from framework
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gameProvider = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(
-            gameProvider, widget.level,
-            gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level, gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
-
+    
     _rotationController.repeat();
   }
 
@@ -326,12 +297,10 @@ class _BlockCounterGameState extends State<BlockCounterGame>
     final epoch = _roundEpoch;
     beginPuzzleSession();
     if (currentDifficulty == null) {
-      if (kDebugMode)
-        debugPrint(
-            "⚠️ [BLOCK_COUNTER] Difficulty not yet initialized, waiting...");
+      if (kDebugMode) debugPrint("⚠️ [BLOCK_COUNTER] Difficulty not yet initialized, waiting...");
       return;
     }
-
+    
     setState(() {
       _isGenerating = true;
       _wrongAnswers = 0;
@@ -347,10 +316,10 @@ class _BlockCounterGameState extends State<BlockCounterGame>
         BlockCountingPuzzle.generate,
         {'grade': widget.grade, 'level': widget.level},
       );
-
+      
       if (mounted && epoch == _roundEpoch) {
         _createSceneObject(puzzle.blockStructure);
-
+        
         setState(() {
           currentPuzzle = puzzle;
           answerChoices = List.from(currentPuzzle!.answerChoices);
@@ -364,14 +333,14 @@ class _BlockCounterGameState extends State<BlockCounterGame>
       }
     }
   }
-
+  
   void _createSceneObject(BlockStructure blockStructure) {
     final scene = cube.Object(name: 'world');
     final geometry = _CubeGeometry();
 
     // UPDATED: Use new grid properties for centering
     final centerX = blockStructure.gridWidth / 2.0;
-    final centerY = blockStructure.maxHeight / 2.0;
+    final centerY = blockStructure.maxHeight / 2.0; 
     final centerZ = blockStructure.gridDepth / 2.0;
 
     for (final blockData in blockStructure.blocks) {
@@ -381,35 +350,36 @@ class _BlockCounterGameState extends State<BlockCounterGame>
       final cubeObject = cube.Object(
         position: cube.Vector3(
           (blockData.x - centerX + 0.5) * _VisualConfig.cubeSpacing,
-          (blockData.z - centerZ + 0.5) *
-              _VisualConfig.cubeSpacing, // model z -> scene y
-          (blockData.y - centerY + 0.5) *
-              _VisualConfig.cubeSpacing, // model y -> scene z
+          (blockData.z - centerZ + 0.5) * _VisualConfig.cubeSpacing, // model z -> scene y
+          (blockData.y - centerY + 0.5) * _VisualConfig.cubeSpacing, // model y -> scene z
         ),
-        scale: cube.Vector3(_VisualConfig.cubeSize, _VisualConfig.cubeSize,
-            _VisualConfig.cubeSize),
+        scale: cube.Vector3(
+          _VisualConfig.cubeSize, 
+          _VisualConfig.cubeSize, 
+          _VisualConfig.cubeSize
+        ),
         lighting: true,
       );
 
       final material = cube.Material();
       final color = blockData.color; // Use the color assigned during generation
-
+      
       material.diffuse.setFrom(cube.Vector3(
         color.r,
         color.g,
         color.b,
       ));
-
+      
       // FIX: Add specular and shininess for better lighting effects
       material.specular.setFrom(_VisualConfig.materialSpecular);
       material.shininess = _VisualConfig.materialShininess;
-
+      
       cubeObject.mesh = cube.Mesh(
         vertices: geometry.vertices,
         indices: geometry.indices,
         material: material,
       );
-
+      
       scene.add(cubeObject);
     }
     _sceneObject = scene;
@@ -417,7 +387,7 @@ class _BlockCounterGameState extends State<BlockCounterGame>
 
   void _selectAnswer(int answerIndex) {
     if (userAnswer != null) return;
-
+    
     setState(() {
       _selectedAnswerIndex = answerIndex;
       userAnswer = answerChoices[answerIndex];
@@ -440,20 +410,20 @@ class _BlockCounterGameState extends State<BlockCounterGame>
     int baseScore = 150 * widget.grade;
     int difficultyBonus = (currentPuzzle?.difficulty ?? 1) * 50;
     int totalScore = baseScore + difficultyBonus;
-
+    
     // SINGLE CALL to unified progression system
     // Block Counter is spatial3d, so no mathProblem needed
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-          skillLevel: widget.grade,
-          gameType: 'block_counter',
-          difficulty: widget.level,
-          score: totalScore,
-          performance: Perf.fromMistakes(_wrongAnswers, per: 0.25),
-        ));
-
+      skillLevel: widget.grade,
+      gameType: 'block_counter',
+      difficulty: widget.level,
+      score: totalScore,
+      performance: Perf.fromMistakes(_wrongAnswers, per: 0.25),
+    ));
+    
     successController.forward(from: 0.0);
-
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -466,11 +436,11 @@ class _BlockCounterGameState extends State<BlockCounterGame>
     // Track the incorrect attempt
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-          skillLevel: widget.grade,
-          gameType: 'block_counter',
-          difficulty: widget.level,
-        ));
-
+      skillLevel: widget.grade,
+      gameType: 'block_counter',
+      difficulty: widget.level,
+    ));
+    
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -485,7 +455,7 @@ class _BlockCounterGameState extends State<BlockCounterGame>
         duration: const Duration(seconds: 2),
       ),
     );
-
+    
     _answerResetTimer?.cancel();
     final epoch = _roundEpoch;
     _answerResetTimer = Timer(const Duration(milliseconds: 1000), () {
@@ -500,8 +470,7 @@ class _BlockCounterGameState extends State<BlockCounterGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady)
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (_isGenerating || currentPuzzle == null) {
       return Scaffold(
         body: SpaceBackground(
@@ -511,8 +480,7 @@ class _BlockCounterGameState extends State<BlockCounterGame>
               children: [
                 const CircularProgressIndicator(color: SpaceTheme.starYellow),
                 const SizedBox(height: 16),
-                Text(S.of(context)!.loadingAdventure,
-                    style: SpaceTheme.bodyStyle),
+                Text(S.of(context)!.loadingAdventure, style: SpaceTheme.bodyStyle),
               ],
             ),
           ),
@@ -570,10 +538,7 @@ class _BlockCounterGameState extends State<BlockCounterGame>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(
-              flex: 3,
-              child:
-                  _buildVisualizationArea(containerHeight)), // Pass parameter
+          Expanded(flex: 3, child: _buildVisualizationArea(containerHeight)), // Pass parameter
           const SizedBox(width: 24),
           Expanded(flex: 2, child: _buildAnswerArea()),
         ],
@@ -585,8 +550,7 @@ class _BlockCounterGameState extends State<BlockCounterGame>
     return SingleChildScrollView(
       physics: const ClampingScrollPhysics(), // Prevents overscroll glow
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-            16.0, 8.0, 16.0, 16.0), // Reduced top padding
+        padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0), // Reduced top padding
         child: Column(
           children: [
             _buildVisualizationArea(containerHeight), // Pass parameter
@@ -603,28 +567,22 @@ class _BlockCounterGameState extends State<BlockCounterGame>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(S.of(context)!.blockCounterQuestion,
-            style: SpaceTheme.titleStyle, textAlign: TextAlign.center),
+        Text(S.of(context)!.blockCounterQuestion, style: SpaceTheme.titleStyle, textAlign: TextAlign.center),
         SizedBox(
           height: containerHeight, // Use the passed-in value
-
-          // We wrap the container in Expanded with no the fixed height
-          // to make it fill the available space instead of overflowing.
-          // Expanded(
+        
+        // We wrap the container in Expanded with no the fixed height
+        // to make it fill the available space instead of overflowing.
+        // Expanded(
           child: Container(
             decoration: SpaceTheme.cardDecoration.copyWith(
-              borderRadius:
-                  BorderRadius.circular(_VisualConfig.containerBorderRadius),
+              borderRadius: BorderRadius.circular(_VisualConfig.containerBorderRadius),
               boxShadow: [
-                BoxShadow(
-                    color: SpaceTheme.starYellow.withValues(alpha: 0.3),
-                    blurRadius: 10,
-                    spreadRadius: 2),
+                BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.3), blurRadius: 10, spreadRadius: 2),
               ],
             ),
             child: ClipRRect(
-              borderRadius:
-                  BorderRadius.circular(_VisualConfig.containerBorderRadius),
+              borderRadius: BorderRadius.circular(_VisualConfig.containerBorderRadius),
               child: Container(
                 color: const Color(0xFF1A1A2E),
                 child: AnimatedBuilder(
@@ -641,24 +599,17 @@ class _BlockCounterGameState extends State<BlockCounterGame>
                       if (_sceneObject != null) {
                         scene.world.add(_sceneObject!);
                       }
-
+                      
                       final structure = currentPuzzle!.blockStructure;
-                      final maxDimension = math
-                          .max(
-                              structure.gridWidth,
-                              math.max(
-                                  structure.gridDepth, structure.maxHeight))
-                          .toDouble();
-                      final distance =
-                          maxDimension * _VisualConfig.cameraDistanceFactor +
-                              3.0;
+                      final maxDimension = math.max(structure.gridWidth, 
+                                            math.max(structure.gridDepth, structure.maxHeight)).toDouble();
+                      final distance = maxDimension * _VisualConfig.cameraDistanceFactor + 3.0; 
 
-                      scene.camera.position
-                          .setValues(distance, distance * 0.8, distance);
+                      scene.camera.position.setValues(distance, distance * 0.8, distance);
                       scene.camera.target.setFrom(_VisualConfig.cameraTarget);
-
+                      
                       scene.light.position.setFrom(_VisualConfig.lightPosition);
-
+                      
                       scene.light.setColor(
                         _VisualConfig.lightColor,
                         _VisualConfig.ambientIntensity,
@@ -701,8 +652,8 @@ class _BlockCounterGameState extends State<BlockCounterGame>
             itemBuilder: (context, index) {
               final answer = answerChoices[index];
               final isSelected = _selectedAnswerIndex == index;
-              final isCorrect =
-                  userAnswer != null && answer == currentPuzzle!.correctAnswer;
+              final isCorrect = userAnswer != null &&
+                               answer == currentPuzzle!.correctAnswer;
               final isWrong = userAnswer != null && isSelected && !isCorrect;
 
               return Semantics(
@@ -712,8 +663,7 @@ class _BlockCounterGameState extends State<BlockCounterGame>
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   child: ElevatedButton(
-                    onPressed:
-                        userAnswer == null ? () => _selectAnswer(index) : null,
+                    onPressed: userAnswer == null ? () => _selectAnswer(index) : null,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.all(8),
                       backgroundColor: isCorrect
@@ -753,15 +703,13 @@ class _BlockCounterGameState extends State<BlockCounterGame>
                           const Positioned(
                             top: 2,
                             right: 2,
-                            child: Icon(Icons.check,
-                                color: Colors.white, size: 20),
+                            child: Icon(Icons.check, color: Colors.white, size: 20),
                           )
                         else if (isWrong)
                           const Positioned(
                             top: 2,
                             right: 2,
-                            child: Icon(Icons.close,
-                                color: Colors.white, size: 20),
+                            child: Icon(Icons.close, color: Colors.white, size: 20),
                           ),
                       ],
                     ),
@@ -783,28 +731,28 @@ class _BlockCounterGameState extends State<BlockCounterGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: AlertDialog(
-            scrollable: true,
+          child: AlertDialog(scrollable: true,
             backgroundColor: const Color(0xFF1A1A3E).withValues(alpha: 0.95),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
               side: const BorderSide(color: Colors.greenAccent, width: 2),
             ),
-            title: Row(children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 30),
-              const SizedBox(width: 10),
-              Text(S.of(context)!.blockCounterWinTitle,
-                  style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
-            ]),
+            title: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.green, size: 30),
+                const SizedBox(width: 10),
+                Text(
+                  S.of(context)!.blockCounterWinTitle, 
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
+                ),
+              ]
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                RoundSummary(gameKey: 'block_counter'),
+                  RoundSummary(gameKey: 'block_counter'),
                 Text(
-                  S
-                      .of(context)!
-                      .blockCounterWinDesc(currentPuzzle!.correctAnswer),
+                  S.of(context)!.blockCounterWinDesc(currentPuzzle!.correctAnswer),
                   style: const TextStyle(color: Colors.white70, fontSize: 16),
                   textAlign: TextAlign.center,
                 ),
@@ -823,8 +771,10 @@ class _BlockCounterGameState extends State<BlockCounterGame>
             actions: [
               TextButton(
                 autofocus: true,
-                child: Text(S.of(context)!.blockCounterNextPuzzle,
-                    style: const TextStyle(color: Colors.cyanAccent)),
+                child: Text(
+                  S.of(context)!.blockCounterNextPuzzle,
+                  style: const TextStyle(color: Colors.cyanAccent)
+                ),
                 onPressed: () {
                   if (kDebugMode) debugPrint("🧊 Next puzzle button pressed");
                   Navigator.pop(context); // Close dialog
@@ -833,8 +783,10 @@ class _BlockCounterGameState extends State<BlockCounterGame>
                 },
               ),
               TextButton(
-                child: Text(S.of(context)!.blockCounterBackToMenu,
-                    style: const TextStyle(color: Colors.white)),
+                child: Text(
+                  S.of(context)!.blockCounterBackToMenu, 
+                  style: const TextStyle(color: Colors.white)
+                ),
                 onPressed: () {
                   if (kDebugMode) debugPrint("🧊 Back to menu button pressed");
                   Navigator.pop(context); // Close dialog

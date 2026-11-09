@@ -130,8 +130,7 @@ class StarForgeOutlinePainter extends CustomPainter {
     // The outline, drawn once as a closed path. Every arm is a run of it, so
     // there is nothing per-arm to overlap.
     final base = Paint()
-      ..color =
-          SpaceTheme.nebulaPurple.withValues(alpha: 0.35 + 0.15 * glowValue)
+      ..color = SpaceTheme.nebulaPurple.withValues(alpha: 0.35 + 0.15 * glowValue)
       ..strokeWidth = 2.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round

@@ -26,31 +26,30 @@ import 'package:flutter/foundation.dart';
 
 class GameConfig {
   // RESPONSIVE AND LAYOUT CONSTANTS
-
+  
   /// The desired screen area in pixels per asteroid.
   /// A larger value means fewer, less crowded asteroids.
-  static const double pixelsPerAsteroid = 65000.0;
+  static const double pixelsPerAsteroid = 65000.0; 
 
   /// A reference screen height to calculate responsive scaling from.
   static const double baseScreenDimension = 800.0;
 
   /// Safe area margin - minimal now since we use actual playable area
-  static const double edgeMargin = 10.0;
+  static const double edgeMargin = 10.0; 
 
   // Animation and Performance
-  static const double gameLoopFrameTime =
-      20.0; // milliseconds (50fps instead of 60fps)
-
+  static const double gameLoopFrameTime = 20.0; // milliseconds (50fps instead of 60fps)
+  
   // Speed Settings
   static const double baseAsteroidSpeed = 1.2;
   static const double speedMultiplier = 1.2;
   static const double asteroidBounceDeceleration = 0.9;
   static const double maxRotationSpeed = 0.8;
-
+  
   // Hint System
   static const int textHintDelaySeconds = 8;
   static const int visualHintDelaySeconds = 25;
-
+  
   // Visual Effects
   static const double screenShakeIntensity = 4.0;
   static const int explosionParticleCount = 40;
@@ -58,7 +57,7 @@ class GameConfig {
   static const double maxParticleSpeed = 120.0;
   static const double laserBeamDuration = 0.4;
   static const double floatingScoreDuration = 2.0;
-
+  
   // Asteroid Settings
   static const double minAsteroidSize = 50.0;
   static const double asteroidSizeVariation = 30.0;
@@ -69,7 +68,7 @@ class GameConfig {
 
   // Game Timing
   static const double updateDeltaTime = 0.02;
-
+  
   // Animation Durations
   static const int explosionDurationMs = 1000;
   static const int screenShakeDurationMs = 300;
@@ -101,64 +100,34 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   bool get _cachedRendering => widget.renderingPath != null
       ? widget.renderingPath == AsteroidRenderPath.cached
       : const String.fromEnvironment('ASTEROID_RENDER_PATH',
-              defaultValue: 'cached') ==
-          'cached';
+          defaultValue: 'cached') == 'cached';
   bool _sessionReady = false;
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
     updateDecorativeMotion([_spaceshipController], reduced, reverse: false);
   }
-
   bool _sessionStarting = false;
 
-  @override
-  String get sessionGameKey => 'asteroid_math';
-  @override
-  int get sessionGrade => widget.grade;
-  @override
-  int get sessionLevel => widget.level;
-  @override
-  Map<String, dynamic>? capturePuzzleSession() {
+  @override String get sessionGameKey => 'asteroid_math';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
     if (!_sessionReady) return null;
-    return {
-      'asteroids': asteroids.map((v0) => v0.toJson()).toList(),
-      'targetOrder': targetOrder.map((v0) => v0).toList(),
-      'currentTargetIndex': currentTargetIndex,
-      'timeLeft': timeLeft,
-      'wrongShots': wrongShots,
-      'levelProblems': levelProblems.map((v0) => v0.toJson()).toList()
-    };
+    return {'asteroids': asteroids.map((v0) => v0.toJson()).toList(), 'targetOrder': targetOrder.map((v0) => v0).toList(), 'currentTargetIndex': currentTargetIndex, 'timeLeft': timeLeft, 'wrongShots': wrongShots, 'levelProblems': levelProblems.map((v0) => v0.toJson()).toList()};
   }
-
-  @override
-  void applyPuzzleSession(Map<String, dynamic> state) {
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
     _renderCache.clear();
-    asteroids = (state["asteroids"] as List)
-        .map((v0) => Asteroid.fromJson(Map<String, dynamic>.from(v0 as Map)))
-        .toList();
-    targetOrder =
-        (state["targetOrder"] as List).map((v0) => v0 as int).toList();
-    currentTargetIndex = state["currentTargetIndex"] as int;
-    timeLeft = state["timeLeft"] as int;
-    wrongShots = state["wrongShots"] as int;
-    levelProblems = (state["levelProblems"] as List)
-        .map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map)))
-        .toList();
+    asteroids = (state["asteroids"] as List).map((v0) => Asteroid.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+targetOrder = (state["targetOrder"] as List).map((v0) => v0 as int).toList();
+currentTargetIndex = state["currentTargetIndex"] as int;
+timeLeft = state["timeLeft"] as int;
+wrongShots = state["wrongShots"] as int;
+levelProblems = (state["levelProblems"] as List).map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
 
-    gameActive = true;
-    _startGameTimer();
-    timeLeft = state['timeLeft'] as int;
-    _startHintTimers();
+    gameActive = true; _startGameTimer(); timeLeft = state['timeLeft'] as int; _startHintTimers();
   }
-
   Future<void> _restoreOrGenerate() async {
-    if (!await restorePuzzleSession() && mounted) {
-      await Future<void>.sync(() {
-        _generateAsteroids();
-        _startGameTimer();
-        _startHintTimers();
-      });
-    }
+    if (!await restorePuzzleSession() && mounted) { await Future<void>.sync(() { _generateAsteroids(); _startGameTimer(); _startHintTimers(); }); }
     if (mounted) setState(() => _sessionReady = true);
   }
 
@@ -206,28 +175,19 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     )..repeat();
 
     _explosionController = AnimationController(
-        duration: const Duration(milliseconds: GameConfig.explosionDurationMs),
-        vsync: this);
+        duration: const Duration(milliseconds: GameConfig.explosionDurationMs), vsync: this);
     _laserController = AnimationController(
-        duration: Duration(
-            milliseconds: (GameConfig.laserBeamDuration * 1000).round()),
+        duration: Duration(milliseconds: (GameConfig.laserBeamDuration * 1000).round()), 
         vsync: this);
     _screenShakeController = AnimationController(
-        duration:
-            const Duration(milliseconds: GameConfig.screenShakeDurationMs),
-        vsync: this);
+        duration: const Duration(milliseconds: GameConfig.screenShakeDurationMs), vsync: this);
     _spaceshipController = AnimationController(
-        duration:
-            const Duration(seconds: GameConfig.spaceshipThrusterCycleSeconds),
-        vsync: this)
-      ..repeat();
+        duration: const Duration(seconds: GameConfig.spaceshipThrusterCycleSeconds), vsync: this)..repeat();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gameProvider = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(
-            gameProvider, widget.level,
-            gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level, gradeOverride: widget.grade);
         _gameLoopController.addListener(_updateGame);
       }
     });
@@ -263,9 +223,9 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       explosions.clear();
       laserBeams.clear();
       floatingScores.clear();
-      levelProblems.clear();
+      levelProblems.clear(); 
     });
-
+    
     // Wait for playable area to be set before generating asteroids
     if (playableArea != null) {
       _generateAsteroids();
@@ -277,20 +237,17 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   void _startHintTimers() {
     _textHintTimer?.cancel();
     _visualHintTimer?.cancel();
-
+    
     // Scale hint delay by grade: Grade 1 gets hints faster
-    final textDelay =
-        (GameConfig.textHintDelaySeconds * (0.6 + widget.grade * 0.2)).round();
-    final visualDelay =
-        (GameConfig.visualHintDelaySeconds * (0.6 + widget.grade * 0.2))
-            .round();
+    final textDelay = (GameConfig.textHintDelaySeconds * (0.6 + widget.grade * 0.2)).round();
+    final visualDelay = (GameConfig.visualHintDelaySeconds * (0.6 + widget.grade * 0.2)).round();
 
     _textHintTimer = Timer(Duration(seconds: textDelay), () {
       if (mounted && gameActive) {
         setState(() => showTextHint = true);
       }
     });
-
+    
     _visualHintTimer = Timer(Duration(seconds: visualDelay), () {
       if (mounted && gameActive) {
         setState(() => showVisualHint = true);
@@ -300,7 +257,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
 
   void _generateAsteroids() {
     if (!mounted || currentDifficulty == null || playableArea == null) return;
-
+    
     // FIXED: Use playableArea instead of MediaQuery
     final screenSize = playableArea!;
     final difficulty = currentDifficulty!;
@@ -308,16 +265,14 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
 
     // RESPONSIVE ASTEROID COUNT
     final screenArea = screenSize.width * screenSize.height;
-    final densityBasedCount =
-        (screenArea / GameConfig.pixelsPerAsteroid).round();
+    final densityBasedCount = (screenArea / GameConfig.pixelsPerAsteroid).round();
     int asteroidCount = math.min(difficulty.objectCount, densityBasedCount);
-
+    
     final problems = <MathProblem>[];
     final sriService = context.read<SriService>();
     final gameProvider = context.read<GameProvider>();
-
-    problems.addAll(generateAsteroidProblems(
-        gameProvider, widget.level, sriService, asteroidCount));
+    
+    problems.addAll(generateAsteroidProblems(gameProvider, widget.level, sriService, asteroidCount));
     // Store all problems for this level
     levelProblems = List.from(problems);
 
@@ -329,19 +284,13 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       final avgScreenDim = (screenSize.width + screenSize.height) / 2;
       final screenScaleFactor = avgScreenDim / GameConfig.baseScreenDimension;
 
-      final double progress =
-          ((widget.level - 1) / (GameConfig.maxLevelForScaling - 1))
-              .clamp(0.0, 1.0);
-      final double levelSizeMultiplier =
-          1.0 + (progress * (GameConfig.maxSizeMultiplier - 1.0));
-
-      final baseSize = GameConfig.minAsteroidSize +
-          random.nextDouble() * GameConfig.asteroidSizeVariation;
-      final asteroidSize = (baseSize * screenScaleFactor * levelSizeMultiplier)
-          .clamp(GameConfig.minAsteroidSize, 150.0);
-
-      final asteroidSpeed = (GameConfig.baseAsteroidSpeed +
-          (difficulty.gameSpeed * GameConfig.speedMultiplier));
+      final double progress = ((widget.level - 1) / (GameConfig.maxLevelForScaling - 1)).clamp(0.0, 1.0);
+      final double levelSizeMultiplier = 1.0 + (progress * (GameConfig.maxSizeMultiplier - 1.0));
+      
+      final baseSize = GameConfig.minAsteroidSize + random.nextDouble() * GameConfig.asteroidSizeVariation;
+      final asteroidSize = (baseSize * screenScaleFactor * levelSizeMultiplier).clamp(GameConfig.minAsteroidSize, 150.0);
+      
+      final asteroidSpeed = (GameConfig.baseAsteroidSpeed + (difficulty.gameSpeed * GameConfig.speedMultiplier));
 
       Offset position;
       int positionAttempts = 0;
@@ -349,17 +298,15 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
         // FIXED: Spawn anywhere in the playable area
         final spawnableWidth = screenSize.width - asteroidSize;
         final spawnableHeight = screenSize.height - asteroidSize;
-
+        
         position = Offset(
           random.nextDouble() * spawnableWidth + (asteroidSize / 2),
           random.nextDouble() * spawnableHeight + (asteroidSize / 2),
         );
         positionAttempts++;
-      } while (
-          positionAttempts < 30 && _isPositionTooClose(position, asteroidSize));
+      } while (positionAttempts < 30 && _isPositionTooClose(position, asteroidSize));
 
-      final asteroidType =
-          AsteroidType.values[random.nextInt(AsteroidType.values.length)];
+      final asteroidType = AsteroidType.values[random.nextInt(AsteroidType.values.length)];
       final angle = random.nextDouble() * 2 * math.pi;
       final speed = asteroidSpeed * (0.7 + random.nextDouble() * 0.3);
 
@@ -369,15 +316,13 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
         position: position,
         velocity: Offset(math.cos(angle) * speed, math.sin(angle) * speed),
         size: asteroidSize,
-        rotationSpeed: (random.nextDouble() - 0.5) *
-            GameConfig.maxRotationSpeed *
-            difficulty.animationSpeed,
+        rotationSpeed: (random.nextDouble() - 0.5) * GameConfig.maxRotationSpeed * difficulty.animationSpeed,
         rotation: random.nextDouble() * 2 * math.pi,
         type: asteroidType,
         hue: random.nextDouble() * 360,
       ));
     }
-
+    
     targetOrder.addAll(problems.map((p) => p.answer));
     targetOrder.sort();
     setState(() {});
@@ -385,8 +330,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
 
   bool _isPositionTooClose(Offset newPosition, double newSize) {
     for (final asteroid in asteroids) {
-      if ((newPosition - asteroid.position).distance <
-          (asteroid.size + newSize) * GameConfig.asteroidSpacing) {
+      if ((newPosition - asteroid.position).distance < (asteroid.size + newSize) * GameConfig.asteroidSpacing) {
         return true;
       }
     }
@@ -396,7 +340,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   void _updateGame() {
     if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     if (!mounted || !gameActive || playableArea == null) return;
-
+    
     // FIXED: Use playableArea instead of MediaQuery
     final screenSize = playableArea!;
 
@@ -407,133 +351,94 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
         // Store old values for comparison and logging
         final oldPosition = asteroid.position;
         final oldVelocity = asteroid.velocity;
-
+        
         // Update position based on velocity
         asteroid.position += asteroid.velocity * GameConfig.updateDeltaTime;
-        asteroid.rotation +=
-            asteroid.rotationSpeed * GameConfig.updateDeltaTime;
+        asteroid.rotation += asteroid.rotationSpeed * GameConfig.updateDeltaTime;
 
         final margin = asteroid.size / 2;
         bool bounced = false;
-
+        
         // FIXED: Bounce at actual playable area edges - HORIZONTAL
-        if (asteroid.position.dx <= margin ||
-            asteroid.position.dx >= screenSize.width - margin) {
+        if (asteroid.position.dx <= margin || asteroid.position.dx >= screenSize.width - margin) {
           bounced = true;
           final side = asteroid.position.dx <= margin ? 'LEFT' : 'RIGHT';
-          final boundaryX = asteroid.position.dx <= margin
-              ? margin
-              : screenSize.width - margin;
-          final penetrationDepth = asteroid.position.dx <= margin
-              ? margin - asteroid.position.dx
+          final boundaryX = asteroid.position.dx <= margin ? margin : screenSize.width - margin;
+          final penetrationDepth = asteroid.position.dx <= margin 
+              ? margin - asteroid.position.dx 
               : asteroid.position.dx - (screenSize.width - margin);
-
-          if (kDebugMode)
-            debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          
+          if (kDebugMode) debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
           debugPrint('🎯 HORIZONTAL BOUNCE - Asteroid #${asteroid.id}');
           debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-          debugPrint(
-              '📝 Problem: ${asteroid.mathProblem} = ${asteroid.answer}');
-          if (kDebugMode)
-            debugPrint(
-                '🧱 Wall Hit: $side (boundary at ${boundaryX.toStringAsFixed(1)})');
-          debugPrint(
-              '📏 Penetration Depth: ${penetrationDepth.toStringAsFixed(2)} pixels');
-          debugPrint(
-              '📍 Position Before: (${oldPosition.dx.toStringAsFixed(1)}, ${oldPosition.dy.toStringAsFixed(1)})');
-          debugPrint(
-              '📍 Position After:  (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
-          if (kDebugMode)
-            debugPrint(
-                '🏃 Velocity Before: (${oldVelocity.dx.toStringAsFixed(2)}, ${oldVelocity.dy.toStringAsFixed(2)})');
-
+          debugPrint('📝 Problem: ${asteroid.mathProblem} = ${asteroid.answer}');
+          if (kDebugMode) debugPrint('🧱 Wall Hit: $side (boundary at ${boundaryX.toStringAsFixed(1)})');
+          debugPrint('📏 Penetration Depth: ${penetrationDepth.toStringAsFixed(2)} pixels');
+          debugPrint('📍 Position Before: (${oldPosition.dx.toStringAsFixed(1)}, ${oldPosition.dy.toStringAsFixed(1)})');
+          debugPrint('📍 Position After:  (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
+          if (kDebugMode) debugPrint('🏃 Velocity Before: (${oldVelocity.dx.toStringAsFixed(2)}, ${oldVelocity.dy.toStringAsFixed(2)})');
+          
           // Apply bounce physics
           asteroid.velocity = Offset(
-              -asteroid.velocity.dx * GameConfig.asteroidBounceDeceleration,
-              asteroid.velocity.dy);
-
-          if (kDebugMode)
-            debugPrint(
-                '🏃 Velocity After:  (${asteroid.velocity.dx.toStringAsFixed(2)}, ${asteroid.velocity.dy.toStringAsFixed(2)})');
-          debugPrint(
-              '⚡ Speed Loss: ${((1.0 - GameConfig.asteroidBounceDeceleration) * 100).toStringAsFixed(1)}%');
-          debugPrint(
-              '🔄 New Speed: ${asteroid.velocity.distance.toStringAsFixed(2)} units/sec');
-
+            -asteroid.velocity.dx * GameConfig.asteroidBounceDeceleration, 
+            asteroid.velocity.dy
+          );
+          
+          if (kDebugMode) debugPrint('🏃 Velocity After:  (${asteroid.velocity.dx.toStringAsFixed(2)}, ${asteroid.velocity.dy.toStringAsFixed(2)})');
+          debugPrint('⚡ Speed Loss: ${((1.0 - GameConfig.asteroidBounceDeceleration) * 100).toStringAsFixed(1)}%');
+          debugPrint('🔄 New Speed: ${asteroid.velocity.distance.toStringAsFixed(2)} units/sec');
+          
           // Clamp position to prevent getting stuck in walls
-          final newX =
-              asteroid.position.dx.clamp(margin, screenSize.width - margin);
+          final newX = asteroid.position.dx.clamp(margin, screenSize.width - margin);
           asteroid.position = Offset(newX, asteroid.position.dy);
-
-          if (kDebugMode)
-            debugPrint(
-                '🔧 Position Clamped: (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
+          
+          if (kDebugMode) debugPrint('🔧 Position Clamped: (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
           debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         }
-
+        
         // FIXED: Bounce at actual playable area edges - VERTICAL
-        if (asteroid.position.dy <= margin ||
-            asteroid.position.dy >= screenSize.height - margin) {
+        if (asteroid.position.dy <= margin || asteroid.position.dy >= screenSize.height - margin) {
           bounced = true;
           final side = asteroid.position.dy <= margin ? 'TOP' : 'BOTTOM';
-          final boundaryY = asteroid.position.dy <= margin
-              ? margin
-              : screenSize.height - margin;
-          final penetrationDepth = asteroid.position.dy <= margin
-              ? margin - asteroid.position.dy
+          final boundaryY = asteroid.position.dy <= margin ? margin : screenSize.height - margin;
+          final penetrationDepth = asteroid.position.dy <= margin 
+              ? margin - asteroid.position.dy 
               : asteroid.position.dy - (screenSize.height - margin);
-
-          if (kDebugMode)
-            debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          
+          if (kDebugMode) debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
           debugPrint('🎯 VERTICAL BOUNCE - Asteroid #${asteroid.id}');
           debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-          debugPrint(
-              '📝 Problem: ${asteroid.mathProblem} = ${asteroid.answer}');
-          if (kDebugMode)
-            debugPrint(
-                '🧱 Wall Hit: $side (boundary at ${boundaryY.toStringAsFixed(1)})');
-          debugPrint(
-              '📏 Penetration Depth: ${penetrationDepth.toStringAsFixed(2)} pixels');
-          debugPrint(
-              '📍 Position Before: (${oldPosition.dx.toStringAsFixed(1)}, ${oldPosition.dy.toStringAsFixed(1)})');
-          debugPrint(
-              '📍 Position After:  (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
-          if (kDebugMode)
-            debugPrint(
-                '🏃 Velocity Before: (${oldVelocity.dx.toStringAsFixed(2)}, ${oldVelocity.dy.toStringAsFixed(2)})');
-
+          debugPrint('📝 Problem: ${asteroid.mathProblem} = ${asteroid.answer}');
+          if (kDebugMode) debugPrint('🧱 Wall Hit: $side (boundary at ${boundaryY.toStringAsFixed(1)})');
+          debugPrint('📏 Penetration Depth: ${penetrationDepth.toStringAsFixed(2)} pixels');
+          debugPrint('📍 Position Before: (${oldPosition.dx.toStringAsFixed(1)}, ${oldPosition.dy.toStringAsFixed(1)})');
+          debugPrint('📍 Position After:  (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
+          if (kDebugMode) debugPrint('🏃 Velocity Before: (${oldVelocity.dx.toStringAsFixed(2)}, ${oldVelocity.dy.toStringAsFixed(2)})');
+          
           // Apply bounce physics
-          asteroid.velocity = Offset(asteroid.velocity.dx,
-              -asteroid.velocity.dy * GameConfig.asteroidBounceDeceleration);
-
-          if (kDebugMode)
-            debugPrint(
-                '🏃 Velocity After:  (${asteroid.velocity.dx.toStringAsFixed(2)}, ${asteroid.velocity.dy.toStringAsFixed(2)})');
-          debugPrint(
-              '⚡ Speed Loss: ${((1.0 - GameConfig.asteroidBounceDeceleration) * 100).toStringAsFixed(1)}%');
-          debugPrint(
-              '🔄 New Speed: ${asteroid.velocity.distance.toStringAsFixed(2)} units/sec');
-
+          asteroid.velocity = Offset(
+            asteroid.velocity.dx, 
+            -asteroid.velocity.dy * GameConfig.asteroidBounceDeceleration
+          );
+          
+          if (kDebugMode) debugPrint('🏃 Velocity After:  (${asteroid.velocity.dx.toStringAsFixed(2)}, ${asteroid.velocity.dy.toStringAsFixed(2)})');
+          debugPrint('⚡ Speed Loss: ${((1.0 - GameConfig.asteroidBounceDeceleration) * 100).toStringAsFixed(1)}%');
+          debugPrint('🔄 New Speed: ${asteroid.velocity.distance.toStringAsFixed(2)} units/sec');
+          
           // Clamp position to prevent getting stuck in walls
-          final newY =
-              asteroid.position.dy.clamp(margin, screenSize.height - margin);
+          final newY = asteroid.position.dy.clamp(margin, screenSize.height - margin);
           asteroid.position = Offset(asteroid.position.dx, newY);
-
-          if (kDebugMode)
-            debugPrint(
-                '🔧 Position Clamped: (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
+          
+          if (kDebugMode) debugPrint('🔧 Position Clamped: (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
           debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         }
-
+        
         // Log continuous movement every 100 frames for asteroids that didn't bounce
         if (!bounced && asteroid.id == 0 && _gameLoopController.value < 0.05) {
-          if (kDebugMode)
-            debugPrint(
-                '📊 Asteroid #${asteroid.id} (${asteroid.answer}) - Cruising...');
-          debugPrint(
-              '   Pos: (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)}) | '
-              'Vel: (${asteroid.velocity.dx.toStringAsFixed(2)}, ${asteroid.velocity.dy.toStringAsFixed(2)}) | '
-              'Speed: ${asteroid.velocity.distance.toStringAsFixed(2)}');
+          if (kDebugMode) debugPrint('📊 Asteroid #${asteroid.id} (${asteroid.answer}) - Cruising...');
+          debugPrint('   Pos: (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)}) | '
+                'Vel: (${asteroid.velocity.dx.toStringAsFixed(2)}, ${asteroid.velocity.dy.toStringAsFixed(2)}) | '
+                'Speed: ${asteroid.velocity.distance.toStringAsFixed(2)}');
         }
       }
 
@@ -541,43 +446,32 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       explosions.removeWhere((e) {
         final wasComplete = e.isComplete;
         if (wasComplete) {
-          if (kDebugMode)
-            debugPrint('💥 Explosion completed and removed from scene');
+          if (kDebugMode) debugPrint('💥 Explosion completed and removed from scene');
         }
         return wasComplete;
       });
-
+      
       laserBeams.removeWhere((l) {
         final wasComplete = l.isComplete;
         if (wasComplete) {
-          if (kDebugMode)
-            debugPrint('⚡ Laser beam faded and removed from scene');
+          if (kDebugMode) debugPrint('⚡ Laser beam faded and removed from scene');
         }
         return wasComplete;
       });
-
+      
       floatingScores.removeWhere((s) {
         final wasComplete = s.isComplete;
         if (wasComplete) {
-          if (kDebugMode)
-            debugPrint(
-                '✨ Floating score "${s.text}" completed animation and removed');
+          if (kDebugMode) debugPrint('✨ Floating score "${s.text}" completed animation and removed');
         }
         return wasComplete;
       });
-
+      
       // Update all active visual effects
-      for (var e in explosions) {
-        e.update(GameConfig.updateDeltaTime);
-      }
-      for (var l in laserBeams) {
-        l.update(GameConfig.updateDeltaTime);
-      }
-      for (var s in floatingScores) {
-        s.update(GameConfig.updateDeltaTime);
-      }
+      for(var e in explosions) { e.update(GameConfig.updateDeltaTime); }
+      for(var l in laserBeams) { l.update(GameConfig.updateDeltaTime); }
+      for(var s in floatingScores) { s.update(GameConfig.updateDeltaTime); }
     }
-
     if (_cachedRendering) {
       advance();
       _playfieldFrame.value++;
@@ -590,10 +484,9 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     _gameTimer?.cancel();
     if (currentDifficulty == null) return;
     timeLeft = currentDifficulty!.timeLimit;
-
+    
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context))
-        return;
+      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context)) return;
       if (mounted && gameActive && timeLeft > 0) {
         setVisualState(() => timeLeft--);
       } else if (mounted) {
@@ -622,23 +515,21 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       AppHaptics.lightImpact();
       _triggerScreenShake();
 
-      final scoreToAdd =
-          (15 * widget.grade * currentDifficulty!.difficultyMultiplier).round();
+      final scoreToAdd = (15 * widget.grade * currentDifficulty!.difficultyMultiplier).round();
       context.read<GameProvider>().addScore(scoreToAdd);
 
       setState(() {
         _createLaserEffect(asteroid);
-        explosions.add(
-            ParticleExplosion(position: asteroid.position, isCorrect: true));
+        explosions.add(ParticleExplosion(position: asteroid.position, isCorrect: true));
         floatingScores.add(FloatingScore(
             position: asteroid.position,
             text: '+$scoreToAdd',
             color: SpaceTheme.starYellow));
-
+        
         asteroids.remove(asteroid);
         currentTargetIndex++;
       });
-
+      
       if (currentTargetIndex >= targetOrder.length) {
         _endGame(isWin: true);
       }
@@ -646,8 +537,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       AppHaptics.heavyImpact();
       setState(() {
         wrongShots++;
-        explosions.add(
-            ParticleExplosion(position: asteroid.position, isCorrect: false));
+        explosions.add(ParticleExplosion(position: asteroid.position, isCorrect: false));
       });
 
       // Loss condition: more than 1/3 of total asteroids
@@ -665,7 +555,9 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   void _createLaserEffect(Asteroid asteroid) {
     setState(() {
       laserBeams.add(LaserBeam(
-          startPosition: spaceshipPosition, endPosition: asteroid.position));
+        startPosition: spaceshipPosition,
+        endPosition: asteroid.position
+      ));
     });
   }
 
@@ -675,7 +567,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     _gameTimer?.cancel();
     _textHintTimer?.cancel();
     _visualHintTimer?.cancel();
-
+    
     // Calculate final score
     int finalScore = 0;
     if (isWin) {
@@ -683,41 +575,39 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       context.read<GameProvider>().addScore(timeBonus);
       finalScore = timeBonus;
     }
-
+    
     // SINGLE CALL to unified progression system
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome(
-          gameType: 'asteroid_math',
-          difficulty: widget.level,
-          score: finalScore,
-          wasSuccessful: isWin,
-          mathProblems: levelProblems,
-          // Shooting accuracy: every target hit, nothing wasted = flawless.
-          performance: isWin
-              ? Perf.fromRatio(
-                  currentTargetIndex, currentTargetIndex + wrongShots)
-              : Perf.forLoss(
-                  progress: targetOrder.isEmpty
-                      ? 0.0
-                      : currentTargetIndex / targetOrder.length),
-        ));
-
+      gameType: 'asteroid_math',
+      difficulty: widget.level,
+      score: finalScore,
+      wasSuccessful: isWin,
+      mathProblems: levelProblems,
+      // Shooting accuracy: every target hit, nothing wasted = flawless.
+      performance: isWin
+          ? Perf.fromRatio(currentTargetIndex, currentTargetIndex + wrongShots)
+          : Perf.forLoss(
+              progress: targetOrder.isEmpty
+                  ? 0.0
+                  : currentTargetIndex / targetOrder.length),
+    ));
+    
     if (isWin) {
       showDialog(
-        context: context,
+        context: context, 
         barrierDismissible: false,
-        builder: (context) =>
-            _buildGameEndDialog(isWin: true, timeBonus: finalScore),
+        builder: (context) => _buildGameEndDialog(isWin: true, timeBonus: finalScore),
       );
     } else {
       showDialog(
-        context: context,
+        context: context, 
         barrierDismissible: false,
         builder: (context) => _buildGameEndDialog(isWin: false),
       );
     }
   }
-
+  
   Widget _buildGameEndDialog({required bool isWin, int? timeBonus}) {
     return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
@@ -727,7 +617,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            RoundSummary(gameKey: 'asteroid_math'),
+              RoundSummary(gameKey: 'asteroid_math'),
             Icon(
               isWin ? Icons.emoji_events : Icons.error_outline,
               size: 64,
@@ -735,11 +625,9 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
             ),
             const SizedBox(height: 16),
             Text(
-              isWin
-                  ? S.of(context)!.asteroidMathWinTitle
-                  : (timeLeft > 0
-                      ? S.of(context)!.asteroidMathLoseTitle
-                      : S.of(context)!.timesUpSpaceCadet),
+              isWin 
+                  ? S.of(context)!.asteroidMathWinTitle 
+                  : (timeLeft > 0 ? S.of(context)!.asteroidMathLoseTitle : S.of(context)!.timesUpSpaceCadet),
               style: SpaceTheme.headlineStyle,
               textAlign: TextAlign.center,
             ),
@@ -770,9 +658,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
                     Navigator.of(context).pop();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
-                  child: Text(isWin
-                      ? S.of(context)!.nextLevel
-                      : S.of(context)!.backToMenu),
+                  child: Text(isWin ? S.of(context)!.nextLevel : S.of(context)!.backToMenu),
                 ),
               ],
             ),
@@ -790,10 +676,8 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
         builder: (_, child) => Transform.translate(
           offset: _screenShakeController.isAnimating
               ? Offset(
-                  math.sin(_screenShakeController.value * math.pi * 4) *
-                      GameConfig.screenShakeIntensity,
-                  math.cos(_screenShakeController.value * math.pi * 3) *
-                      (GameConfig.screenShakeIntensity * 0.75))
+                  math.sin(_screenShakeController.value * math.pi * 4) * GameConfig.screenShakeIntensity,
+                  math.cos(_screenShakeController.value * math.pi * 3) * (GameConfig.screenShakeIntensity * 0.75))
               : Offset.zero,
           child: child,
         ),
@@ -816,8 +700,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       // Update playable area if changed
-                      final newPlayableArea =
-                          Size(constraints.maxWidth, constraints.maxHeight);
+                      final newPlayableArea = Size(constraints.maxWidth, constraints.maxHeight);
                       if (playableArea != newPlayableArea) {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           if (mounted) {
@@ -831,83 +714,69 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
                           }
                         });
                       }
-
+                      
                       // Update spaceship position based on actual playable area
                       if (playableArea != null) {
-                        spaceshipPosition =
-                            Offset(50, playableArea!.height - 90);
+                        spaceshipPosition = Offset(50, playableArea!.height - 90);
                       }
 
                       Widget playfield() => Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              // Game Objects
-                              CustomPaint(
-                                painter: GameObjectsPainter(
-                                  asteroids: asteroids,
-                                  renderCache:
-                                      _cachedRendering ? _renderCache : null,
-                                  explosions: explosions,
-                                  laserBeams: laserBeams,
-                                  floatingScores: floatingScores,
-                                  showVisualHint: showVisualHint,
-                                  divisionSymbol: context
-                                      .read<GameProvider>()
-                                      .divisionSymbol,
-                                  multiplicationSymbol: context
-                                      .read<GameProvider>()
-                                      .multiplicationSymbol,
-                                  targetAnswer:
-                                      currentTargetIndex < targetOrder.length
-                                          ? targetOrder[currentTargetIndex]
-                                          : null,
-                                ),
-                                size: Size.infinite,
-                              ),
+                        clipBehavior: Clip.none,
+                        children: [
+                          // Game Objects
+                          CustomPaint(
+                            painter: GameObjectsPainter(
+                              asteroids: asteroids,
+                              renderCache: _cachedRendering ? _renderCache : null,
+                              explosions: explosions,
+                              laserBeams: laserBeams,
+                              floatingScores: floatingScores,
+                              showVisualHint: showVisualHint,
+                              divisionSymbol: context.read<GameProvider>().divisionSymbol,
+                              multiplicationSymbol: context.read<GameProvider>().multiplicationSymbol,
+                              targetAnswer: currentTargetIndex < targetOrder.length
+                                  ? targetOrder[currentTargetIndex]
+                                  : null,
+                            ),
+                            size: Size.infinite,
+                          ),
 
-                              // Interaction Layer
-                              ...asteroids.map((asteroid) => Positioned(
-                                    left: asteroid.position.dx -
-                                        asteroid.size / 2,
-                                    top: asteroid.position.dy -
-                                        asteroid.size / 2,
-                                    child: Semantics(
-                                      key: ValueKey(
-                                          'asteroid_hit_${asteroid.id}'),
-                                      label: S
-                                          .of(context)!
-                                          .a11yAsteroid(asteroid.mathProblem),
-                                      button: true,
-                                      child: GestureDetector(
-                                        onTap: () =>
-                                            _onAsteroidTapped(asteroid),
-                                        behavior: HitTestBehavior.opaque,
-                                        child: SizedBox(
-                                          width: math.max(asteroid.size, 48),
-                                          height: math.max(asteroid.size, 48),
-                                        ),
-                                      ),
-                                    ),
-                                  )),
-
-                              // Spaceship
-                              if (playableArea != null)
-                                Positioned(
-                                  left: spaceshipPosition.dx - 40,
-                                  bottom: 10,
-                                  child: AnimatedBuilder(
-                                    animation: _spaceshipController,
-                                    builder: (_, __) => CustomPaint(
-                                      painter: SpaceshipPainter(
-                                        thrusterAnimation:
-                                            _spaceshipController.value,
-                                      ),
-                                      size: const Size(80, 80),
+                          // Interaction Layer
+                          ...asteroids.map((asteroid) => Positioned(
+                                left: asteroid.position.dx - asteroid.size / 2,
+                                top: asteroid.position.dy - asteroid.size / 2,
+                                child: Semantics(
+                                  key: ValueKey('asteroid_hit_${asteroid.id}'),
+                                  label: S.of(context)!.a11yAsteroid(asteroid.mathProblem),
+                                  button: true,
+                                  child: GestureDetector(
+                                    onTap: () => _onAsteroidTapped(asteroid),
+                                    behavior: HitTestBehavior.opaque,
+                                    child: SizedBox(
+                                      width: math.max(asteroid.size, 48),
+                                      height: math.max(asteroid.size, 48),
                                     ),
                                   ),
-                                )
-                            ],
-                          );
+                                ),
+                              )),
+                              
+                          // Spaceship
+                          if (playableArea != null)
+                            Positioned(
+                              left: spaceshipPosition.dx - 40,
+                              bottom: 10,
+                              child: AnimatedBuilder(
+                                animation: _spaceshipController,
+                                builder: (_, __) => CustomPaint(
+                                  painter: SpaceshipPainter(
+                                    thrusterAnimation: _spaceshipController.value,
+                                  ),
+                                  size: const Size(80, 80),
+                                ),
+                              ),
+                            )
+                        ],
+                      );
                       if (!_cachedRendering) return playfield();
                       return RepaintBoundary(
                         child: AnimatedBuilder(
@@ -927,8 +796,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   }
 
   Widget _buildTargetDisplay() {
-    final bool shouldShow =
-        showTextHint && gameActive && currentTargetIndex < targetOrder.length;
+    final bool shouldShow = showTextHint && gameActive && currentTargetIndex < targetOrder.length;
 
     return AnimatedOpacity(
       opacity: shouldShow ? 1.0 : 0.0,
@@ -958,14 +826,12 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.gps_fixed,
-                    color: SpaceTheme.rocketRed, size: 22),
+                const Icon(Icons.gps_fixed, color: SpaceTheme.rocketRed, size: 22),
                 const SizedBox(width: 10),
                 Text(S.of(context)!.nextTarget, style: SpaceTheme.bodyStyle),
                 Text(
                   shouldShow ? targetOrder[currentTargetIndex].toString() : '',
-                  style: SpaceTheme.titleStyle
-                      .copyWith(color: SpaceTheme.starYellow),
+                  style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow),
                 ),
               ],
             ),
@@ -1001,8 +867,7 @@ class SpaceshipPainter extends CustomPainter {
     paint.color = Colors.blue.shade400;
     canvas.drawCircle(Offset(center.dx, center.dy - 5), 8, paint);
 
-    final thrusterIntensity =
-        0.4 + 0.6 * math.sin(thrusterAnimation * math.pi * 6).abs();
+    final thrusterIntensity = 0.4 + 0.6 * math.sin(thrusterAnimation * math.pi * 6).abs();
     paint.color = Colors.orange.withValues(alpha: 0.6 * thrusterIntensity);
     final thrusterSize = 10.0 + 6.0 * thrusterIntensity;
     canvas.drawOval(
@@ -1028,7 +893,7 @@ class SpaceshipPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant SpaceshipPainter oldDelegate) =>
+  bool shouldRepaint(covariant SpaceshipPainter oldDelegate) => 
       thrusterAnimation != oldDelegate.thrusterAnimation;
 }
 
@@ -1061,20 +926,16 @@ class GameObjectsPainter extends CustomPainter {
     for (final laser in laserBeams) {
       laser.draw(canvas);
     }
-
+    
     for (final asteroid in asteroids) {
       final bool isTarget = targetAnswer == asteroid.answer;
-      asteroid.draw(canvas,
-          isHintActive: showVisualHint && isTarget,
-          divisionSymbol: divisionSymbol,
-          multiplicationSymbol: multiplicationSymbol,
-          renderCache: renderCache);
+      asteroid.draw(canvas, isHintActive: showVisualHint && isTarget, divisionSymbol: divisionSymbol, multiplicationSymbol: multiplicationSymbol, renderCache: renderCache);
     }
-
+    
     for (final explosion in explosions) {
       explosion.draw(canvas);
     }
-
+    
     for (final score in floatingScores) {
       score.draw(canvas);
     }
@@ -1093,29 +954,27 @@ enum AsteroidType { rocky, icy, metallic, crystalline, volcanic }
 class Asteroid {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'problem': problem.toJson(),
-        'position': [position.dx, position.dy],
-        'velocity': [velocity.dx, velocity.dy],
-        'size': size,
-        'rotationSpeed': rotationSpeed,
-        'rotation': rotation,
-        'type': type.name,
-        'hue': hue
-      };
+    'id': id,
+    'problem': problem.toJson(),
+    'position': [position.dx, position.dy],
+    'velocity': [velocity.dx, velocity.dy],
+    'size': size,
+    'rotationSpeed': rotationSpeed,
+    'rotation': rotation,
+    'type': type.name,
+    'hue': hue
+  };
   factory Asteroid.fromJson(Map<String, dynamic> json) => Asteroid(
-      id: json['id'] as int,
-      problem: MathProblem.fromJson(
-          Map<String, dynamic>.from(json['problem'] as Map)),
-      position: Offset((json['position'][0] as num).toDouble(),
-          (json['position'][1] as num).toDouble()),
-      velocity: Offset((json['velocity'][0] as num).toDouble(),
-          (json['velocity'][1] as num).toDouble()),
-      size: (json['size'] as num).toDouble(),
-      rotationSpeed: (json['rotationSpeed'] as num).toDouble(),
-      rotation: (json['rotation'] as num).toDouble(),
-      type: AsteroidType.values.byName(json['type'] as String),
-      hue: (json['hue'] as num).toDouble());
+    id: json['id'] as int,
+    problem: MathProblem.fromJson(Map<String, dynamic>.from(json['problem'] as Map)),
+    position: Offset((json['position'][0] as num).toDouble(), (json['position'][1] as num).toDouble()),
+    velocity: Offset((json['velocity'][0] as num).toDouble(), (json['velocity'][1] as num).toDouble()),
+    size: (json['size'] as num).toDouble(),
+    rotationSpeed: (json['rotationSpeed'] as num).toDouble(),
+    rotation: (json['rotation'] as num).toDouble(),
+    type: AsteroidType.values.byName(json['type'] as String),
+    hue: (json['hue'] as num).toDouble()
+  );
 
   final int id;
   final MathProblem problem;
@@ -1142,43 +1001,34 @@ class Asteroid {
   String get mathProblem => problem.expression;
   int get answer => problem.answer;
 
-  void draw(Canvas canvas,
-      {required bool isHintActive,
-      required String divisionSymbol,
-      required String multiplicationSymbol,
-      AsteroidRenderCache? renderCache}) {
+  void draw(Canvas canvas, {required bool isHintActive, required String divisionSymbol, required String multiplicationSymbol, AsteroidRenderCache? renderCache}) {
     canvas.save();
     canvas.translate(position.dx, position.dy);
     canvas.rotate(rotation);
 
-    final rect =
-        Rect.fromCenter(center: Offset.zero, width: size, height: size);
-
+    final rect = Rect.fromCenter(center: Offset.zero, width: size, height: size);
+    
     final Paint asteroidPaint = Paint();
-
+    
     switch (type) {
       case AsteroidType.rocky:
         asteroidPaint.color = HSVColor.fromAHSV(1.0, hue, 0.3, 0.5).toColor();
         _drawRockyAsteroid(canvas, rect, asteroidPaint);
         break;
       case AsteroidType.icy:
-        asteroidPaint.color =
-            HSVColor.fromAHSV(1.0, 200 + hue * 0.1, 0.6, 0.8).toColor();
+        asteroidPaint.color = HSVColor.fromAHSV(1.0, 200 + hue * 0.1, 0.6, 0.8).toColor();
         _drawIcyAsteroid(canvas, rect, asteroidPaint);
         break;
       case AsteroidType.metallic:
-        asteroidPaint.color =
-            HSVColor.fromAHSV(1.0, 30 + hue * 0.1, 0.4, 0.7).toColor();
+        asteroidPaint.color = HSVColor.fromAHSV(1.0, 30 + hue * 0.1, 0.4, 0.7).toColor();
         _drawMetallicAsteroid(canvas, rect, asteroidPaint);
         break;
       case AsteroidType.crystalline:
-        asteroidPaint.color =
-            HSVColor.fromAHSV(1.0, 280 + hue * 0.1, 0.7, 0.9).toColor();
+        asteroidPaint.color = HSVColor.fromAHSV(1.0, 280 + hue * 0.1, 0.7, 0.9).toColor();
         _drawCrystallineAsteroid(canvas, rect, asteroidPaint, renderCache);
         break;
       case AsteroidType.volcanic:
-        asteroidPaint.color =
-            HSVColor.fromAHSV(1.0, 10 + hue * 0.1, 0.8, 0.6).toColor();
+        asteroidPaint.color = HSVColor.fromAHSV(1.0, 10 + hue * 0.1, 0.8, 0.6).toColor();
         _drawVolcanicAsteroid(canvas, rect, asteroidPaint);
         break;
     }
@@ -1186,12 +1036,12 @@ class Asteroid {
     if (isHintActive) {
       final time = DateTime.now().millisecondsSinceEpoch / 1000.0;
       final pulseIntensity = (0.4 + 0.6 * math.sin(time * 2.5)).clamp(0.0, 1.0);
-
+      
       final glowPaint = Paint()
         ..color = SpaceTheme.starYellow.withValues(alpha: 0.5 * pulseIntensity)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, 12 * pulseIntensity);
       canvas.drawOval(rect.inflate(6), glowPaint);
-
+      
       for (int i = 0; i < 6; i++) {
         final angle = (time * 1.5 + i * 1.047) * 2;
         final radius = size * 0.6;
@@ -1200,39 +1050,34 @@ class Asteroid {
           math.sin(angle) * radius,
         );
         final sparklePaint = Paint()
-          ..color =
-              SpaceTheme.starYellow.withValues(alpha: 0.7 * pulseIntensity);
+          ..color = SpaceTheme.starYellow.withValues(alpha: 0.7 * pulseIntensity);
         canvas.drawCircle(sparklePos, 2.5 * pulseIntensity, sparklePaint);
       }
     }
 
     canvas.restore();
-
+    
     final displayProblem = mathProblem
         .replaceAll('÷', divisionSymbol)
         .replaceAll('×', multiplicationSymbol);
     final cachedLabel = renderCache?.label(this, displayProblem);
     final textPainter = cachedLabel ?? _asteroidLabel(displayProblem, size);
-    textPainter.paint(canvas,
-        position - Offset(textPainter.width / 2, textPainter.height / 2));
+    textPainter.paint(canvas, position - Offset(textPainter.width / 2, textPainter.height / 2));
     if (cachedLabel == null) textPainter.dispose();
   }
 
   void _drawRockyAsteroid(Canvas canvas, Rect rect, Paint paint) {
     canvas.drawOval(rect, paint);
-
+    
     final craterPaint = Paint()..color = Colors.black.withValues(alpha: 0.4);
-    canvas.drawCircle(
-        Offset(-size * 0.2, size * 0.15), size * 0.12, craterPaint);
-    canvas.drawCircle(
-        Offset(size * 0.25, -size * 0.2), size * 0.08, craterPaint);
-    canvas.drawCircle(
-        Offset(-size * 0.1, -size * 0.25), size * 0.06, craterPaint);
+    canvas.drawCircle(Offset(-size * 0.2, size * 0.15), size * 0.12, craterPaint);
+    canvas.drawCircle(Offset(size * 0.25, -size * 0.2), size * 0.08, craterPaint);
+    canvas.drawCircle(Offset(-size * 0.1, -size * 0.25), size * 0.06, craterPaint);
   }
 
   void _drawIcyAsteroid(Canvas canvas, Rect rect, Paint paint) {
     canvas.drawOval(rect, paint);
-
+    
     final crystalPaint = Paint()..color = Colors.white.withValues(alpha: 0.6);
     for (int i = 0; i < 5; i++) {
       final angle = i * 1.256;
@@ -1244,7 +1089,7 @@ class Asteroid {
 
   void _drawMetallicAsteroid(Canvas canvas, Rect rect, Paint paint) {
     canvas.drawOval(rect, paint);
-
+    
     final shinePaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.5)
       ..strokeWidth = 2;
@@ -1278,10 +1123,9 @@ class Asteroid {
     return path;
   }
 
-  void _drawCrystallineAsteroid(
-      Canvas canvas, Rect rect, Paint paint, AsteroidRenderCache? renderCache) {
-    final path =
-        renderCache?.crystalPath(this, _crystallinePath) ?? _crystallinePath();
+  void _drawCrystallineAsteroid(Canvas canvas, Rect rect, Paint paint,
+      AsteroidRenderCache? renderCache) {
+    final path = renderCache?.crystalPath(this, _crystallinePath) ?? _crystallinePath();
     canvas.drawPath(path, paint);
     final glowPaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.3)
@@ -1291,11 +1135,11 @@ class Asteroid {
 
   void _drawVolcanicAsteroid(Canvas canvas, Rect rect, Paint paint) {
     canvas.drawOval(rect, paint);
-
+    
     final lavaPaint = Paint()..color = Colors.orange.withValues(alpha: 0.7);
     canvas.drawCircle(Offset(-size * 0.15, size * 0.1), size * 0.08, lavaPaint);
     canvas.drawCircle(Offset(size * 0.2, -size * 0.15), size * 0.06, lavaPaint);
-
+    
     final glowPaint = Paint()
       ..color = Colors.red.withValues(alpha: 0.2)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
@@ -1305,16 +1149,12 @@ class Asteroid {
 
 TextPainter _asteroidLabel(String text, double size) {
   final painter = TextPainter(
-    text: TextSpan(
-        text: text,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: size * 0.2,
-          fontWeight: FontWeight.bold,
-          shadows: const [
-            Shadow(blurRadius: 3, color: Colors.black, offset: Offset(1, 1))
-          ],
-        )),
+    text: TextSpan(text: text, style: TextStyle(
+      color: Colors.white,
+      fontSize: size * 0.2,
+      fontWeight: FontWeight.bold,
+      shadows: const [Shadow(blurRadius: 3, color: Colors.black, offset: Offset(1, 1))],
+    )),
     textAlign: TextAlign.center,
     textDirection: TextDirection.ltr,
   );
@@ -1338,9 +1178,7 @@ class AsteroidRenderCache {
 
   TextPainter? label(Asteroid asteroid, String text) {
     final entry = _entries.putIfAbsent(asteroid, _AsteroidRenderEntry.new);
-    if (entry.painter == null ||
-        entry.labelSize != asteroid.size ||
-        entry.labelText != text) {
+    if (entry.painter == null || entry.labelSize != asteroid.size || entry.labelText != text) {
       entry.painter?.dispose();
       entry.painter = null;
       try {
@@ -1405,23 +1243,17 @@ class ParticleExplosion {
 
   ParticleExplosion({required this.position, required this.isCorrect}) {
     final random = math.Random();
-    final count = isCorrect
-        ? GameConfig.explosionParticleCount
-        : GameConfig.wrongAnswerParticleCount;
-    final baseColors = isCorrect
+    final count = isCorrect ? GameConfig.explosionParticleCount : GameConfig.wrongAnswerParticleCount;
+    final baseColors = isCorrect 
         ? [SpaceTheme.starYellow, Colors.orange, Colors.white]
         : [SpaceTheme.rocketRed, Colors.orange, Colors.yellow];
 
     for (int i = 0; i < count; i++) {
-      final speed = random.nextDouble() *
-              (isCorrect
-                  ? GameConfig.maxParticleSpeed
-                  : GameConfig.maxParticleSpeed * 0.6) +
-          20;
+      final speed = random.nextDouble() * (isCorrect ? GameConfig.maxParticleSpeed : GameConfig.maxParticleSpeed * 0.6) + 20;
       final angle = random.nextDouble() * 2 * math.pi;
       final velocity = Offset(math.cos(angle) * speed, math.sin(angle) * speed);
       final color = baseColors[random.nextInt(baseColors.length)];
-
+      
       particles.add(Particle(
         color: color.withValues(alpha: 0.6 + random.nextDouble() * 0.4),
         velocity: velocity,
@@ -1432,16 +1264,14 @@ class ParticleExplosion {
   }
 
   void update(double dt) => _progress += dt / _duration;
-
+  
   void draw(Canvas canvas) {
     final paint = Paint();
     for (final p in particles) {
-      final currentPos = position +
-          p.velocity * _progress -
-          Offset(0, 40 * _progress * _progress);
+      final currentPos = position + p.velocity * _progress - Offset(0, 40 * _progress * _progress);
       final opacity = ((1.0 - _progress) * (1.0 - _progress)).clamp(0.0, 1.0);
       paint.color = p.color.withValues(alpha: opacity);
-
+      
       switch (p.type) {
         case ParticleType.circle:
           canvas.drawCircle(currentPos, p.size * (1.1 - _progress), paint);
@@ -1462,7 +1292,7 @@ class ParticleExplosion {
       final angle = i * 2 * math.pi / 5 - math.pi / 2;
       final outerRadius = size;
       final innerRadius = size * 0.4;
-
+      
       if (i == 0) {
         path.moveTo(
           center.dx + math.cos(angle) * outerRadius,
@@ -1474,7 +1304,7 @@ class ParticleExplosion {
           center.dy + math.sin(angle) * outerRadius,
         );
       }
-
+      
       final innerAngle = angle + math.pi / 5;
       path.lineTo(
         center.dx + math.cos(innerAngle) * innerRadius,
@@ -1503,10 +1333,10 @@ class Particle {
   Offset velocity;
   double size;
   ParticleType type;
-
+  
   Particle({
-    required this.color,
-    required this.velocity,
+    required this.color, 
+    required this.velocity, 
     required this.size,
     required this.type,
   });
@@ -1521,23 +1351,23 @@ class LaserBeam {
   bool get isComplete => _progress >= 1.0;
 
   LaserBeam({required this.startPosition, required this.endPosition});
-
+  
   void update(double dt) => _progress += dt / _duration;
 
   void draw(Canvas canvas) {
     final opacity = (math.sin(_progress * math.pi).abs()).clamp(0.0, 1.0);
-
+    
     final glowPaint = Paint()
       ..strokeWidth = 16.0
       ..color = SpaceTheme.alienGreen.withValues(alpha: 0.25 * opacity)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10)
       ..strokeCap = StrokeCap.round;
-
+    
     final middlePaint = Paint()
       ..strokeWidth = 6.0
       ..color = SpaceTheme.alienGreen.withValues(alpha: 0.7 * opacity)
       ..strokeCap = StrokeCap.round;
-
+    
     final corePaint = Paint()
       ..strokeWidth = 2.5
       ..color = Colors.white.withValues(alpha: opacity)
@@ -1555,19 +1385,18 @@ class FloatingScore {
   final Color color;
   double _progress = 0.0;
   final double _duration = GameConfig.floatingScoreDuration;
-
+  
   bool get isComplete => _progress >= 1.0;
-
-  FloatingScore(
-      {required this.position, required this.text, required this.color});
-
+  
+  FloatingScore({required this.position, required this.text, required this.color});
+  
   void update(double dt) => _progress += dt / _duration;
 
   void draw(Canvas canvas) {
     final currentPosition = position - Offset(0, 50 * _progress);
     final scale = 1.0 + 0.3 * math.sin(_progress * math.pi).abs();
     final opacity = (math.sin(_progress * math.pi).abs()).clamp(0.0, 1.0);
-
+    
     final textStyle = TextStyle(
       color: color.withValues(alpha: opacity),
       fontSize: 26 * scale,
@@ -1580,12 +1409,10 @@ class FloatingScore {
         ),
       ],
     );
-
+    
     final textSpan = TextSpan(text: text, style: textStyle);
-    final textPainter =
-        TextPainter(text: textSpan, textDirection: TextDirection.ltr);
+    final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr);
     textPainter.layout();
-    textPainter.paint(
-        canvas, currentPosition - Offset(textPainter.width / 2, 0));
+    textPainter.paint(canvas, currentPosition - Offset(textPainter.width / 2, 0));
   }
 }

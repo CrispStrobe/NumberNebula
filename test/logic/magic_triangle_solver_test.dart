@@ -19,10 +19,8 @@ void main() {
     for (final path in [AlgorithmPath.legacy, AlgorithmPath.auto]) {
       for (final grade in [1, 3, 6]) {
         for (int sample = 0; sample < 5; sample++) {
-          final puzzle = withAlgorithmPath(
-              path,
-              () =>
-                  MagicTrianglePuzzle.generate({'grade': grade, 'level': 10}));
+          final puzzle = withAlgorithmPath(path,
+              () => MagicTrianglePuzzle.generate({'grade': grade, 'level': 10}));
           if (path == AlgorithmPath.auto) {
             expect(puzzle.circlesPerSide,
                 MagicTriangleGenerationConfig(grade, 10).circlesPerSide);

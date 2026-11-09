@@ -14,7 +14,7 @@ import '../models/game_outcome.dart';
 import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
-import '../../../core/services/sri_service.dart';
+import '../../../core/services/sri_service.dart'; 
 import 'package:flutter/foundation.dart';
 
 // A few top-level constants for easier tweaking
@@ -37,8 +37,7 @@ class PathFinderGame extends StatefulWidget {
   State<PathFinderGame> createState() => _PathFinderGameState();
 }
 
-class _PathFinderGameState extends State<PathFinderGame>
-    with TickerProviderStateMixin, PuzzleSessionMixin<PathFinderGame> {
+class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStateMixin, PuzzleSessionMixin<PathFinderGame> {
   bool _sessionReady = false;
 
   @override
@@ -46,50 +45,23 @@ class _PathFinderGameState extends State<PathFinderGame>
     updateDecorativeMotion([_backgroundController], reduced, reverse: false);
   }
 
-  @override
-  String get sessionGameKey => 'pathfinder';
-  @override
-  int get sessionGrade => widget.grade;
-  @override
-  int get sessionLevel => widget.level;
-  @override
-  Map<String, dynamic>? capturePuzzleSession() {
+  @override String get sessionGameKey => 'pathfinder';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
     if (!_sessionReady) return null;
-    return {
-      'challengeResolved': _challengeResolved,
-      'lives': lives,
-      'problemsSolved': problemsSolved,
-      'targetProblems': targetProblems,
-      'gameSpeed': gameSpeed,
-      'totalScore': totalScore,
-      'currentProblem': (currentProblem?.toJson()),
-      'availablePaths': availablePaths.map((v0) => v0.toJson()).toList(),
-      'shipPosition': [ship.position.dx, ship.position.dy],
-      'shipAngle': ship.angle
-    };
+    return {'challengeResolved': _challengeResolved, 'lives': lives, 'problemsSolved': problemsSolved, 'targetProblems': targetProblems, 'gameSpeed': gameSpeed, 'totalScore': totalScore, 'currentProblem': (currentProblem?.toJson()), 'availablePaths': availablePaths.map((v0) => v0.toJson()).toList(), 'shipPosition': [ship.position.dx, ship.position.dy], 'shipAngle': ship.angle};
   }
-
-  @override
-  void applyPuzzleSession(Map<String, dynamic> state) {
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
     lives = (state["lives"] as num).toDouble();
-    problemsSolved = state["problemsSolved"] as int;
-    targetProblems = state["targetProblems"] as int;
-    gameSpeed = (state["gameSpeed"] as num).toDouble();
-    totalScore = state["totalScore"] as int;
-    currentProblem = (state["currentProblem"] == null
-        ? null
-        : MathProblem.fromJson(
-            Map<String, dynamic>.from(state["currentProblem"] as Map)));
-    availablePaths = (state["availablePaths"] as List)
-        .map((v0) => SpacePath.fromJson(Map<String, dynamic>.from(v0 as Map)))
-        .toList();
-    ship.position = Offset((state['shipPosition'][0] as num).toDouble(),
-        (state['shipPosition'][1] as num).toDouble());
-    ship.angle = (state['shipAngle'] as num).toDouble();
-    gameActive = true;
-    choosingPath = true;
-    followingPath = false;
-    _initializeGamePositions();
+problemsSolved = state["problemsSolved"] as int;
+targetProblems = state["targetProblems"] as int;
+gameSpeed = (state["gameSpeed"] as num).toDouble();
+totalScore = state["totalScore"] as int;
+currentProblem = (state["currentProblem"] == null ? null : MathProblem.fromJson(Map<String, dynamic>.from(state["currentProblem"] as Map)));
+availablePaths = (state["availablePaths"] as List).map((v0) => SpacePath.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+    ship.position = Offset((state['shipPosition'][0] as num).toDouble(), (state['shipPosition'][1] as num).toDouble()); ship.angle = (state['shipAngle'] as num).toDouble();
+    gameActive = true; choosingPath = true; followingPath = false; _initializeGamePositions();
     _challengeResolved = state['challengeResolved'] as bool? ?? false;
     if (_challengeResolved) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -98,14 +70,8 @@ class _PathFinderGameState extends State<PathFinderGame>
       });
     }
   }
-
   Future<void> _restoreOrGenerate() async {
-    if (!await restorePuzzleSession() && mounted) {
-      await Future<void>.sync(() {
-        _initializeGamePositions();
-        _startNewChallenge();
-      });
-    }
+    if (!await restorePuzzleSession() && mounted) { await Future<void>.sync(() { _initializeGamePositions(); _startNewChallenge(); }); }
     if (mounted) setState(() => _sessionReady = true);
   }
 
@@ -116,14 +82,10 @@ class _PathFinderGameState extends State<PathFinderGame>
       if (followingPath) _shipController.stop();
     } else {
       if (_pathStartController != null && selectedPath != null) {
-        _pathStartController!
-            .forward()
-            .whenComplete(() => _finishPathStart(selectedPath!));
+        _pathStartController!.forward().whenComplete(() => _finishPathStart(selectedPath!));
       }
       if (followingPath && selectedPath != null) {
-        _shipController
-            .forward()
-            .whenComplete(() => _finishPath(selectedPath!));
+        _shipController.forward().whenComplete(() => _finishPath(selectedPath!));
       }
     }
   }
@@ -176,40 +138,32 @@ class _PathFinderGameState extends State<PathFinderGame>
     _setupAnimationControllers();
     _initializeGameValues();
   }
-
+  
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (ship.position == Offset.zero) {
       ship.position = const Offset(80, 80);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _restoreOrGenerate();
-      });
+      WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
     }
   }
 
   void _setupAnimationControllers() {
-    _gameController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 1))
-          ..addListener(_updateGame)
-          ..repeat();
+    _gameController = AnimationController(vsync: this, duration: const Duration(seconds: 1))
+      ..addListener(_updateGame)
+      ..repeat();
 
-    _backgroundController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 45))
-          ..repeat();
+    _backgroundController = AnimationController(vsync: this, duration: const Duration(seconds: 45))
+      ..repeat();
 
-    _screenShakeController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 300))
+    _screenShakeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 300))
       ..addListener(_updateScreenShake);
+    
+    _feedbackController = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
 
-    _feedbackController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 500));
-
-    _shipController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 800));
-
-    _shipCurveAnimation =
-        CurvedAnimation(parent: _shipController, curve: Curves.easeInOut);
+    _shipController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
+    
+    _shipCurveAnimation = CurvedAnimation(parent: _shipController, curve: Curves.easeInOut);
     _shipCurveAnimation.addListener(_updateShipOnPath);
   }
 
@@ -233,11 +187,10 @@ class _PathFinderGameState extends State<PathFinderGame>
       stars.add(BackgroundStar.create(size, random, speedMultiplier: 0.5));
     }
     for (int i = 0; i < kNumDust; i++) {
-      dust.add(BackgroundStar.create(size, random,
-          speedMultiplier: 1.5, isDust: true));
+      dust.add(BackgroundStar.create(size, random, speedMultiplier: 1.5, isDust: true));
     }
   }
-
+  
   void _startNewChallenge() {
     if (!mounted || !gameActive) return;
 
@@ -247,8 +200,7 @@ class _PathFinderGameState extends State<PathFinderGame>
     setState(() {
       _challengeResolved = false;
       choosingPath = true;
-      currentProblem =
-          MathProblem.generateProblem(gameProvider, widget.level, sriService);
+      currentProblem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
       availablePaths.clear();
       pathFollowProgress = 0.0;
       selectedPath = null;
@@ -264,8 +216,8 @@ class _PathFinderGameState extends State<PathFinderGame>
     final screenSize = MediaQuery.of(context).size;
     final numPaths = math.min(5, 2 + (widget.grade ~/ 2));
     final random = math.Random();
-
-    final shuffledAnswers = generatePathAnswers(currentProblem!, numPaths);
+    
+    final shuffledAnswers=generatePathAnswers(currentProblem!,numPaths);
     final newPaths = <SpacePath>[];
     for (int i = 0; i < numPaths; i++) {
       final pathY = (screenSize.height / (numPaths + 1)) * (i + 1);
@@ -290,19 +242,15 @@ class _PathFinderGameState extends State<PathFinderGame>
       availablePaths = newPaths;
       choosingPath = true;
     });
-
-    if (kDebugMode)
-      debugPrint(
-          "[TAP DEBUG] Generated ${newPaths.length} paths, choosingPath: $choosingPath");
+    
+    if (kDebugMode) debugPrint("[TAP DEBUG] Generated ${newPaths.length} paths, choosingPath: $choosingPath");
   }
 
   SpacePathType _selectRandomPathType() {
-    return SpacePathType
-        .values[math.Random().nextInt(SpacePathType.values.length)];
+    return SpacePathType.values[math.Random().nextInt(SpacePathType.values.length)];
   }
 
-  void _showStatus(String message,
-      {Duration duration = const Duration(seconds: 1)}) {
+  void _showStatus(String message, {Duration duration = const Duration(seconds: 1)}) {
     setState(() => statusMessage = message);
     _statusTimer?.cancel();
     _statusTimer = Timer(duration, () {
@@ -313,13 +261,11 @@ class _PathFinderGameState extends State<PathFinderGame>
   // NEW: Enhanced tap detection with screen-wide gesture detection
   void _handleScreenTap(Offset tapPosition) {
     if (kDebugMode) debugPrint("[TAP DEBUG] Screen tapped at: $tapPosition");
-    debugPrint(
-        "[TAP DEBUG] choosingPath: $choosingPath, followingPath: $followingPath");
+    debugPrint("[TAP DEBUG] choosingPath: $choosingPath, followingPath: $followingPath");
     debugPrint("[TAP DEBUG] availablePaths.length: ${availablePaths.length}");
 
     if (!choosingPath || followingPath || availablePaths.isEmpty) {
-      if (kDebugMode)
-        debugPrint("[TAP DEBUG] -> Tap IGNORED due to game state");
+      if (kDebugMode) debugPrint("[TAP DEBUG] -> Tap IGNORED due to game state");
       return;
     }
 
@@ -339,9 +285,7 @@ class _PathFinderGameState extends State<PathFinderGame>
         if (d < pathMinDistance) pathMinDistance = d;
       }
 
-      if (kDebugMode)
-        debugPrint(
-            "[TAP DEBUG] Path ${path.answer}: closest point distance: ${pathMinDistance.toStringAsFixed(1)}");
+      if (kDebugMode) debugPrint("[TAP DEBUG] Path ${path.answer}: closest point distance: ${pathMinDistance.toStringAsFixed(1)}");
 
       if (pathMinDistance < hitRadius && pathMinDistance < closestDistance) {
         closestDistance = pathMinDistance;
@@ -350,20 +294,15 @@ class _PathFinderGameState extends State<PathFinderGame>
     }
 
     if (tappedPath != null) {
-      if (kDebugMode)
-        debugPrint(
-            "[TAP DEBUG] -> Tap ACCEPTED on path with answer: ${tappedPath.answer}");
+      if (kDebugMode) debugPrint("[TAP DEBUG] -> Tap ACCEPTED on path with answer: ${tappedPath.answer}");
       _selectPath(tappedPath);
     } else {
-      debugPrint(
-          "[TAP DEBUG] -> Tap MISSED (closest: ${closestDistance.toStringAsFixed(1)})");
+      debugPrint("[TAP DEBUG] -> Tap MISSED (closest: ${closestDistance.toStringAsFixed(1)})");
     }
   }
 
   void _selectPath(SpacePath path) {
-    if (kDebugMode)
-      debugPrint(
-          "State check: choosingPath is '$choosingPath', followingPath is '$followingPath'.");
+    if (kDebugMode) debugPrint("State check: choosingPath is '$choosingPath', followingPath is '$followingPath'.");
 
     if (!choosingPath || followingPath) {
       debugPrint("-> Path selection IGNORED due to game state.");
@@ -377,21 +316,22 @@ class _PathFinderGameState extends State<PathFinderGame>
       selectedPath = path;
       choosingPath = false;
     });
-
+    
     _animateShipToPathStart(path);
   }
-
+  
   void _animateShipToPathStart(SpacePath path) {
     final startPos = ship.position;
     final endPos = path.getPointAt(0);
-
+    
     _pathStartController?.dispose();
     final moveController = _pathStartController = AnimationController(
       duration: const Duration(milliseconds: 250),
       vsync: this,
     );
     final moveAnimation = Tween<Offset>(begin: startPos, end: endPos).animate(
-        CurvedAnimation(parent: moveController, curve: Curves.easeOut));
+      CurvedAnimation(parent: moveController, curve: Curves.easeOut)
+    );
 
     moveAnimation.addListener(() {
       if (!mounted || GamePauseScope.isPaused(context)) return;
@@ -411,22 +351,23 @@ class _PathFinderGameState extends State<PathFinderGame>
     setState(() => followingPath = true);
     _animateShipAlongPath(path);
   }
+  
 
   void _updateShipOnPath() {
     if (!_sessionReady || GamePauseScope.isPaused(context)) return;
-    if (followingPath && selectedPath != null) {
-      setVisualState(() {
-        pathFollowProgress = _shipCurveAnimation.value;
-        final currentPos = selectedPath!.getPointAt(pathFollowProgress);
-        final nextProgress = math.min(1.0, pathFollowProgress + 0.01);
-        final nextPos = selectedPath!.getPointAt(nextProgress);
-
-        ship.position = currentPos;
-        if ((nextPos - currentPos).distance > 0.1) {
-          ship.angle = (nextPos - currentPos).direction;
-        }
-      });
-    }
+      if (followingPath && selectedPath != null) {
+        setVisualState(() {
+          pathFollowProgress = _shipCurveAnimation.value;
+          final currentPos = selectedPath!.getPointAt(pathFollowProgress);
+          final nextProgress = math.min(1.0, pathFollowProgress + 0.01);
+          final nextPos = selectedPath!.getPointAt(nextProgress);
+          
+          ship.position = currentPos;
+          if ((nextPos - currentPos).distance > 0.1) {
+            ship.angle = (nextPos - currentPos).direction;
+          }
+        });
+      }
   }
 
   void _animateShipAlongPath(SpacePath path) {
@@ -444,9 +385,7 @@ class _PathFinderGameState extends State<PathFinderGame>
   }
 
   void _triggerFeedback(bool isSuccess) {
-    feedbackColor = isSuccess
-        ? Colors.green.withValues(alpha: 0.5)
-        : Colors.red.withValues(alpha: 0.6);
+    feedbackColor = isSuccess ? Colors.green.withValues(alpha: 0.5) : Colors.red.withValues(alpha: 0.6);
     _feedbackController.forward(from: 0.0).then((_) {
       if (mounted) _feedbackController.reverse();
     });
@@ -466,15 +405,14 @@ class _PathFinderGameState extends State<PathFinderGame>
     } catch (e) {
       if (kDebugMode) debugPrint('GameProvider not available: $e');
     }
-
+    
     _addSuccessEffect();
     _triggerFeedback(true);
     AppHaptics.mediumImpact();
-
+    
     _showStatus("${S.of(context)!.correct} +$scoreGained");
-
-    final delay =
-        Duration(milliseconds: problemsSolved >= targetProblems ? 1000 : 400);
+    
+    final delay = Duration(milliseconds: problemsSolved >= targetProblems ? 1000 : 400);
     _advanceAfterFeedback(delay);
   }
 
@@ -489,11 +427,10 @@ class _PathFinderGameState extends State<PathFinderGame>
     _triggerFeedback(false);
     _screenShakeController.forward(from: 0.0);
     AppHaptics.vibrate();
-
+    
     final failureMessage = _getLocalizedFailureMessage(path.pathType);
-    _showStatus(
-        "$failureMessage (-${path.pathType.damage.toStringAsFixed(2)} HP)");
-
+    _showStatus("$failureMessage (-${path.pathType.damage.toStringAsFixed(2)} HP)");
+    
     final delay = Duration(milliseconds: lives <= 0 ? 1000 : 400);
     _advanceAfterFeedback(delay);
   }
@@ -519,28 +456,22 @@ class _PathFinderGameState extends State<PathFinderGame>
   String _getLocalizedFailureMessage(SpacePathType pathType) {
     final l10n = S.of(context)!;
     switch (pathType) {
-      case SpacePathType.wormhole:
-        return l10n.pathFinderFailureWormhole;
-      case SpacePathType.nebula:
-        return l10n.pathFinderFailureNebula;
-      case SpacePathType.asteroidBelt:
-        return l10n.pathFinderFailureAsteroidBelt;
-      case SpacePathType.clearSpace:
-        return l10n.pathFinderFailureClearSpace;
-      case SpacePathType.ionStorm:
-        return l10n.pathFinderFailureIonStorm;
-      case SpacePathType.quantumTunnel:
-        return l10n.pathFinderFailureQuantumTunnel;
+      case SpacePathType.wormhole: return l10n.pathFinderFailureWormhole;
+      case SpacePathType.nebula: return l10n.pathFinderFailureNebula;
+      case SpacePathType.asteroidBelt: return l10n.pathFinderFailureAsteroidBelt;
+      case SpacePathType.clearSpace: return l10n.pathFinderFailureClearSpace;
+      case SpacePathType.ionStorm: return l10n.pathFinderFailureIonStorm;
+      case SpacePathType.quantumTunnel: return l10n.pathFinderFailureQuantumTunnel;
     }
   }
 
   void _updateGame() {
     if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     if (!mounted) return;
-
+    
     const dt = 0.016;
     final screenSize = MediaQuery.of(context).size;
-
+    
     for (var star in stars) {
       star.update(dt, screenSize, gameSpeed * 0.1);
     }
@@ -555,15 +486,17 @@ class _PathFinderGameState extends State<PathFinderGame>
       }
     }
   }
-
+  
   void _updateScreenShake() {
     if (!_sessionReady || GamePauseScope.isPaused(context)) return;
-    final progress = _screenShakeController.value;
-    final intensity = 15 * math.sin(progress * math.pi);
-    setVisualState(() {
-      screenShakeOffset = Offset((math.Random().nextDouble() - 0.5) * intensity,
-          (math.Random().nextDouble() - 0.5) * intensity);
-    });
+      final progress = _screenShakeController.value;
+      final intensity = 15 * math.sin(progress * math.pi);
+      setVisualState(() {
+        screenShakeOffset = Offset(
+          (math.Random().nextDouble() - 0.5) * intensity,
+          (math.Random().nextDouble() - 0.5) * intensity
+        );
+      });
   }
 
   void _addSuccessEffect() {
@@ -585,17 +518,14 @@ class _PathFinderGameState extends State<PathFinderGame>
     totalScore += completionBonus;
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-          skillLevel: widget.grade,
-          gameType: 'pathfinder',
-          difficulty: widget.level,
-          score: completionBonus,
-          performance: Perf.fromLives(lives.ceil(), 3),
-        ));
+      skillLevel: widget.grade,
+      gameType: 'pathfinder',
+      difficulty: widget.level,
+      score: completionBonus,
+      performance: Perf.fromLives(lives.ceil(), 3),
+    ));
 
-    showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => _buildEndDialog(true));
+    showDialog(context: context, barrierDismissible: false, builder: (ctx) => _buildEndDialog(true));
   }
 
   void _gameOver() {
@@ -603,21 +533,18 @@ class _PathFinderGameState extends State<PathFinderGame>
     gameActive = false;
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-          skillLevel: widget.grade,
-          gameType: 'pathfinder',
-          difficulty: widget.level,
-        ));
-    showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => _buildEndDialog(false));
+      skillLevel: widget.grade,
+      gameType: 'pathfinder',
+      difficulty: widget.level,
+    ));
+    showDialog(context: context, barrierDismissible: false, builder: (ctx) => _buildEndDialog(false));
   }
-
+  
   void _resetGame() {
     beginPuzzleSession();
     if (!mounted) return;
     Navigator.pop(context);
-
+    
     setState(() {
       gameActive = true;
       lives = 3.0;
@@ -629,8 +556,7 @@ class _PathFinderGameState extends State<PathFinderGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady)
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     // If paths aren't generated yet, show a loading screen.
     // Prevents race condition.
     if (availablePaths.isEmpty) {
@@ -641,7 +567,7 @@ class _PathFinderGameState extends State<PathFinderGame>
         ),
       );
     }
-
+    
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -652,32 +578,31 @@ class _PathFinderGameState extends State<PathFinderGame>
               label: S.of(context)!.a11yGameArea,
               hint: 'Tap a glowing path bubble to choose your route',
               child: GestureDetector(
-                onTapDown: (details) {
-                  _handleScreenTap(details.localPosition);
-                },
-                behavior: HitTestBehavior.translucent,
-                child: Transform.translate(
-                  offset: screenShakeOffset,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      ..._buildBackground(),
-                      ..._buildVisualPaths(),
-                      ..._buildParticles(),
-                      _buildShip(),
-                      // Add visual debug indicators for tap areas in debug mode
-                      if (choosingPath) ..._buildDebugTapAreas(),
-                    ],
-                  ),
+              onTapDown: (details) {
+                _handleScreenTap(details.localPosition);
+              },
+              behavior: HitTestBehavior.translucent,
+              child: Transform.translate(
+                offset: screenShakeOffset,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ..._buildBackground(),
+                    ..._buildVisualPaths(),
+                    ..._buildParticles(),
+                    _buildShip(),
+                    // Add visual debug indicators for tap areas in debug mode
+                    if (choosingPath) ..._buildDebugTapAreas(),
+                  ],
                 ),
               ),
+            ),
             ),
             AnimatedBuilder(
               animation: _feedbackController,
               builder: (context, _) => IgnorePointer(
                 child: Container(
-                  color: feedbackColor.withValues(
-                      alpha: feedbackColor.a * _feedbackController.value),
+                  color: feedbackColor.withValues(alpha: feedbackColor.a * _feedbackController.value),
                 ),
               ),
             ),
@@ -693,7 +618,7 @@ class _PathFinderGameState extends State<PathFinderGame>
   List<Widget> _buildDebugTapAreas() {
     // Uncomment the return below to see tap areas visually
     return [];
-
+    
     /* 
     return availablePaths.map((path) {
       final bubblePosition = path.getPointAt(0.5);
@@ -715,22 +640,23 @@ class _PathFinderGameState extends State<PathFinderGame>
   }
 
   List<Widget> _buildBackground() {
-    return [...stars.map((s) => s.build()), ...dust.map((d) => d.build())];
+    return [
+      ...stars.map((s) => s.build()), 
+      ...dust.map((d) => d.build())
+    ];
   }
 
   List<Widget> _buildVisualPaths() {
-    return availablePaths
-        .map((path) => Positioned.fill(
-              child: CustomPaint(
-                painter: SpacePathPainter(
-                  path: path,
-                  progress: _backgroundController.value,
-                ),
-              ),
-            ))
-        .toList();
+    return availablePaths.map((path) => Positioned.fill(
+      child: CustomPaint(
+        painter: SpacePathPainter(
+          path: path,
+          progress: _backgroundController.value,
+        ),
+      ),
+    )).toList();
   }
-
+  
   List<Widget> _buildParticles() => particles.map((p) => p.build()).toList();
 
   Widget _buildShip() {
@@ -743,14 +669,13 @@ class _PathFinderGameState extends State<PathFinderGame>
           width: kShipSize,
           height: kShipSize,
           child: CustomPaint(
-            painter: SpaceshipPainter(
-                boosting: followingPath, damageLevel: 3.0 - lives),
+            painter: SpaceshipPainter(boosting: followingPath, damageLevel: 3.0 - lives),
           ),
         ),
       ),
     );
   }
-
+  
   Widget _buildUI() {
     return Column(
       children: [
@@ -761,7 +686,7 @@ class _PathFinderGameState extends State<PathFinderGame>
       ],
     );
   }
-
+  
   Widget _buildMainDisplay() {
     if (choosingPath) {
       return _buildProblemDisplay();
@@ -784,36 +709,23 @@ class _PathFinderGameState extends State<PathFinderGame>
           ),
           Row(
             children: [
-              const Icon(Icons.check_circle_outline,
-                  color: Colors.cyan, size: 20),
+              const Icon(Icons.check_circle_outline, color: Colors.cyan, size: 20),
               const SizedBox(width: 8),
-              Text('$problemsSolved/$targetProblems',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold)),
+              Text('$problemsSolved/$targetProblems', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
           Row(
-            children: List.generate(
-                3,
-                (index) => Icon(
-                      index < lives.ceil()
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: index < lives ? Colors.redAccent : Colors.grey,
-                      size: 24,
-                    )),
+            children: List.generate(3, (index) => Icon(
+              index < lives.ceil() ? Icons.favorite : Icons.favorite_border,
+              color: index < lives ? Colors.redAccent : Colors.grey,
+              size: 24,
+            )),
           ),
           Row(
             children: [
               const Icon(Icons.star, color: Colors.yellow, size: 20),
               const SizedBox(width: 8),
-              Text('$totalScore',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold)),
+              Text('$totalScore', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
         ],
@@ -830,18 +742,12 @@ class _PathFinderGameState extends State<PathFinderGame>
         color: Colors.black.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.cyan, width: 2),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.cyan.withValues(alpha: 0.5),
-              blurRadius: 20,
-              spreadRadius: 2)
-        ],
+        boxShadow: [BoxShadow(color: Colors.cyan.withValues(alpha: 0.5), blurRadius: 20, spreadRadius: 2)],
       ),
       child: Text(
           currentProblem!.expression
               .replaceAll('÷', context.read<GameProvider>().divisionSymbol)
-              .replaceAll(
-                  '×', context.read<GameProvider>().multiplicationSymbol),
+              .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
           style: const TextStyle(
               color: Colors.white,
               fontSize: 36,
@@ -849,7 +755,7 @@ class _PathFinderGameState extends State<PathFinderGame>
               fontFeatures: [ui.FontFeature.tabularFigures()])),
     );
   }
-
+  
   Widget _buildStatusMessage() {
     return Container(
       margin: const EdgeInsets.only(top: 20),
@@ -859,10 +765,8 @@ class _PathFinderGameState extends State<PathFinderGame>
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white38),
       ),
-      child: Text(
-        statusMessage,
-        style: const TextStyle(
-            color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+      child: Text(statusMessage,
+        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
         textAlign: TextAlign.center,
       ),
     );
@@ -871,57 +775,35 @@ class _PathFinderGameState extends State<PathFinderGame>
   Widget _buildInstructions() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Text(
-        S.of(context)!.pathFinderInstructions,
+      child: Text(S.of(context)!.pathFinderInstructions,
         textAlign: TextAlign.center,
-        style:
-            TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13),
+        style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13),
       ),
     );
   }
-
+  
   Widget _buildEndDialog(bool isWin) {
-    return AlertDialog(
-      scrollable: true,
+    return AlertDialog(scrollable: true,
       backgroundColor: const Color(0xFF1A1A3E).withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
-        side: BorderSide(
-            color: isWin ? Colors.greenAccent : Colors.redAccent, width: 2),
+        side: BorderSide(color: isWin ? Colors.greenAccent : Colors.redAccent, width: 2),
       ),
       title: Row(children: [
-        Icon(isWin ? Icons.rocket_launch : Icons.error,
-            color: isWin ? Colors.green : Colors.red, size: 30),
+        Icon(isWin ? Icons.rocket_launch : Icons.error, color: isWin ? Colors.green : Colors.red, size: 30),
         const SizedBox(width: 10),
-        Text(
-            isWin
-                ? S.of(context)!.pathFinderWinTitle
-                : S.of(context)!.pathFinderLoseTitle,
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold)),
+        Text(isWin ? S.of(context)!.pathFinderWinTitle : S.of(context)!.pathFinderLoseTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ]),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        RoundSummary(gameKey: 'pathfinder'),
-        Text(
-          isWin
-              ? S.of(context)!.pathFinderWinDesc(targetProblems, totalScore)
-              : S.of(context)!.pathFinderLoseDesc,
-          style: const TextStyle(color: Colors.white70),
-        )
-      ]),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [RoundSummary(gameKey: 'pathfinder'), Text(
+        isWin ? S.of(context)!.pathFinderWinDesc(targetProblems, totalScore) : S.of(context)!.pathFinderLoseDesc,
+        style: const TextStyle(color: Colors.white70),
+      )]),
       actions: [
-        TextButton(
-            autofocus: true,
-            onPressed: _resetGame,
-            child: Text(S.of(context)!.playAgain,
-                style: const TextStyle(color: Colors.cyanAccent))),
-        TextButton(
-            child: Text(S.of(context)!.backToMenu,
-                style: const TextStyle(color: Colors.white)),
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            }),
+        TextButton(autofocus: true, onPressed: _resetGame, child: Text(S.of(context)!.playAgain, style: const TextStyle(color: Colors.cyanAccent))),
+        TextButton(child: Text(S.of(context)!.backToMenu, style: const TextStyle(color: Colors.white)), onPressed: () {
+            Navigator.pop(context);
+            Navigator.pop(context);
+        }),
       ],
     );
   }
@@ -940,49 +822,31 @@ class _PathFinderGameState extends State<PathFinderGame>
   }
 }
 
+
 // --- ENUMS, DATA MODELS, and CUSTOM PAINTERS (Unchanged) ---
 
-enum SpacePathType {
-  wormhole,
-  nebula,
-  asteroidBelt,
-  clearSpace,
-  ionStorm,
-  quantumTunnel
-}
+enum SpacePathType { wormhole, nebula, asteroidBelt, clearSpace, ionStorm, quantumTunnel }
 
 extension SpacePathTypeData on SpacePathType {
   double get damage {
     switch (this) {
-      case SpacePathType.asteroidBelt:
-        return 1.0;
-      case SpacePathType.quantumTunnel:
-        return 1.0;
-      case SpacePathType.ionStorm:
-        return 0.75;
-      case SpacePathType.wormhole:
-        return 0.5;
-      case SpacePathType.nebula:
-        return 0.5;
-      case SpacePathType.clearSpace:
-        return 0.25;
+      case SpacePathType.asteroidBelt: return 1.0;
+      case SpacePathType.quantumTunnel: return 1.0;
+      case SpacePathType.ionStorm: return 0.75;
+      case SpacePathType.wormhole: return 0.5;
+      case SpacePathType.nebula: return 0.5;
+      case SpacePathType.clearSpace: return 0.25;
     }
   }
 
   List<Color> get colors {
     switch (this) {
-      case SpacePathType.wormhole:
-        return [Colors.purple, Colors.deepPurple, Colors.indigo];
-      case SpacePathType.nebula:
-        return [Colors.pink, Colors.pinkAccent, Colors.red.shade200];
-      case SpacePathType.asteroidBelt:
-        return [Colors.brown, Colors.orange, Colors.grey.shade700];
-      case SpacePathType.clearSpace:
-        return [Colors.blue, Colors.lightBlue, Colors.cyan];
-      case SpacePathType.ionStorm:
-        return [Colors.orange, Colors.yellow, Colors.red];
-      case SpacePathType.quantumTunnel:
-        return [Colors.cyan, Colors.teal, Colors.lightGreenAccent];
+      case SpacePathType.wormhole: return [Colors.purple, Colors.deepPurple, Colors.indigo];
+      case SpacePathType.nebula: return [Colors.pink, Colors.pinkAccent, Colors.red.shade200];
+      case SpacePathType.asteroidBelt: return [Colors.brown, Colors.orange, Colors.grey.shade700];
+      case SpacePathType.clearSpace: return [Colors.blue, Colors.lightBlue, Colors.cyan];
+      case SpacePathType.ionStorm: return [Colors.orange, Colors.yellow, Colors.red];
+      case SpacePathType.quantumTunnel: return [Colors.cyan, Colors.teal, Colors.lightGreenAccent];
     }
   }
 }
@@ -990,25 +854,23 @@ extension SpacePathTypeData on SpacePathType {
 class SpacePath {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-        'startPoint': [startPoint.dx, startPoint.dy],
-        'endPoint': [endPoint.dx, endPoint.dy],
-        'controlPoint': [controlPoint.dx, controlPoint.dy],
-        'answer': answer,
-        'isCorrect': isCorrect,
-        'pathType': pathType.name,
-        'width': width
-      };
+    'startPoint': [startPoint.dx, startPoint.dy],
+    'endPoint': [endPoint.dx, endPoint.dy],
+    'controlPoint': [controlPoint.dx, controlPoint.dy],
+    'answer': answer,
+    'isCorrect': isCorrect,
+    'pathType': pathType.name,
+    'width': width
+  };
   factory SpacePath.fromJson(Map<String, dynamic> json) => SpacePath(
-      startPoint: Offset((json['startPoint'][0] as num).toDouble(),
-          (json['startPoint'][1] as num).toDouble()),
-      endPoint: Offset((json['endPoint'][0] as num).toDouble(),
-          (json['endPoint'][1] as num).toDouble()),
-      controlPoint: Offset((json['controlPoint'][0] as num).toDouble(),
-          (json['controlPoint'][1] as num).toDouble()),
-      answer: json['answer'] as int,
-      isCorrect: json['isCorrect'] as bool,
-      pathType: SpacePathType.values.byName(json['pathType'] as String),
-      width: (json['width'] as num).toDouble());
+    startPoint: Offset((json['startPoint'][0] as num).toDouble(), (json['startPoint'][1] as num).toDouble()),
+    endPoint: Offset((json['endPoint'][0] as num).toDouble(), (json['endPoint'][1] as num).toDouble()),
+    controlPoint: Offset((json['controlPoint'][0] as num).toDouble(), (json['controlPoint'][1] as num).toDouble()),
+    answer: json['answer'] as int,
+    isCorrect: json['isCorrect'] as bool,
+    pathType: SpacePathType.values.byName(json['pathType'] as String),
+    width: (json['width'] as num).toDouble()
+  );
 
   final Offset startPoint;
   final Offset endPoint;
@@ -1032,11 +894,9 @@ class SpacePath {
     final t2 = t * t;
     final mt = 1 - t;
     final mt2 = mt * mt;
-
-    final x =
-        mt2 * startPoint.dx + 2 * mt * t * controlPoint.dx + t2 * endPoint.dx;
-    final y =
-        mt2 * startPoint.dy + 2 * mt * t * controlPoint.dy + t2 * endPoint.dy;
+    
+    final x = mt2 * startPoint.dx + 2 * mt * t * controlPoint.dx + t2 * endPoint.dx;
+    final y = mt2 * startPoint.dy + 2 * mt * t * controlPoint.dy + t2 * endPoint.dy;
 
     return Offset(x, y);
   }
@@ -1062,28 +922,23 @@ class BackgroundStar {
     this.isDust = false,
   });
 
-  factory BackgroundStar.create(Size screenSize, math.Random random,
-      {double speedMultiplier = 1.0, bool isDust = false}) {
+  factory BackgroundStar.create(Size screenSize, math.Random random, {double speedMultiplier = 1.0, bool isDust = false}) {
     return BackgroundStar(
-      position: Offset(random.nextDouble() * screenSize.width,
-          random.nextDouble() * screenSize.height),
-      size: isDust
-          ? random.nextDouble() * 1.2 + 0.5
-          : random.nextDouble() * 2.5 + 1.0,
+      position: Offset(random.nextDouble() * screenSize.width, random.nextDouble() * screenSize.height),
+      size: isDust ? random.nextDouble() * 1.2 + 0.5 : random.nextDouble() * 2.5 + 1.0,
       speed: (random.nextDouble() * 60 + 30) * speedMultiplier,
       brightness: random.nextDouble() * 0.7 + 0.3,
       isDust: isDust,
     );
   }
-
+  
   void update(double dt, Size screenSize, double gameSpeed) {
     position = Offset(position.dx - (speed + gameSpeed) * dt, position.dy);
     if (position.dx < -10) {
-      position = Offset(screenSize.width + 10,
-          math.Random().nextDouble() * screenSize.height);
+      position = Offset(screenSize.width + 10, math.Random().nextDouble() * screenSize.height);
     }
   }
-
+  
   Widget build() {
     return Positioned(
       left: position.dx,
@@ -1094,13 +949,7 @@ class BackgroundStar {
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: brightness),
           shape: BoxShape.circle,
-          boxShadow: isDust
-              ? null
-              : [
-                  BoxShadow(
-                      color: Colors.white.withValues(alpha: 0.3),
-                      blurRadius: size * 2)
-                ],
+          boxShadow: isDust ? null : [BoxShadow(color: Colors.white.withValues(alpha: 0.3), blurRadius: size * 2)],
         ),
       ),
     );
@@ -1117,12 +966,8 @@ class SpaceParticle {
   final double maxLife;
 
   SpaceParticle({
-    required this.position,
-    required this.velocity,
-    required this.color,
-    required this.size,
-    required this.opacity,
-    required this.life,
+    required this.position, required this.velocity, required this.color,
+    required this.size, required this.opacity, required this.life,
   }) : maxLife = life;
 
   factory SpaceParticle.engine(Offset shipPos, double angle) {
@@ -1131,8 +976,7 @@ class SpaceParticle {
     final perpendicularVel = (random.nextDouble() - 0.5) * 60;
     return SpaceParticle(
       position: shipPos + Offset.fromDirection(angle, -kShipSize / 2.5),
-      velocity: Offset.fromDirection(angle, speed) +
-          Offset.fromDirection(angle + math.pi / 2, perpendicularVel),
+      velocity: Offset.fromDirection(angle, speed) + Offset.fromDirection(angle + math.pi/2, perpendicularVel),
       color: Colors.orangeAccent,
       size: 1.5 + random.nextDouble() * 2.5,
       opacity: 0.9,
@@ -1147,11 +991,7 @@ class SpaceParticle {
     return SpaceParticle(
       position: pos,
       velocity: Offset.fromDirection(angle, speed),
-      color: [
-        Colors.cyan,
-        Colors.lightGreenAccent,
-        Colors.white
-      ][random.nextInt(3)],
+      color: [Colors.cyan, Colors.lightGreenAccent, Colors.white][random.nextInt(3)],
       size: 2 + random.nextDouble() * 3,
       opacity: 1.0,
       life: 0.7 + random.nextDouble() * 0.5,
@@ -1179,7 +1019,7 @@ class SpaceParticle {
     velocity *= 0.97;
     return life <= 0;
   }
-
+  
   Widget build() {
     return Positioned(
       left: position.dx - size / 2,
@@ -1206,78 +1046,59 @@ class SpacePathPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final p = Path()
       ..moveTo(path.startPoint.dx, path.startPoint.dy)
-      ..quadraticBezierTo(path.controlPoint.dx, path.controlPoint.dy,
-          path.endPoint.dx, path.endPoint.dy);
-
+      ..quadraticBezierTo(path.controlPoint.dx, path.controlPoint.dy, path.endPoint.dx, path.endPoint.dy);
+      
     final colors = path.pathType.colors;
-
+    
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = path.width
-      ..shader = ui.Gradient.linear(
-          path.startPoint, path.endPoint, colors, [0.0, 0.5, 1.0]);
+      ..shader = ui.Gradient.linear(path.startPoint, path.endPoint, colors, [0.0, 0.5, 1.0]);
     canvas.drawPath(p, paint);
 
     _drawPathEffects(canvas, p, path.pathType);
 
     final midPoint = path.getPointAt(0.5);
     const bubbleRadius = 38.0;
-    canvas.drawCircle(midPoint, bubbleRadius,
-        Paint()..color = Colors.black.withValues(alpha: 0.8));
-    canvas.drawCircle(
-        midPoint,
-        bubbleRadius,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.5
-          ..color = colors[1]);
+    canvas.drawCircle(midPoint, bubbleRadius, Paint()..color = Colors.black.withValues(alpha: 0.8));
+    canvas.drawCircle(midPoint, bubbleRadius, Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..color = colors[1]);
 
     final textPainter = TextPainter(
       text: TextSpan(
         text: path.answer.toString(),
-        style: const TextStyle(
-            color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold),
+        style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    textPainter.paint(canvas,
-        midPoint - Offset(textPainter.width / 2, textPainter.height / 2));
+    textPainter.paint(canvas, midPoint - Offset(textPainter.width / 2, textPainter.height / 2));
   }
-
+  
   void _drawPathEffects(Canvas canvas, Path p, SpacePathType type) {
     final random = math.Random(path.answer);
     final metrics = p.computeMetrics().first;
-
-    switch (type) {
+    
+    switch(type) {
       case SpacePathType.asteroidBelt:
         for (var i = 0; i < 15; i++) {
-          final distance =
-              metrics.length * (i * 0.06 + (progress * 0.1)) % metrics.length;
+          final distance = metrics.length * (i * 0.06 + (progress * 0.1)) % metrics.length;
           final tangent = metrics.getTangentForOffset(distance)!;
-          final offset = tangent.position +
-              Offset.fromDirection(tangent.angle + math.pi / 2,
-                  (random.nextDouble() - 0.5) * kPathWidth * 1.5);
+          final offset = tangent.position + Offset.fromDirection(tangent.angle + math.pi/2, (random.nextDouble()-0.5) * kPathWidth * 1.5);
           final size = random.nextDouble() * 12 + 8;
-          canvas.drawCircle(
-              offset, size, Paint()..color = Colors.brown.shade800);
+          canvas.drawCircle(offset, size, Paint()..color = Colors.brown.shade800);
         }
         break;
       case SpacePathType.ionStorm:
-        for (var i = 0; i < 5; i++) {
+         for (var i = 0; i < 5; i++) {
           final distance = metrics.length * random.nextDouble();
           final tangent = metrics.getTangentForOffset(distance)!;
           final p1 = tangent.position;
-          final p2 = p1 +
-              Offset.fromDirection(
-                  tangent.angle + (random.nextDouble() - 0.5) * 2, 40);
-          canvas.drawLine(
-              p1,
-              p2,
-              Paint()
-                ..color = Colors.yellow.withValues(alpha: 0.8)
-                ..strokeWidth = 2);
-        }
+          final p2 = p1 + Offset.fromDirection(tangent.angle + (random.nextDouble()-0.5) * 2, 40);
+          canvas.drawLine(p1, p2, Paint()..color=Colors.yellow.withValues(alpha: 0.8)..strokeWidth=2);
+         }
         break;
       default:
         break;
@@ -1285,8 +1106,7 @@ class SpacePathPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(SpacePathPainter oldDelegate) =>
-      oldDelegate.progress != progress;
+  bool shouldRepaint(SpacePathPainter oldDelegate) => oldDelegate.progress != progress;
 }
 
 class SpaceshipPainter extends CustomPainter {
@@ -1298,49 +1118,38 @@ class SpaceshipPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..style = PaintingStyle.fill;
-
-    final bodyColor = Color.lerp(
-        Colors.grey.shade300, Colors.red.shade700, damageLevel / 3.0)!;
-
+    
+    final bodyColor = Color.lerp(Colors.grey.shade300, Colors.red.shade700, damageLevel/3.0)!;
+    
     paint.color = bodyColor;
     final shipPath = Path()
       ..moveTo(size.width * 0.95, size.height * 0.5)
-      ..cubicTo(size.width * 0.5, size.height * 0.2, size.width * 0.2,
-          size.height * 0.1, 0, size.height * 0.35)
+      ..cubicTo(size.width * 0.5, size.height * 0.2, size.width * 0.2, size.height * 0.1, 0, size.height * 0.35)
       ..lineTo(0, size.height * 0.65)
-      ..cubicTo(size.width * 0.2, size.height * 0.9, size.width * 0.5,
-          size.height * 0.8, size.width * 0.95, size.height * 0.5)
+      ..cubicTo(size.width * 0.2, size.height * 0.9, size.width * 0.5, size.height * 0.8, size.width * 0.95, size.height * 0.5)
       ..close();
     canvas.drawPath(shipPath, paint);
-
+    
     paint.color = Colors.cyan.shade200;
     canvas.drawOval(
-      Rect.fromCenter(
-          center: Offset(size.width * 0.65, size.height * 0.5),
-          width: size.width * 0.4,
-          height: size.height * 0.5),
+      Rect.fromCenter(center: Offset(size.width * 0.65, size.height * 0.5), width: size.width * 0.4, height: size.height * 0.5),
       paint,
     );
-
+    
     if (damageLevel > 1.0) {
-      final crackPaint = Paint()
-        ..color = Colors.black.withValues(alpha: 0.5)
-        ..strokeWidth = 1.2
-        ..style = PaintingStyle.stroke;
-      canvas.drawLine(Offset(size.width * 0.5, size.height * 0.35),
-          Offset(size.width * 0.8, size.height * 0.6), crackPaint);
+      final crackPaint = Paint()..color = Colors.black.withValues(alpha: 0.5)..strokeWidth = 1.2..style = PaintingStyle.stroke;
+      canvas.drawLine(Offset(size.width * 0.5, size.height * 0.35), Offset(size.width * 0.8, size.height * 0.6), crackPaint);
     }
 
     if (boosting) {
-      final thrusterPaint = Paint()
-        ..shader = ui.Gradient.radial(
-            Offset(-size.width * 0.4, size.height * 0.5),
-            size.width * 0.6,
-            [Colors.cyanAccent, Colors.transparent]);
+      final thrusterPaint = Paint()..shader = ui.Gradient.radial(
+        Offset(-size.width * 0.4, size.height * 0.5), 
+        size.width * 0.6, 
+        [Colors.cyanAccent, Colors.transparent]
+      );
       final thrusterPath = Path()
         ..moveTo(0, size.height * 0.3)
-        ..lineTo(-size.width * (0.5 + math.Random().nextDouble() * 0.2),
-            size.height * 0.5)
+        ..lineTo(-size.width * (0.5 + math.Random().nextDouble() * 0.2), size.height * 0.5)
         ..lineTo(0, size.height * 0.7)
         ..close();
       canvas.drawPath(thrusterPath, thrusterPaint);
@@ -1349,7 +1158,6 @@ class SpaceshipPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(SpaceshipPainter oldDelegate) {
-    return oldDelegate.boosting != boosting ||
-        oldDelegate.damageLevel != damageLevel;
+    return oldDelegate.boosting != boosting || oldDelegate.damageLevel != damageLevel;
   }
 }

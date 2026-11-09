@@ -54,8 +54,7 @@ void main() {
       expect(mid.dy, closeTo(0.25 * 0 + 0.5 * 100 + 0.25 * 0, 1e-9));
     });
 
-    test(
-        'the curve stays inside the convex hull of its control points '
+    test('the curve stays inside the convex hull of its control points '
         'for many sampled t (used by tap hit-testing)', () {
       final p = makePath(
         start: const Offset(10, 20),
@@ -103,8 +102,7 @@ void main() {
           lessThan(SpacePathType.asteroidBelt.damage));
     });
 
-    test(
-        'colors returns exactly three colors per type (gradient needs 3 stops)',
+    test('colors returns exactly three colors per type (gradient needs 3 stops)',
         () {
       // SpacePathPainter feeds these into a 3-stop linear gradient [0,0.5,1].
       for (final type in SpacePathType.values) {
@@ -148,8 +146,7 @@ void main() {
       expect(particle.life, lessThanOrEqualTo(0.0));
     });
 
-    test(
-        'factory particles have a positive finite life and clamped opacity '
+    test('factory particles have a positive finite life and clamped opacity '
         'across many draws', () {
       // Factories use unseeded Random internally, so we assert invariants
       // (ranges), not exact values, over many constructions.
@@ -249,17 +246,11 @@ void main() {
 
     test('SpaceshipPainter repaints when boosting or damage changes', () {
       final base = SpaceshipPainter(boosting: false, damageLevel: 0.0);
-      expect(
-          base.shouldRepaint(
-              SpaceshipPainter(boosting: false, damageLevel: 0.0)),
+      expect(base.shouldRepaint(SpaceshipPainter(boosting: false, damageLevel: 0.0)),
           isFalse);
-      expect(
-          base.shouldRepaint(
-              SpaceshipPainter(boosting: true, damageLevel: 0.0)),
+      expect(base.shouldRepaint(SpaceshipPainter(boosting: true, damageLevel: 0.0)),
           isTrue);
-      expect(
-          base.shouldRepaint(
-              SpaceshipPainter(boosting: false, damageLevel: 1.0)),
+      expect(base.shouldRepaint(SpaceshipPainter(boosting: false, damageLevel: 1.0)),
           isTrue);
     });
   });

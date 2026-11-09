@@ -78,10 +78,11 @@ class _CodewordPuzzleScreenState extends State<CodewordPuzzleScreen>
     // Determine how many letters to pre-place.
     // Grade 1 level 1: ~50%, Grade 4 level 20: 0
     final maxPre = (n * 0.5).floor();
-    final prePlacedCount =
-        (maxPre - (widget.grade - 1) * 2 - (widget.level - 1) * maxPre / 19)
-            .round()
-            .clamp(0, maxPre);
+    final prePlacedCount = (maxPre -
+            (widget.grade - 1) * 2 -
+            (widget.level - 1) * maxPre / 19)
+        .round()
+        .clamp(0, maxPre);
 
     // Pick random positions to pre-place
     final indices = List.generate(n, (i) => i)..shuffle(Random());
@@ -160,7 +161,8 @@ class _CodewordPuzzleScreenState extends State<CodewordPuzzleScreen>
                   size: 64, color: SpaceTheme.starYellow),
               const SizedBox(height: 16),
               Text(s.missionComplete,
-                  style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  style: SpaceTheme.headlineStyle,
+                  textAlign: TextAlign.center),
               const SizedBox(height: 8),
               Text(
                 s.missionCompleteDesc(widget.codeword),
@@ -197,24 +199,25 @@ class _CodewordPuzzleScreenState extends State<CodewordPuzzleScreen>
             children: [
               // Header
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
                     IconButton(
-                      icon:
-                          const Icon(Icons.arrow_back_ios, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back_ios,
+                          color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),
                     const SizedBox(width: 8),
-                    Text(s.missionCodewordTitle, style: SpaceTheme.titleStyle),
+                    Text(s.missionCodewordTitle,
+                        style: SpaceTheme.titleStyle),
                   ],
                 ),
               ),
 
               const SizedBox(height: 8),
               Text(s.missionCodewordInstructions,
-                  style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  style: SpaceTheme.bodyStyle,
+                  textAlign: TextAlign.center),
               const SizedBox(height: 24),
 
               // Slots row
@@ -252,7 +255,8 @@ class _CodewordPuzzleScreenState extends State<CodewordPuzzleScreen>
             children: List.generate(widget.codeword.length, (i) {
               final letter = _slots[i];
               final isPrePlaced = _prePlaced.contains(i);
-              final isCorrect = _solved && letter == widget.codeword[i];
+              final isCorrect =
+                  _solved && letter == widget.codeword[i];
 
               return DragTarget<String>(
                 onWillAcceptWithDetails: (details) =>
@@ -272,7 +276,8 @@ class _CodewordPuzzleScreenState extends State<CodewordPuzzleScreen>
                         color: isCorrect
                             ? SpaceTheme.alienGreen.withValues(alpha: 0.3)
                             : isPrePlaced
-                                ? SpaceTheme.starYellow.withValues(alpha: 0.15)
+                                ? SpaceTheme.starYellow
+                                    .withValues(alpha: 0.15)
                                 : isHovering
                                     ? SpaceTheme.starYellow
                                         .withValues(alpha: 0.2)

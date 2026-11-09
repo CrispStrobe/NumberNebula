@@ -36,27 +36,11 @@ class DieFace extends StatelessWidget {
     1: [Offset(0.5, 0.5)],
     2: [Offset(0.28, 0.28), Offset(0.72, 0.72)],
     3: [Offset(0.24, 0.24), Offset(0.5, 0.5), Offset(0.76, 0.76)],
-    4: [
-      Offset(0.28, 0.28),
-      Offset(0.72, 0.28),
-      Offset(0.28, 0.72),
-      Offset(0.72, 0.72)
-    ],
-    5: [
-      Offset(0.26, 0.26),
-      Offset(0.74, 0.26),
-      Offset(0.5, 0.5),
-      Offset(0.26, 0.74),
-      Offset(0.74, 0.74)
-    ],
-    6: [
-      Offset(0.28, 0.22),
-      Offset(0.28, 0.5),
-      Offset(0.28, 0.78),
-      Offset(0.72, 0.22),
-      Offset(0.72, 0.5),
-      Offset(0.72, 0.78)
-    ],
+    4: [Offset(0.28, 0.28), Offset(0.72, 0.28), Offset(0.28, 0.72), Offset(0.72, 0.72)],
+    5: [Offset(0.26, 0.26), Offset(0.74, 0.26), Offset(0.5, 0.5),
+        Offset(0.26, 0.74), Offset(0.74, 0.74)],
+    6: [Offset(0.28, 0.22), Offset(0.28, 0.5), Offset(0.28, 0.78),
+        Offset(0.72, 0.22), Offset(0.72, 0.5), Offset(0.72, 0.78)],
   };
 
   @override
@@ -94,8 +78,7 @@ class _PipPainter extends CustomPainter {
     final paint = Paint()..color = color;
     final r = size.width * 0.085;
     for (final p in positions) {
-      canvas.drawCircle(
-          Offset(p.dx * size.width, p.dy * size.height), r, paint);
+      canvas.drawCircle(Offset(p.dx * size.width, p.dy * size.height), r, paint);
     }
   }
 
@@ -117,11 +100,7 @@ class DieOppositePairsDiagram extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        for (final pair in const [
-          [1, 6],
-          [2, 5],
-          [3, 4]
-        ])
+        for (final pair in const [[1, 6], [2, 5], [3, 4]])
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 5),
             child: Row(
@@ -234,11 +213,7 @@ class DieHiddenFacesDiagram extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    DieFace(
-                        value: faces[i],
-                        size: 36,
-                        color: colour,
-                        dimmed: dimmed),
+                    DieFace(value: faces[i], size: 36, color: colour, dimmed: dimmed),
                     if (captions != null) ...[
                       const SizedBox(height: 3),
                       Text(
@@ -295,11 +270,7 @@ class DieTotalPipsDiagram extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            for (final entry in const [
-              [1, 21],
-              [2, 42],
-              [3, 63]
-            ])
+            for (final entry in const [[1, 21], [2, 42], [3, 63]])
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: Container(

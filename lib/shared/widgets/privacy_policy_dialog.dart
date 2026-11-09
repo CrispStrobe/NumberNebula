@@ -20,7 +20,8 @@ class PrivacyPolicyDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: SpaceTheme.deepSpace,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 600,
@@ -46,7 +47,8 @@ class PrivacyPolicyDialog extends StatelessWidget {
                   IconButton(
                     autofocus: true,
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, color: Colors.white70),
+                    icon:
+                        const Icon(Icons.close, color: Colors.white70),
                   ),
                 ],
               ),
@@ -59,7 +61,8 @@ class PrivacyPolicyDialog extends StatelessWidget {
                       SizedBox(height: 8),
                       _PolicySection(
                         title: 'Short version',
-                        body: 'This app stores your game progress on your '
+                        body:
+                            'This app stores your game progress on your '
                             'device. Nothing is uploaded to any server. '
                             'Nothing is shared with any third party. We have '
                             'no analytics, no advertising, no tracking, no '
@@ -68,7 +71,8 @@ class PrivacyPolicyDialog extends StatelessWidget {
                       ),
                       _PolicySection(
                         title: 'What is stored, where',
-                        body: 'The following live on this device only, in '
+                        body:
+                            'The following live on this device only, in '
                             'standard Flutter SharedPreferences and one log '
                             'file in the app\'s sandboxed documents '
                             'directory:\n\n'
@@ -95,7 +99,8 @@ class PrivacyPolicyDialog extends StatelessWidget {
                       ),
                       _PolicySection(
                         title: 'Network',
-                        body: 'This app makes no automatic network calls. '
+                        body:
+                            'This app makes no automatic network calls. '
                             'It does not phone home. The puzzle content '
                             'is bundled inside the app at install time, not '
                             'fetched.\n\n'
@@ -106,7 +111,8 @@ class PrivacyPolicyDialog extends StatelessWidget {
                       ),
                       _PolicySection(
                         title: 'Crash reports',
-                        body: 'When the app crashes, a short technical record '
+                        body:
+                            'When the app crashes, a short technical record '
                             '(error message, stack trace) is written to a '
                             'local file. You can view it in Settings → '
                             'Diagnostics. The log never leaves your device '
@@ -116,7 +122,8 @@ class PrivacyPolicyDialog extends StatelessWidget {
                       ),
                       _PolicySection(
                         title: 'Children\'s privacy (COPPA, GDPR-K)',
-                        body: 'NumberNebula is made for math learners of all '
+                        body:
+                            'NumberNebula is made for math learners of all '
                             'ages. We have intentionally designed it '
                             'with COPPA (US) and GDPR-K (EU, including '
                             'Article 8 in Germany) in mind: no personal '
@@ -128,7 +135,8 @@ class PrivacyPolicyDialog extends StatelessWidget {
                       ),
                       _PolicySection(
                         title: 'Your right to clear data',
-                        body: 'You can delete all locally-stored data at any '
+                        body:
+                            'You can delete all locally-stored data at any '
                             'time from Settings → Reset all data. This '
                             'wipes every value listed above. You can also '
                             'uninstall the app — Flutter\'s standard '
@@ -137,7 +145,8 @@ class PrivacyPolicyDialog extends StatelessWidget {
                       ),
                       _PolicySection(
                         title: 'Changes',
-                        body: 'If we ever do start collecting data — for '
+                        body:
+                            'If we ever do start collecting data — for '
                             'example, to add a backup feature or '
                             'multi-device sync — this policy will be '
                             'updated, the changes will be highlighted on '

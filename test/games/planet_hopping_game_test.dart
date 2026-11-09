@@ -64,8 +64,7 @@ void main() {
       expect(hopper.velocity.dy, closeTo(0.0, 1e-6));
     });
 
-    test('landOn snaps onto the planet, zeroes velocity and records its id',
-        () {
+    test('landOn snaps onto the planet, zeroes velocity and records its id', () {
       final problem = MathProblem.addition(2, 3);
       final planet = Planet(
         id: 5,
@@ -118,8 +117,7 @@ void main() {
   });
 
   group('ParticleEffect lifecycle', () {
-    test('starts at maxLife and signals completion only when life runs out',
-        () {
+    test('starts at maxLife and signals completion only when life runs out', () {
       final p = ParticleEffect(
         position: Offset.zero,
         velocity: const Offset(100, 0),
@@ -153,8 +151,7 @@ void main() {
   });
 
   group('GravityWave lifecycle', () {
-    test('grows toward maxRadius and reports its opacity over its lifetime',
-        () {
+    test('grows toward maxRadius and reports its opacity over its lifetime', () {
       final wave = GravityWave(
         center: const Offset(100, 100),
         maxRadius: 100,

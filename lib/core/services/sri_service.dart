@@ -26,22 +26,22 @@ class SriProblemData {
   });
 
   Map<String, dynamic> toJson() => {
-        'id': problemId,
-        's': successCount,
-        'f': failureCount,
-        'ef': easinessFactor,
-        'r': repetitions,
-        'next': nextReviewDate.toIso8601String(),
-      };
+    'id': problemId,
+    's': successCount,
+    'f': failureCount,
+    'ef': easinessFactor,
+    'r': repetitions,
+    'next': nextReviewDate.toIso8601String(),
+  };
 
   factory SriProblemData.fromJson(Map<String, dynamic> json) => SriProblemData(
-        problemId: json['id'],
-        successCount: json['s'] ?? 0,
-        failureCount: json['f'] ?? 0,
-        easinessFactor: json['ef'] ?? kSm2InitialEasiness,
-        repetitions: json['r'] ?? 0,
-        nextReviewDate: DateTime.parse(json['next']),
-      );
+    problemId: json['id'],
+    successCount: json['s'] ?? 0,
+    failureCount: json['f'] ?? 0,
+    easinessFactor: json['ef'] ?? kSm2InitialEasiness,
+    repetitions: json['r'] ?? 0,
+    nextReviewDate: DateTime.parse(json['next']),
+  );
 }
 
 // The main service class
@@ -55,7 +55,8 @@ class SriService with ChangeNotifier implements ProblemReviewSource {
   final Set<String> _alreadyReturnedThisSession = {};
   DateTime? _sessionStartTime;
 
-  SriService({DateTime Function()? getNow}) : getNow = getNow ?? DateTime.now;
+  SriService({DateTime Function()? getNow})
+      : getNow = getNow ?? DateTime.now;
 
   void _log(String message) {
     if (kDebugMode) debugPrint('[SRI_SERVICE] 🧠 $message');
@@ -68,14 +69,14 @@ class SriService with ChangeNotifier implements ProblemReviewSource {
   }
 
   void _checkSessionExpiry() {
-    if (_sessionStartTime == null ||
+    if (_sessionStartTime == null || 
         getNow().difference(_sessionStartTime!).inMinutes > 10) {
       resetSession();
     }
   }
 
-  /// NEW: Calculates a detailed breakdown of progress across operations and number ranges.
-  /// This powers the Progress Matrix heatmap.
+    /// NEW: Calculates a detailed breakdown of progress across operations and number ranges.
+    /// This powers the Progress Matrix heatmap.
   Map<MathOperation, Map<NumberRange, OperationStat>> getDetailedBreakdown() {
     _log('Calculating detailed progress breakdown...');
     // Initialize a nested map to hold our aggregated data.
@@ -89,53 +90,41 @@ class SriService with ChangeNotifier implements ProblemReviewSource {
     };
 
     _sriDatabase.forEach((problemId, data) {
-      final parts = problemId.split('_');
-      if (parts.length != 3) return;
+        final parts = problemId.split('_');
+        if (parts.length != 3) return;
 
-      // 1. Determine the operation from the problem ID prefix.
-      MathOperation? operation;
-      switch (parts[0]) {
-        case 'ADD':
-          operation = MathOperation.addition;
-          break;
-        case 'SUB':
-          operation = MathOperation.subtraction;
-          break;
-        case 'MUL':
-          operation = MathOperation.multiplication;
-          break;
-        case 'DIV':
-          operation = MathOperation.division;
-          break;
-      }
-      if (operation == null) return;
+        // 1. Determine the operation from the problem ID prefix.
+        MathOperation? operation;
+        switch (parts[0]) {
+        case 'ADD': operation = MathOperation.addition; break;
+        case 'SUB': operation = MathOperation.subtraction; break;
+        case 'MUL': operation = MathOperation.multiplication; break;
+        case 'DIV': operation = MathOperation.division; break;
+        }
+        if (operation == null) return;
 
-      // 2. Determine the number range from the largest operand.
-      final operand1 = int.tryParse(parts[1]) ?? 0;
-      final operand2 = int.tryParse(parts[2]) ?? 0;
-      final maxOperand = max(operand1, operand2);
+        // 2. Determine the number range from the largest operand.
+        final operand1 = int.tryParse(parts[1]) ?? 0;
+        final operand2 = int.tryParse(parts[2]) ?? 0;
+        final maxOperand = max(operand1, operand2);
 
-      NumberRange range;
-      if (maxOperand <= 10) {
+        NumberRange range;
+        if (maxOperand <= 10) {
         range = NumberRange.range1_10;
-      } else if (maxOperand <= 20) {
+        } else if (maxOperand <= 20) {
         range = NumberRange.range11_20;
-      } else if (maxOperand <= 50) {
+        } else if (maxOperand <= 50) {
         range = NumberRange.range21_50;
-      } else {
+        } else {
         range = NumberRange.range51plus;
-      }
+        }
 
-      // 3. Increment the tracked and mastered counts for the correct bucket.
-      // MODIFIED: Increment stats and accumulate the E-Factor
-      breakdown[operation]![range]!['tracked'] =
-          (breakdown[operation]![range]!['tracked'] as int) + 1;
-      breakdown[operation]![range]!['totalEFactor'] =
-          (breakdown[operation]![range]!['totalEFactor'] as double) +
-              data.easinessFactor;
+        // 3. Increment the tracked and mastered counts for the correct bucket.
+        // MODIFIED: Increment stats and accumulate the E-Factor
+      breakdown[operation]![range]!['tracked'] = (breakdown[operation]![range]!['tracked'] as int) + 1;
+      breakdown[operation]![range]!['totalEFactor'] = (breakdown[operation]![range]!['totalEFactor'] as double) + data.easinessFactor;
       if (isProblemMastered(problemId)) {
-        breakdown[operation]![range]!['mastered'] =
-            (breakdown[operation]![range]!['mastered'] as int) + 1;
+        breakdown[operation]![range]!['mastered'] = (breakdown[operation]![range]!['mastered'] as int) + 1;
       }
     });
 
@@ -155,10 +144,10 @@ class SriService with ChangeNotifier implements ProblemReviewSource {
             ));
       }));
     });
-
+    
     _log('✅ Detailed breakdown calculated.');
     return finalBreakdown;
-  }
+    }
 
   String _getProblemId(MathProblem problem) {
     if (problem.operation == MathOperation.addition) {
@@ -170,11 +159,10 @@ class SriService with ChangeNotifier implements ProblemReviewSource {
     } else if (problem.operation == MathOperation.division) {
       return 'DIV_${problem.operandA}_${problem.operandB}';
     } else {
-      throw Exception(
-          "Unknown MathOperation type for SRI ID generation: ${problem.operation}");
+      throw Exception("Unknown MathOperation type for SRI ID generation: ${problem.operation}");
     }
   }
-
+  
   @override
   bool isProblemMastered(String problemId) {
     final data = _sriDatabase[problemId];
@@ -189,7 +177,7 @@ class SriService with ChangeNotifier implements ProblemReviewSource {
     }
     return isMastered;
   }
-
+  
   Future<void> loadSriData() async {
     _log('Loading SRI database from storage...');
     try {
@@ -209,7 +197,7 @@ class SriService with ChangeNotifier implements ProblemReviewSource {
       _log('❌ Error loading SRI data: $e. Using an empty database.');
       _sriDatabase = {};
     }
-
+    
     resetSession();
     notifyListeners();
   }
@@ -229,14 +217,12 @@ class SriService with ChangeNotifier implements ProblemReviewSource {
 
   void recordResponse(MathProblem problem, bool wasCorrect) {
     final problemId = _getProblemId(problem);
-    _log(
-        'Recording response for problem "$problemId": ${wasCorrect ? "Correct" : "Incorrect"}');
+    _log('Recording response for problem "$problemId": ${wasCorrect ? "Correct" : "Incorrect"}');
 
-    final data = _sriDatabase[problemId] ??
-        SriProblemData(
-          problemId: problemId,
-          nextReviewDate: getNow(),
-        );
+    final data = _sriDatabase[problemId] ?? SriProblemData(
+      problemId: problemId,
+      nextReviewDate: getNow(),
+    );
 
     if (wasCorrect) {
       data.successCount++;
@@ -252,8 +238,7 @@ class SriService with ChangeNotifier implements ProblemReviewSource {
       data.repetitions++;
     }
 
-    data.easinessFactor =
-        data.easinessFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
+    data.easinessFactor = data.easinessFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
     if (data.easinessFactor < kSm2MinimumEasiness) {
       data.easinessFactor = kSm2MinimumEasiness;
     }
@@ -268,20 +253,20 @@ class SriService with ChangeNotifier implements ProblemReviewSource {
     }
 
     data.nextReviewDate = getNow().add(Duration(days: intervalInDays));
-
+    
     _sriDatabase[problemId] = data;
-    _log(
-        'Updated SRI for "$problemId": EF=${data.easinessFactor.toStringAsFixed(2)}, Reps=${data.repetitions}, NextReview=${data.nextReviewDate.toIso8601String().substring(0, 10)}');
-
+    _log('Updated SRI for "$problemId": EF=${data.easinessFactor.toStringAsFixed(2)}, Reps=${data.repetitions}, NextReview=${data.nextReviewDate.toIso8601String().substring(0, 10)}');
+    
     notifyListeners();
     saveSriData();
   }
 
   @override
-  List<String> getProblemsForReview(
-      {int limit = 5,
-      Set<String>? excludeIds,
-      bool resetSessionFirst = false}) {
+  List<String> getProblemsForReview({
+    int limit = 5, 
+    Set<String>? excludeIds,
+    bool resetSessionFirst = false
+  }) {
     if (resetSessionFirst) {
       resetSession();
     } else {
@@ -295,35 +280,33 @@ class SriService with ChangeNotifier implements ProblemReviewSource {
     };
 
     final reviewable = _sriDatabase.values
-        .where((data) =>
-            data.nextReviewDate.isBefore(now) &&
+        .where((data) => 
+            data.nextReviewDate.isBefore(now) && 
             !allExcluded.contains(data.problemId) &&
             !isProblemMastered(data.problemId))
         .toList();
 
     reviewable.sort((a, b) {
-      int efComparison = a.easinessFactor.compareTo(b.easinessFactor);
-      if (efComparison != 0) return efComparison;
-      return a.nextReviewDate.compareTo(b.nextReviewDate);
+        int efComparison = a.easinessFactor.compareTo(b.easinessFactor);
+        if (efComparison != 0) return efComparison;
+        return a.nextReviewDate.compareTo(b.nextReviewDate);
     });
-
-    final problemIds =
-        reviewable.map((data) => data.problemId).take(limit).toList();
-
+    
+    final problemIds = reviewable.map((data) => data.problemId).take(limit).toList();
+    
     _alreadyReturnedThisSession.addAll(problemIds);
-
-    _log(
-        'Found ${problemIds.length} NEW problems due for review (excluding ${allExcluded.length} already returned/excluded).');
+    
+    _log('Found ${problemIds.length} NEW problems due for review (excluding ${allExcluded.length} already returned/excluded).');
     if (problemIds.isNotEmpty) {
       _log('Returning: ${problemIds.join(", ")}');
     }
-
+    
     return problemIds;
   }
 
   int getAvailableReviewCount({Set<String>? excludeIds}) {
     _checkSessionExpiry();
-
+    
     final now = getNow();
     final allExcluded = <String>{
       ..._alreadyReturnedThisSession,
@@ -331,22 +314,23 @@ class SriService with ChangeNotifier implements ProblemReviewSource {
     };
 
     return _sriDatabase.values
-        .where((data) =>
-            data.nextReviewDate.isBefore(now) &&
+        .where((data) => 
+            data.nextReviewDate.isBefore(now) && 
             !allExcluded.contains(data.problemId) &&
             !isProblemMastered(data.problemId))
         .length;
   }
 
-  List<String> getFreshProblemsForReview(
-      {int limit = 5, Set<String>? excludeIds}) {
+  List<String> getFreshProblemsForReview({int limit = 5, Set<String>? excludeIds}) {
     return getProblemsForReview(
-        limit: limit, excludeIds: excludeIds, resetSessionFirst: true);
+      limit: limit, 
+      excludeIds: excludeIds, 
+      resetSessionFirst: true
+    );
   }
 
   void debugPrintSessionState() {
-    _log(
-        'SESSION DEBUG: ${_alreadyReturnedThisSession.length} problems returned this session');
+    _log('SESSION DEBUG: ${_alreadyReturnedThisSession.length} problems returned this session');
     _log('Returned problems: ${_alreadyReturnedThisSession.join(", ")}');
     _log('Available for review: ${getAvailableReviewCount()}');
   }
@@ -480,17 +464,13 @@ class SriService with ChangeNotifier implements ProblemReviewSource {
 /// NEW: A helper to get a display-friendly label for a number range.
 /// TODO: might use the S.of(context) localization instance.
 String getNumberRangeLabel(NumberRange range) {
-  switch (range) {
-    case NumberRange.range1_10:
-      return '1-10';
-    case NumberRange.range11_20:
-      return '11-20';
-    case NumberRange.range21_50:
-      return '21-50';
-    case NumberRange.range51plus:
-      return '51+';
-  }
-}
+    switch (range) {
+        case NumberRange.range1_10: return '1-10';
+        case NumberRange.range11_20: return '11-20';
+        case NumberRange.range21_50: return '21-50';
+        case NumberRange.range51plus: return '51+';
+    }
+    }
 
 class OperationStat {
   final int tracked;
@@ -504,6 +484,7 @@ class OperationStat {
     this.averageEasiness = 2.5, // Default E-Factor
   });
 }
+
 
 /// NEW: Defines the number range buckets used for analysis.
 enum NumberRange { range1_10, range11_20, range21_50, range51plus }

@@ -47,8 +47,10 @@ void main() {
     final regex = RegExp(
       r'\(g, l\)\s*=>\s*\w+\.(\w+Game)\s*\(',
     );
-    final gameClasses =
-        regex.allMatches(registryFile).map((m) => m.group(1)!).toSet();
+    final gameClasses = regex
+        .allMatches(registryFile)
+        .map((m) => m.group(1)!)
+        .toSet();
 
     expect(gameClasses, isNotEmpty,
         reason: 'No game classes extracted from menu — regex drifted?');

@@ -21,8 +21,7 @@ void main() {
     expect(
       missing,
       isEmpty,
-      reason:
-          'gated in game_pool.dart but absent from REMAINING_WORK.md: $missing',
+      reason: 'gated in game_pool.dart but absent from REMAINING_WORK.md: $missing',
     );
   });
 
@@ -50,8 +49,7 @@ void main() {
   test('the gate carries a reason for every key', () {
     // Each key in debugOnlyGames has a comment above it saying why. A key added
     // without one leaves the next person no way to know what to verify.
-    final src =
-        File('lib/features/missions/data/game_pool.dart').readAsStringSync();
+    final src = File('lib/features/missions/data/game_pool.dart').readAsStringSync();
     final block = src.substring(
       src.indexOf('const Set<String> debugOnlyGames'),
       src.indexOf('};', src.indexOf('const Set<String> debugOnlyGames')),

@@ -36,18 +36,17 @@ void main() {
         final gridArea = gridSize * gridSize;
         final cells = totalPieceCells(n);
         expect(cells, gridArea,
-            reason:
-                'N=$n: piece cells ($cells) must equal grid area ($gridArea)');
+            reason: 'N=$n: piece cells ($cells) must equal grid area ($gridArea)');
       }
     });
 
     test('grid sizes for each N', () {
-      expect(gridSizeFromPieceTypes(4), 10); // 10×10
-      expect(gridSizeFromPieceTypes(5), 15); // 15×15
-      expect(gridSizeFromPieceTypes(6), 21); // 21×21
-      expect(gridSizeFromPieceTypes(7), 28); // 28×28
-      expect(gridSizeFromPieceTypes(8), 36); // 36×36
-      expect(gridSizeFromPieceTypes(9), 45); // 45×45
+      expect(gridSizeFromPieceTypes(4), 10);   // 10×10
+      expect(gridSizeFromPieceTypes(5), 15);   // 15×15
+      expect(gridSizeFromPieceTypes(6), 21);   // 21×21
+      expect(gridSizeFromPieceTypes(7), 28);   // 28×28
+      expect(gridSizeFromPieceTypes(8), 36);   // 36×36
+      expect(gridSizeFromPieceTypes(9), 45);   // 45×45
     });
   });
 
@@ -102,8 +101,7 @@ void main() {
           final c1 = grade + (level / 5.0);
           final c2 = (grade + 1) + (level / 5.0);
           expect(c2 > c1, isTrue,
-              reason:
-                  'grade ${grade + 1} should beat grade $grade at level $level');
+              reason: 'grade ${grade+1} should beat grade $grade at level $level');
         }
       }
     });

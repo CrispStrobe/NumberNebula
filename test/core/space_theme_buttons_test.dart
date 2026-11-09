@@ -9,10 +9,8 @@ import 'package:space_math_academy/core/theme/space_theme.dart';
 void main() {
   test('disabled primary buttons keep a visible, dimmed orange', () {
     const disabled = {WidgetState.disabled};
-    final bg =
-        SpaceTheme.primaryButtonStyle.backgroundColor!.resolve(disabled)!;
-    final fg =
-        SpaceTheme.primaryButtonStyle.foregroundColor!.resolve(disabled)!;
+    final bg = SpaceTheme.primaryButtonStyle.backgroundColor!.resolve(disabled)!;
+    final fg = SpaceTheme.primaryButtonStyle.foregroundColor!.resolve(disabled)!;
 
     expect(bg.r, closeTo(SpaceTheme.planetOrange.r, 0.01));
     expect(bg.a, greaterThanOrEqualTo(0.25));
