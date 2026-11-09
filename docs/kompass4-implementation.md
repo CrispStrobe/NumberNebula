@@ -141,7 +141,11 @@ The course key is `kompass_learning_v1`, through `ProfilePreferences`. Each lab
 uses `kompass_lab_v1_<labId>`. Stores capture the active player before an await,
 serialize writes and deduplicate completion IDs. Session revisions and closed
 session IDs prevent old callbacks from overwriting or resurrecting a newer run.
-Unreadable records are preserved; explicit local recovery backs them up before
+Lab reads and writes share a queue for each captured player and lab. A reopened
+screen takes ownership of its draft, so a delayed completion from the old screen
+cannot replace a later round, response or hint history. Retained input controls
+also stop accepting edits after disposal or an ownership change.
+Unreadable course records are preserved; explicit local recovery backs them up before
 resetting only this feature. No existing game score, game key, wallet or SRI
 record is reused for course evidence.
 
@@ -196,7 +200,9 @@ bank's difficulty labels or time estimates. Any outcome claim needs that evidenc
 
 ## Validation evidence
 
-Local focused verification on 2026-11-09 passed **120 KOMPASS Flutter cases**
+The preceding checkpoint
+[`bc12371`](https://github.com/CrispStrobe/NumberNebula/commit/bc12371e969cb0ef8cac9e8765b9b920a55d11d7)
+records local verification on 2026-11-09 of **120 KOMPASS Flutter cases**
 across engine/scoring, storage, figures, labs, home entry, course interactions,
 paper mode and versioned review, plus the existing localization guard
 (**121 passing cases, zero failures or skips**). Targeted strict analysis found
@@ -205,6 +211,22 @@ builders passed. The checked package contains 128 tasks and 257 separately
 scored parts. kompass4's independent export comparison matches all 32 mappings
 against this generated asset.
 
+Two additional lab repairs are saved in **1.6.0+65**:
+
+- Numeric answers now use the shared unit-aware parser. Length accepts written
+  millimetres and rejects euros or centimetres; shopping accepts written euros
+  and rejects unrelated units. Bare values and decimal commas remain supported.
+- Reopening a lab now serializes storage across screen instances and prevents
+  obsolete completion callbacks or retained controls from replacing its draft.
+
+Three numeric-scoring regressions and two lifecycle widget regressions accompany
+these repairs. They cover actual scoring, delayed completion after reopening and
+advancing, retained input, saved hints and first-response preservation. These
+five new cases have not yet executed: Flutter verification remains pending on
+the required remote gate. The previous checkpoint's 121 passing checks do not
+validate these follow-up changes. The **59 Python tests**, content validator and
+both reproducible builders were rerun successfully during this continuation.
+
 The resumed audit also repaired worked-solution and immediate-hint history,
 stale answer overwrites, recovery when a session snapshot lags durable progress,
 and retained manual-review controls. A real held-pointer regression passes with
@@ -212,7 +234,8 @@ task-specific input identity and fails when that protection is removed: releasin
 the old pointer otherwise answers the next task. This negative control is a
 behavioral check, not a text-presence assertion.
 
-The previous full-suite failure was the localization guard; it now passes.
+The previous full-suite failure was the localization guard; it passed in the
+preceding checkpoint's local verification.
 Previous browser failures used incomplete accessible names for answer fields;
 the selectors now match the actual question labels. The expanded browser job
 retains its one-worker and per-test limits, with enough overall time for both

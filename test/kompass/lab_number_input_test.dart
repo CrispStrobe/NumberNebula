@@ -12,8 +12,11 @@ void main() {
       '$millimetres,0 mm',
       '$millimetres millimetres',
     ]) {
-      expect(round.check({'millimetres': answer}).correct, isTrue,
-          reason: 'A valid millimetre answer must be accepted: $answer');
+      expect(
+        round.check({'millimetres': answer}).correct,
+        isTrue,
+        reason: 'A valid millimetre answer must be accepted: $answer',
+      );
     }
     for (final answer in [
       '$millimetres €',
@@ -21,8 +24,11 @@ void main() {
       '${millimetres ~/ 10} cm',
       '$millimetres mm €',
     ]) {
-      expect(round.check({'millimetres': answer}).correct, isFalse,
-          reason: 'The requested millimetres cannot be replaced by $answer');
+      expect(
+        round.check({'millimetres': answer}).correct,
+        isFalse,
+        reason: 'The requested millimetres cannot be replaced by $answer',
+      );
     }
   });
 
@@ -42,12 +48,18 @@ void main() {
       '$euros €',
       '${euros.replaceAll('.', ',')} Euro',
     ]) {
-      expect(round.check({'total': answer, 'coins': coins}).points, 2,
-          reason: 'The correct receipt and change must earn both points');
+      expect(
+        round.check({'total': answer, 'coins': coins}).points,
+        2,
+        reason: 'The correct receipt and change must earn both points',
+      );
     }
     for (final answer in ['$euros mm', '$euros ct', '$euros € €']) {
-      expect(round.check({'total': answer, 'coins': coins}).points, 1,
-          reason: 'Correct change must not hide a receipt in the wrong unit');
+      expect(
+        round.check({'total': answer, 'coins': coins}).points,
+        1,
+        reason: 'Correct change must not hide a receipt in the wrong unit',
+      );
     }
   });
 
