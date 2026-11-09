@@ -98,7 +98,8 @@ void main() {
         final puzzle = _generate(grade: 2);
         for (final clue in puzzle.clues) {
           expect(clue.check(puzzle.secretCode), isTrue,
-              reason: 'Clue "${clue.clueTextEn}" should accept secret ${puzzle.secretCode}');
+              reason:
+                  'Clue "${clue.clueTextEn}" should accept secret ${puzzle.secretCode}');
         }
       }
     });

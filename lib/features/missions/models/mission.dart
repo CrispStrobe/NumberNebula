@@ -149,8 +149,7 @@ class MissionState {
       };
 
   factory MissionState.fromJson(Map<String, dynamic> json) => MissionState(
-        mission:
-            Mission.fromJson(json['mission'] as Map<String, dynamic>),
+        mission: Mission.fromJson(json['mission'] as Map<String, dynamic>),
         codewordSolved: json['codewordSolved'] as bool? ?? false,
       );
 }

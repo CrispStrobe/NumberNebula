@@ -35,10 +35,14 @@ class BubbleMathGame extends StatefulWidget {
 class _BubbleMathGameState extends State<BubbleMathGame>
     with TickerProviderStateMixin, PuzzleSessionMixin<BubbleMathGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'bubble_math';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
+  @override
+  String get sessionGameKey => 'bubble_math';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
     if (!_sessionReady) return null;
     return {
       'bubbles': bubbles.map((v0) => v0.toJson()).toList(),
@@ -49,15 +53,24 @@ class _BubbleMathGameState extends State<BubbleMathGame>
       'timeLeft': timeLeft
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    bubbles = (state["bubbles"] as List).map((v0) => Bubble.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
-    _levelProblems = (state["_levelProblems"] as List).map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
-    targetOrder = (state["targetOrder"] as List).map((v0) => v0 as int).toList();
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    bubbles = (state["bubbles"] as List)
+        .map((v0) => Bubble.fromJson(Map<String, dynamic>.from(v0 as Map)))
+        .toList();
+    _levelProblems = (state["_levelProblems"] as List)
+        .map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map)))
+        .toList();
+    targetOrder =
+        (state["targetOrder"] as List).map((v0) => v0 as int).toList();
     currentTargetIndex = state["currentTargetIndex"] as int;
     _wrongTaps = state["_wrongTaps"] as int;
     timeLeft = state["timeLeft"] as int;
-    gameActive = true; _startGameTimer();
+    gameActive = true;
+    _startGameTimer();
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generateBubbles);
@@ -116,7 +129,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
     _levelProblems.clear();
     currentTargetIndex = 0;
     _wrongTaps = 0;
-    
+
     final screenSize = MediaQuery.of(context).size;
     final difficulty = widget.grade + widget.level;
     final bubbleCount = math.min(4 + (difficulty / 2).floor(), 10);
@@ -125,7 +138,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
 
     for (int i = 0; i < bubbleCount; i++) {
       MathProblem problem;
-      
+
       double equationChance = 0.1 * difficulty;
       if (random.nextDouble() > equationChance) {
         int plainNumber = 0;
@@ -136,14 +149,16 @@ class _BubbleMathGameState extends State<BubbleMathGame>
         problem = MathProblem(
           expression: plainNumber.toString(),
           answer: plainNumber,
-          operation: MathOperation.addition, 
+          operation: MathOperation.addition,
           operandA: plainNumber,
           operandB: 0,
           difficulty: 1,
         );
       } else {
         problem = MathProblem.random(widget.grade, difficulty: difficulty);
-        for (var attempt = 0; attempt < 200 && usedAnswers.contains(problem.answer); attempt++) {
+        for (var attempt = 0;
+            attempt < 200 && usedAnswers.contains(problem.answer);
+            attempt++) {
           problem = MathProblem.random(widget.grade, difficulty: difficulty);
         }
       }
@@ -161,8 +176,10 @@ class _BubbleMathGameState extends State<BubbleMathGame>
             .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
         answer: problem.answer,
         position: Offset(
-          random.nextDouble() * (screenSize.width - bubbleSize) + (bubbleSize / 2),
-          random.nextDouble() * (screenSize.height - bubbleSize - 150) + (bubbleSize / 2),
+          random.nextDouble() * (screenSize.width - bubbleSize) +
+              (bubbleSize / 2),
+          random.nextDouble() * (screenSize.height - bubbleSize - 150) +
+              (bubbleSize / 2),
         ),
         velocity: Offset(
           (random.nextDouble() - 0.5) * bubbleSpeed,
@@ -174,7 +191,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
 
       targetOrder.add(problem.answer);
     }
-    
+
     targetOrder.sort();
     setState(() {});
   }
@@ -203,14 +220,15 @@ class _BubbleMathGameState extends State<BubbleMathGame>
         }
 
         if (bubble.position.dy <= bubble.size / 2 ||
-            bubble.position.dy >=
-                screenSize.height - bubble.size / 2 - 150) {
+            bubble.position.dy >= screenSize.height - bubble.size / 2 - 150) {
           bubble.velocity = Offset(bubble.velocity.dx, -bubble.velocity.dy);
         }
-        
+
         bubble.position = Offset(
-          bubble.position.dx.clamp(bubble.size / 2, screenSize.width - bubble.size / 2),
-          bubble.position.dy.clamp(bubble.size / 2, screenSize.height - bubble.size / 2 - 150),
+          bubble.position.dx
+              .clamp(bubble.size / 2, screenSize.width - bubble.size / 2),
+          bubble.position.dy.clamp(
+              bubble.size / 2, screenSize.height - bubble.size / 2 - 150),
         );
       }
     });
@@ -219,7 +237,8 @@ class _BubbleMathGameState extends State<BubbleMathGame>
   void _startGameTimer() {
     _gameTimer?.cancel();
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context)) return;
+      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context))
+        return;
       if (mounted && gameActive && timeLeft > 0) {
         setVisualState(() => timeLeft--);
       } else if (mounted) {
@@ -281,14 +300,14 @@ class _BubbleMathGameState extends State<BubbleMathGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'bubble_math',
-      difficulty: widget.level,
-      score: totalScore,
-      mathProblems: _levelProblems,
-      performance:
-          Perf.fromRatio(currentTargetIndex, currentTargetIndex + _wrongTaps),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'bubble_math',
+          difficulty: widget.level,
+          score: totalScore,
+          mathProblems: _levelProblems,
+          performance: Perf.fromRatio(
+              currentTargetIndex, currentTargetIndex + _wrongTaps),
+        ));
 
     showDialog(
       context: context,
@@ -305,14 +324,14 @@ class _BubbleMathGameState extends State<BubbleMathGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'bubble_math',
-      difficulty: widget.level,
-      mathProblems: _levelProblems,
-      progress: targetOrder.isEmpty
-          ? 0.0
-          : currentTargetIndex / targetOrder.length,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'bubble_math',
+          difficulty: widget.level,
+          mathProblems: _levelProblems,
+          progress: targetOrder.isEmpty
+              ? 0.0
+              : currentTargetIndex / targetOrder.length,
+        ));
 
     showDialog(
       context: context,
@@ -323,7 +342,8 @@ class _BubbleMathGameState extends State<BubbleMathGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
@@ -344,14 +364,17 @@ class _BubbleMathGameState extends State<BubbleMathGame>
                 child: ExcludeSemantics(
                   child: Container(
                     margin: const EdgeInsets.all(16),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
                     decoration: SpaceTheme.cardDecoration,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(S.of(context)!.bubbleNextTarget, style: SpaceTheme.bodyStyle),
+                        Text(S.of(context)!.bubbleNextTarget,
+                            style: SpaceTheme.bodyStyle),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
                             color: SpaceTheme.starYellow,
                             borderRadius: BorderRadius.circular(15),
@@ -372,11 +395,13 @@ class _BubbleMathGameState extends State<BubbleMathGame>
               ),
               Expanded(
                 child: Stack(
-                  children: bubbles.map((bubble) => BubbleWidget(
-                    key: ValueKey(bubble.id),
-                    bubble: bubble,
-                    onTapped: () => _onBubbleTapped(bubble),
-                  )).toList(),
+                  children: bubbles
+                      .map((bubble) => BubbleWidget(
+                            key: ValueKey(bubble.id),
+                            bubble: bubble,
+                            onTapped: () => _onBubbleTapped(bubble),
+                          ))
+                      .toList(),
                 ),
               ),
             ],
@@ -395,7 +420,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                  RoundSummary(gameKey: 'bubble_math'),
+            RoundSummary(gameKey: 'bubble_math'),
             const Icon(
               Icons.rocket_launch,
               size: 64,
@@ -451,7 +476,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                  RoundSummary(gameKey: 'bubble_math'),
+            RoundSummary(gameKey: 'bubble_math'),
             const Icon(
               Icons.access_time,
               size: 64,
@@ -497,7 +522,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
       ),
     );
   }
-  
+
   void _resetGame() {
     setState(() {
       timeLeft = 60;
@@ -512,23 +537,24 @@ class _BubbleMathGameState extends State<BubbleMathGame>
 class Bubble {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'mathProblem': mathProblem,
-    'answer': answer,
-    'position': [position.dx, position.dy],
-    'velocity': [velocity.dx, velocity.dy],
-    'color': color.toARGB32(),
-    'size': size
-  };
+        'id': id,
+        'mathProblem': mathProblem,
+        'answer': answer,
+        'position': [position.dx, position.dy],
+        'velocity': [velocity.dx, velocity.dy],
+        'color': color.toARGB32(),
+        'size': size
+      };
   factory Bubble.fromJson(Map<String, dynamic> json) => Bubble(
-    id: json['id'] as int,
-    mathProblem: json['mathProblem'] as String,
-    answer: json['answer'] as int,
-    position: Offset((json['position'][0] as num).toDouble(), (json['position'][1] as num).toDouble()),
-    velocity: Offset((json['velocity'][0] as num).toDouble(), (json['velocity'][1] as num).toDouble()),
-    color: Color(json['color'] as int),
-    size: (json['size'] as num).toDouble()
-  );
+      id: json['id'] as int,
+      mathProblem: json['mathProblem'] as String,
+      answer: json['answer'] as int,
+      position: Offset((json['position'][0] as num).toDouble(),
+          (json['position'][1] as num).toDouble()),
+      velocity: Offset((json['velocity'][0] as num).toDouble(),
+          (json['velocity'][1] as num).toDouble()),
+      color: Color(json['color'] as int),
+      size: (json['size'] as num).toDouble());
 
   final int id;
   String mathProblem;

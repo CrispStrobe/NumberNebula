@@ -138,7 +138,10 @@ class KompassScorer {
 
   /// Bare values use the unit displayed by the part. Written units must agree.
   /// Decimal commas and decimal points are accepted, grouping/exponents are not.
-  static double? parseNumber(dynamic value, {String unit = ''}) {
+  /// `acceptCents` lets a euro part also read "345 ct" or "3 € 45 ct"; it is
+  /// set only where the task's rubric accepts cent amounts.
+  static double? parseNumber(dynamic value,
+      {String unit = '', bool acceptCents = false}) {
     if (value is num) return value.isFinite ? value.toDouble() : null;
     if (value is! String) return null;
     var text = value
@@ -148,7 +151,7 @@ class KompassScorer {
         .replaceAll('\u202f', ' ');
     if (text.isEmpty) return null;
     final expectedUnit = unit.trim().toLowerCase();
-    if (expectedUnit == '€') {
+    if (expectedUnit == '€' && acceptCents) {
       // "345 ct" and "3 € 45 ct" are unambiguous euro amounts.
       final cents = RegExp(r'^(?:(\d+)\s*(?:€|euro)\s*)?(\d+)\s*(?:ct|cent)$',
               caseSensitive: false)
@@ -205,7 +208,9 @@ class KompassScorer {
       } else {
         switch (type) {
           case 'number':
-            final number = parseNumber(response, unit: part.unit);
+            final number = parseNumber(response,
+                unit: part.unit,
+                acceptCents: part.answer['acceptCents'] == true);
             final expected = (part.answer['value'] as num).toDouble();
             final tolerance =
                 (part.answer['tolerance'] as num?)?.toDouble() ?? 1e-9;

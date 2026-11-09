@@ -39,9 +39,12 @@ class SriReviewScreen extends StatelessWidget {
           const SizedBox(height: 24),
           _StatRow(
             children: [
-              _StatTile(label: S.of(context)!.sriMasteredLabel, value: '$mastered'),
-              _StatTile(label: S.of(context)!.sriLearningLabel, value: '$learning'),
-              _StatTile(label: S.of(context)!.sriMasteryLabel, value: '$masteryPct%'),
+              _StatTile(
+                  label: S.of(context)!.sriMasteredLabel, value: '$mastered'),
+              _StatTile(
+                  label: S.of(context)!.sriLearningLabel, value: '$learning'),
+              _StatTile(
+                  label: S.of(context)!.sriMasteryLabel, value: '$masteryPct%'),
             ],
           ),
           const SizedBox(height: 24),
@@ -166,8 +169,8 @@ class _StatTile extends StatelessWidget {
             Text(value, style: SpaceTheme.titleStyle.copyWith(fontSize: 24)),
             const SizedBox(height: 4),
             Text(label,
-                style: SpaceTheme.bodyStyle.copyWith(
-                    fontSize: 12, color: Colors.white60)),
+                style: SpaceTheme.bodyStyle
+                    .copyWith(fontSize: 12, color: Colors.white60)),
           ],
         ),
       ),

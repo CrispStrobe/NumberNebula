@@ -172,6 +172,48 @@ original content version when revised.
 Export records before intentionally clearing browser or application storage;
 remote source checkpoints do not back up a learner's device-local progress.
 
+## Original kompass4 practice papers
+
+Like WordUniverse's German course, the pathway now also carries the six
+original 45-minute mathematics papers from kompass4 (`mathe1`–`mathe6`,
+120 tasks, 240 points), beside the 144 NumberNebula tasks. kompass4 owns the
+papers and their interactive answer companions
+(`content/interactive/mathe1.json` …, exported by
+`python -m kompass.export_interactive_math`); this repository pins that
+export in `tool/kompass/kompass4_math_source.json` and converts it with
+`tool/kompass/import_kompass4_math.py` into
+`assets/kompass/kompass4/math_original.json` plus 63 PNG diagrams rendered
+by the print renderer (316 KB). The PDF booklets are linked at the pinned
+kompass4 commit, not bundled.
+
+- Tasks use `use: original`; practice, check and rehearsal selection never
+  draws them. The hub lists each paper with *Als Test* (timed rehearsal mode,
+  45 minutes, feedback at the end) and *Üben* (practice mode with hints).
+- The repository merges the two packages at load time. The combined version
+  names both inputs; `compatibleTaskIds` keeps records made against the
+  main package alone usable.
+- Task text is German. Text, tables and diagrams render in print order through
+  the `stack`, `text` and `image` figure kinds; a sub-question repeated in its
+  answer part is shown once.
+- Scoring follows the companion: numbers (with optional count words such as
+  "Kinder", and cent amounts where the rubric accepts them), short text with
+  rubric review for other wordings, choices, order, and rubric-reviewed
+  drawings and explanations. Where a rubric credits a correct continuation of
+  a wrong earlier step (`followOnFrom`), the later answer goes to rubric
+  review instead of scoring zero.
+
+## Lab recipes
+
+Recipe 2 (1.6.1) made the original four labs harder: build-number clues
+instead of digits, regrouping with a written value (`regroupWrite`),
+non-round number-line endpoints, fractional litres with a limited supply,
+relational chance goals, composed events, nine symmetry shapes and all eleven
+cube nets. Recipe 1 keeps the frozen original generators in
+`legacy_lab_rounds_v1.dart`. A draft records its recipe; drafts saved before
+the change replay with recipe 1, and the next round uses recipe 2.
+`tool/kompass/audit_legacy_lab_recipes.dart` checks recipe 1 byte for byte
+against `8971225`.
+
 ## Authoring and validation commands
 
 Original interactive-task authoring sources are in `tool/kompass/`. Canonical

@@ -94,9 +94,7 @@ void main() {
       'fallback ships do not overlap and admit a legal exit witness',
       () async {
         final config = await PuzzleGenerator.generate(1, 1);
-        final ships = config.ships
-            .map(Map<String, dynamic>.from)
-            .toList();
+        final ships = config.ships.map(Map<String, dynamic>.from).toList();
         expect(config.minMoves, 10); // Retain the authored quality reference.
         void validate() {
           final occupied = <(int, int)>{};
@@ -139,9 +137,8 @@ void main() {
         expect(config.minMoves, greaterThan(0));
         expect(config.ships, isNotEmpty);
 
-        final players = config.ships
-            .where((s) => s['isPlayer'] == true)
-            .toList();
+        final players =
+            config.ships.where((s) => s['isPlayer'] == true).toList();
         expect(players.length, 1, reason: 'fallback must have one player ship');
 
         for (final s in config.ships) {
@@ -164,7 +161,8 @@ void main() {
     List<GridlockPuzzleData> getPuzzlesByComplexity(
       double c, {
       double tolerance = 0.0,
-    }) => db.byComplexity(c, tolerance: tolerance);
+    }) =>
+        db.byComplexity(c, tolerance: tolerance);
 
     test('holds the whole bundled database with unique ids', () {
       expect(db.puzzles.length, 1313);
@@ -192,9 +190,8 @@ void main() {
           expect(puzzle.minMoves, greaterThan(0), reason: reason);
           expect(puzzle.ships, isNotEmpty, reason: reason);
 
-          final players = puzzle.ships
-              .where((s) => s['isPlayer'] == true)
-              .toList();
+          final players =
+              puzzle.ships.where((s) => s['isPlayer'] == true).toList();
           expect(
             players.length,
             1,
@@ -268,14 +265,15 @@ void main() {
         bool h, [
         bool player = false,
         bool blocking = false,
-      ]) => {
-        'row': row,
-        'col': col,
-        'length': length,
-        'isHorizontal': h,
-        'isPlayer': player,
-        'isBlocking': blocking,
-      };
+      ]) =>
+          {
+            'row': row,
+            'col': col,
+            'length': length,
+            'isHorizontal': h,
+            'isPlayer': player,
+            'isBlocking': blocking,
+          };
       expect(shipsFromBoard('IBBKooIoJKCCAAJoLMoxEELMoooFFooGGHHo'), [
         s(2, 0, 2, true, true),
         s(0, 1, 2, true),

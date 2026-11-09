@@ -13,8 +13,10 @@ import 'package:space_math_academy/features/games/widgets/hyperdrive_gates_world
 void main() {
   test('planet hopping surface repaints only for a new colour', () {
     final red = hopping.PlanetSurfacePainter(Colors.red);
-    expect(red.shouldRepaint(hopping.PlanetSurfacePainter(Colors.red)), isFalse);
-    expect(red.shouldRepaint(hopping.PlanetSurfacePainter(Colors.blue)), isTrue);
+    expect(
+        red.shouldRepaint(hopping.PlanetSurfacePainter(Colors.red)), isFalse);
+    expect(
+        red.shouldRepaint(hopping.PlanetSurfacePainter(Colors.blue)), isTrue);
   });
 
   test('duel card pattern repaints only for a new colour', () {
@@ -25,16 +27,20 @@ void main() {
 
   test('hyperdrive planet surface repaints only for a new colour', () {
     final red = hyperdrive.PlanetSurfacePainter(color: Colors.red);
-    expect(red.shouldRepaint(hyperdrive.PlanetSurfacePainter(color: Colors.red)),
+    expect(
+        red.shouldRepaint(hyperdrive.PlanetSurfacePainter(color: Colors.red)),
         isFalse);
-    expect(red.shouldRepaint(hyperdrive.PlanetSurfacePainter(color: Colors.blue)),
+    expect(
+        red.shouldRepaint(hyperdrive.PlanetSurfacePainter(color: Colors.blue)),
         isTrue);
   });
 
   test('hyperdrive asteroid repaints only for a new shape', () {
     final shape = Path()..addOval(const Rect.fromLTWH(0, 0, 40, 40));
     final painter = hyperdrive.AsteroidPainter(shape: shape);
-    expect(painter.shouldRepaint(hyperdrive.AsteroidPainter(shape: shape)), isFalse);
-    expect(painter.shouldRepaint(hyperdrive.AsteroidPainter(shape: Path())), isTrue);
+    expect(painter.shouldRepaint(hyperdrive.AsteroidPainter(shape: shape)),
+        isFalse);
+    expect(painter.shouldRepaint(hyperdrive.AsteroidPainter(shape: Path())),
+        isTrue);
   });
 }

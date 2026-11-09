@@ -123,22 +123,22 @@ List<String> get puzzleGames => missionGameKeys
 /// and friends. Every mission gets at least one so it never degenerates into
 /// a list of grids to fill in.
 const Set<String> signaturePuzzleGames = {
-  'star_loader_game',          // sokoban
-  'quantum_molecule_builder',  // atomix
-  'space_station_gridlock',    // rush hour
-  'robot_path_game',           // programming a path
-  'void_crossing',             // river crossing
-  'dark_matter_grid',          // lights out
-  'launch_sequence',           // sorting
-  'relic_assembly',            // edge-matching tiles
-  'hull_plating',              // polyomino packing
-  'grid_filler_game',          // tiling
-  'cargo_bay_arranger',        // falling blocks
-  'asteroid_field_navigator',  // minesweeper
-  'sector_painter',            // map colouring
-  'ion_chain',                 // chain building (currently in debugOnlyGames)
-  'warp_fold',                 // paper folding
-  'cube_scanner',              // dice nets (in debugOnlyGames)
+  'star_loader_game', // sokoban
+  'quantum_molecule_builder', // atomix
+  'space_station_gridlock', // rush hour
+  'robot_path_game', // programming a path
+  'void_crossing', // river crossing
+  'dark_matter_grid', // lights out
+  'launch_sequence', // sorting
+  'relic_assembly', // edge-matching tiles
+  'hull_plating', // polyomino packing
+  'grid_filler_game', // tiling
+  'cargo_bay_arranger', // falling blocks
+  'asteroid_field_navigator', // minesweeper
+  'sector_painter', // map colouring
+  'ion_chain', // chain building (currently in debugOnlyGames)
+  'warp_fold', // paper folding
+  'cube_scanner', // dice nets (in debugOnlyGames)
 };
 
 /// Icons for display in the mission streak screen.

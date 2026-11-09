@@ -348,8 +348,8 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       builder: (ctx) => !_ownsRound(round)
           ? const SizedBox.shrink()
           : score != null
-          ? _buildSuccessDialog(score, bonus, round, ctx)
-          : _buildFailureDialog(round, ctx),
+              ? _buildSuccessDialog(score, bonus, round, ctx)
+              : _buildFailureDialog(round, ctx),
     );
     _resultRoute = route;
     unawaited(
@@ -1292,16 +1292,12 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   }
 
   void _checkWinCondition() {
-    for (
-      int startRow = 0;
-      startRow <= gridSize - targetPattern.size;
-      startRow++
-    ) {
-      for (
-        int startCol = 0;
-        startCol <= gridSize - targetPattern.size;
-        startCol++
-      ) {
+    for (int startRow = 0;
+        startRow <= gridSize - targetPattern.size;
+        startRow++) {
+      for (int startCol = 0;
+          startCol <= gridSize - targetPattern.size;
+          startCol++) {
         if (_checkPatternAt(startRow, startCol)) {
           _handleSuccess();
           return;
@@ -1314,16 +1310,12 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   /// close the player got, used to report progress on a failed run.
   int _atomsInPlace() {
     int best = 0;
-    for (
-      int startRow = 0;
-      startRow <= gridSize - targetPattern.size;
-      startRow++
-    ) {
-      for (
-        int startCol = 0;
-        startCol <= gridSize - targetPattern.size;
-        startCol++
-      ) {
+    for (int startRow = 0;
+        startRow <= gridSize - targetPattern.size;
+        startRow++) {
+      for (int startCol = 0;
+          startCol <= gridSize - targetPattern.size;
+          startCol++) {
         int matches = 0;
         for (int i = 0; i < targetPattern.size; i++) {
           for (int j = 0; j < targetPattern.size; j++) {
@@ -1440,19 +1432,19 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(
-      GameOutcome.win(
-        skillLevel: widget.grade,
-        gameType: 'quantum_molecule_builder',
-        difficulty: widget.grade + (widget.level ~/ 5),
-        score: totalScore,
-        // The move limit is deliberately generous; assembling the molecule
-        // inside half of it is what a clean solution looks like.
-        performance: Perf.fromMoves(movesMade, (moveLimit * 0.5).round()),
+          GameOutcome.win(
+            skillLevel: widget.grade,
+            gameType: 'quantum_molecule_builder',
+            difficulty: widget.grade + (widget.level ~/ 5),
+            score: totalScore,
+            // The move limit is deliberately generous; assembling the molecule
+            // inside half of it is what a clean solution looks like.
+            performance: Perf.fromMoves(movesMade, (moveLimit * 0.5).round()),
 
-        movesUsed: movesMade,
-        optimalMoves: (moveLimit * 0.5).round(),
-      ),
-    );
+            movesUsed: movesMade,
+            optimalMoves: (moveLimit * 0.5).round(),
+          ),
+        );
 
     Future.delayed(const Duration(milliseconds: 1200), () {
       _showResult(round, score: totalScore, bonus: efficiencyBonus);
@@ -1472,13 +1464,13 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(
-      GameOutcome.loss(
-        skillLevel: widget.grade,
-        gameType: 'quantum_molecule_builder',
-        difficulty: widget.grade + (widget.level ~/ 5),
-        progress: atoms.isEmpty ? 0.0 : _atomsInPlace() / atoms.length,
-      ),
-    );
+          GameOutcome.loss(
+            skillLevel: widget.grade,
+            gameType: 'quantum_molecule_builder',
+            difficulty: widget.grade + (widget.level ~/ 5),
+            progress: atoms.isEmpty ? 0.0 : _atomsInPlace() / atoms.length,
+          ),
+        );
 
     if (!_reducedMotion) {
       for (int i = 0; i < 40; i++) {
@@ -1659,9 +1651,8 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     final isEnabled = onPressed != null;
 
     return ElevatedButton(
-      onPressed: onPressed == null
-          ? null
-          : _roundAction(onPressed, playable: false),
+      onPressed:
+          onPressed == null ? null : _roundAction(onPressed, playable: false),
       style: ElevatedButton.styleFrom(
         backgroundColor: isEnabled
             ? SpaceTheme.nebulaPurple.withValues(alpha: 0.8)
@@ -1726,9 +1717,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                       },
                     ),
                   ),
-
                   ...particles.map((p) => p.build()),
-
                   Column(
                     children: [
                       // REPLACED: The old GameUI and Padding rows are gone
@@ -1741,7 +1730,6 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                       ),
                     ],
                   ),
-
                   if (_restoredTerminal)
                     Center(
                       child: Card(
@@ -1758,7 +1746,6 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                       ),
                     ),
                   if (_showInstructions) _buildInstructionsOverlay(),
-
                   if (_showMoleculeInfo) _buildInfoOverlay(),
                 ],
               ),
@@ -2158,12 +2145,10 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
     final screenSize = MediaQuery.of(context).size;
     final isCompact = screenSize.width < 600;
-    final previewSize = isCompact
-        ? screenSize.width * 0.7
-        : screenSize.width * 0.35;
-    final atomSize = (targetPattern.size > 0)
-        ? (previewSize / targetPattern.size)
-        : 40.0;
+    final previewSize =
+        isCompact ? screenSize.width * 0.7 : screenSize.width * 0.35;
+    final atomSize =
+        (targetPattern.size > 0) ? (previewSize / targetPattern.size) : 40.0;
 
     return Positioned.fill(
       child: GestureDetector(
@@ -2270,12 +2255,10 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   Widget _buildBonusStageInfoOverlay() {
     final screenSize = MediaQuery.of(context).size;
     final isCompact = screenSize.width < 600;
-    final previewSize = isCompact
-        ? screenSize.width * 0.75
-        : screenSize.width * 0.4;
-    final atomSize = (targetPattern.size > 0)
-        ? (previewSize / targetPattern.size)
-        : 40.0;
+    final previewSize =
+        isCompact ? screenSize.width * 0.75 : screenSize.width * 0.4;
+    final atomSize =
+        (targetPattern.size > 0) ? (previewSize / targetPattern.size) : 40.0;
 
     return Positioned.fill(
       child: GestureDetector(
@@ -2747,8 +2730,8 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                   color: isSelected
                       ? SpaceTheme.starYellow
                       : isLightAtom
-                      ? const Color(0xFFCCCCCC)
-                      : Colors.white.withValues(alpha: 0.9),
+                          ? const Color(0xFFCCCCCC)
+                          : Colors.white.withValues(alpha: 0.9),
                   width: isSelected ? 3 : 2,
                 ),
                 boxShadow: [
@@ -2790,9 +2773,8 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                         fontWeight: FontWeight.bold,
                         shadows: [
                           Shadow(
-                            color: isLightAtom
-                                ? Colors.white60
-                                : Colors.black87,
+                            color:
+                                isLightAtom ? Colors.white60 : Colors.black87,
                             blurRadius: 2,
                             offset: const Offset(1, 1),
                           ),
@@ -2947,12 +2929,10 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           if (identical(slidingAtom, atom) &&
               slideStartPos != null &&
               slideEndPos != null) {
-            x =
-                slideStartPos!.dx -
+            x = slideStartPos!.dx -
                 gridOffsetX +
                 (slideEndPos!.dx - slideStartPos!.dx) * _slideAnimation.value;
-            y =
-                slideStartPos!.dy -
+            y = slideStartPos!.dy -
                 gridOffsetY +
                 (slideEndPos!.dy - slideStartPos!.dy) * _slideAnimation.value;
           }
@@ -3010,9 +2990,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    S
-                        .of(context)!
-                        .moleculeBuilderWinDesc(
+                    S.of(context)!.moleculeBuilderWinDesc(
                           movesMade,
                           totalScore,
                           efficiencyBonus,
@@ -3204,15 +3182,15 @@ String getLocalizedAtomName(AtomType type, BuildContext context) {
 class AtomType {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-    'symbol': symbol,
-    'name': name,
-    'color': color.toARGB32(),
-  };
+        'symbol': symbol,
+        'name': name,
+        'color': color.toARGB32(),
+      };
   factory AtomType.fromJson(Map<String, dynamic> json) => AtomType(
-    symbol: json['symbol'] as String,
-    name: json['name'] as String,
-    color: Color(json['color'] as int),
-  );
+        symbol: json['symbol'] as String,
+        name: json['name'] as String,
+        color: Color(json['color'] as int),
+      );
 
   final String symbol;
   final String name;
@@ -3319,19 +3297,19 @@ class AtomType {
 class Atom {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-    'type': type.toJson(),
-    'row': row,
-    'col': col,
-    'id': id,
-    'atomixIndex': atomixIndex,
-  };
+        'type': type.toJson(),
+        'row': row,
+        'col': col,
+        'id': id,
+        'atomixIndex': atomixIndex,
+      };
   factory Atom.fromJson(Map<String, dynamic> json) => Atom(
-    type: AtomType.fromJson(Map<String, dynamic>.from(json['type'] as Map)),
-    row: json['row'] as int,
-    col: json['col'] as int,
-    id: json['id'] as String,
-    atomixIndex: json['atomixIndex'] as int,
-  );
+        type: AtomType.fromJson(Map<String, dynamic>.from(json['type'] as Map)),
+        row: json['row'] as int,
+        col: json['col'] as int,
+        id: json['id'] as String,
+        atomixIndex: json['atomixIndex'] as int,
+      );
 
   final AtomType type;
   int row;
@@ -3351,11 +3329,11 @@ class Atom {
 class MoleculePattern {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-    'name': name,
-    'size': size,
-    'grid': grid.map((v0) => v0.map((v1) => (v1)).toList()).toList(),
-    'atomTypes': atomTypes.map((v0) => v0.toJson()).toList(),
-  };
+        'name': name,
+        'size': size,
+        'grid': grid.map((v0) => v0.map((v1) => (v1)).toList()).toList(),
+        'atomTypes': atomTypes.map((v0) => v0.toJson()).toList(),
+      };
   factory MoleculePattern.fromJson(Map<String, dynamic> json) =>
       MoleculePattern(
         name: json['name'] as String,
@@ -3501,8 +3479,8 @@ class MolecularBackgroundPainter extends CustomPainter {
     final baseColor = gameLost
         ? Colors.red
         : gameWon
-        ? Colors.green
-        : Colors.cyan;
+            ? Colors.green
+            : Colors.cyan;
     final networkPaint = Paint()
       ..color = baseColor.withValues(alpha: 0.08 * pulseIntensity)
       ..style = PaintingStyle.stroke
@@ -3511,16 +3489,12 @@ class MolecularBackgroundPainter extends CustomPainter {
     const hexSize = 50.0;
     final hexHeight = hexSize * math.sqrt(3);
 
-    for (
-      double y = -hexHeight;
-      y < size.height + hexHeight;
-      y += hexHeight * 0.75
-    ) {
-      for (
-        double x = -hexSize;
-        x < size.width + hexSize * 2;
-        x += hexSize * 1.5
-      ) {
+    for (double y = -hexHeight;
+        y < size.height + hexHeight;
+        y += hexHeight * 0.75) {
+      for (double x = -hexSize;
+          x < size.width + hexSize * 2;
+          x += hexSize * 1.5) {
         final offset = (y / hexHeight).floor() % 2 == 0 ? 0.0 : hexSize * 0.75;
         _drawHexagon(
           canvas,

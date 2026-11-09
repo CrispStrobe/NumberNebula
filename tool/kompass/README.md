@@ -128,6 +128,24 @@ version, regenerate JSON and paper output, and run the four gates above. The
 generated package includes the exact source/export provenance under
 `source.competencyMapping`.
 
+## Original kompass4 papers
+
+`import_kompass4_math.py` converts a kompass4 mathematics export into
+`assets/kompass/kompass4/math_original.json` and copies its diagrams to
+`assets/kompass/kompass4/figures/`. To update after a reviewed kompass4 change:
+
+```sh
+# in kompass4 (needs DejaVu Sans via KOMPASS4_FONT_DIR and Poppler):
+python -m kompass.export_interactive_math --check
+python -m kompass.export_interactive_math --output OUT/math_de_v1.json --figures OUT/figures
+# here:
+python3 -B tool/kompass/import_kompass4_math.py --source OUT/math_de_v1.json --figures OUT/figures
+python3 -B tool/kompass/import_kompass4_math.py --check
+```
+
+The pinned export is `kompass4_math_source.json`. Answers are never derived
+here; every part comes from the kompass4 companion.
+
 ## Content contract
 
 The asset has `schemaVersion: 2`, a semantic `version`, original-work `source`

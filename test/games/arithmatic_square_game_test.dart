@@ -34,9 +34,15 @@ ArithmeticSquarePuzzle buildAdditiveSquare({
   required Set<String> emptyCells,
 }) {
   final fullSolution = <String, int>{
-    cell(0, 0): 1, cell(0, 1): 2, cell(0, 2): 3,
-    cell(1, 0): 2, cell(1, 1): 2, cell(1, 2): 4,
-    cell(2, 0): 3, cell(2, 1): 4, cell(2, 2): 7,
+    cell(0, 0): 1,
+    cell(0, 1): 2,
+    cell(0, 2): 3,
+    cell(1, 0): 2,
+    cell(1, 1): 2,
+    cell(1, 2): 4,
+    cell(2, 0): 3,
+    cell(2, 1): 4,
+    cell(2, 2): 7,
   };
   // clues = every non-empty cell.
   final clues = <String, int>{
@@ -86,9 +92,15 @@ void main() {
       // Make r0c0 a player hint rather than a clue, so the merge path that
       // overlays playerHints onto clues is exercised.
       final fullSolution = <String, int>{
-        cell(0, 0): 1, cell(0, 1): 2, cell(0, 2): 3,
-        cell(1, 0): 2, cell(1, 1): 2, cell(1, 2): 4,
-        cell(2, 0): 3, cell(2, 1): 4, cell(2, 2): 7,
+        cell(0, 0): 1,
+        cell(0, 1): 2,
+        cell(0, 2): 3,
+        cell(1, 0): 2,
+        cell(1, 1): 2,
+        cell(1, 2): 4,
+        cell(2, 0): 3,
+        cell(2, 1): 4,
+        cell(2, 2): 7,
       };
       final empties = {cell(1, 1)};
       final puzzle = ArithmeticSquarePuzzle(
@@ -147,9 +159,15 @@ void main() {
       // row0: 8÷4=2, row1: 2÷2=1, row2: 4÷2=2
       // col0: 8÷2=4, col1: 4÷2=2, col2: 2÷1=2
       final fullSolution = <String, int>{
-        cell(0, 0): 8, cell(0, 1): 4, cell(0, 2): 2,
-        cell(1, 0): 2, cell(1, 1): 2, cell(1, 2): 1,
-        cell(2, 0): 4, cell(2, 1): 2, cell(2, 2): 2,
+        cell(0, 0): 8,
+        cell(0, 1): 4,
+        cell(0, 2): 2,
+        cell(1, 0): 2,
+        cell(1, 1): 2,
+        cell(1, 2): 1,
+        cell(2, 0): 4,
+        cell(2, 1): 2,
+        cell(2, 2): 2,
       };
       final puzzle = ArithmeticSquarePuzzle(
         gridSize: 3,
@@ -189,9 +207,15 @@ void main() {
       //   6 3 3   6 - 3 = 3
       // col0: 9 - 3 = 6, col1: 4 - 1 = 3, col2: 5 - 2 = 3
       final fullSolution = <String, int>{
-        cell(0, 0): 9, cell(0, 1): 4, cell(0, 2): 5,
-        cell(1, 0): 3, cell(1, 1): 1, cell(1, 2): 2,
-        cell(2, 0): 6, cell(2, 1): 3, cell(2, 2): 3,
+        cell(0, 0): 9,
+        cell(0, 1): 4,
+        cell(0, 2): 5,
+        cell(1, 0): 3,
+        cell(1, 1): 1,
+        cell(1, 2): 2,
+        cell(2, 0): 6,
+        cell(2, 1): 3,
+        cell(2, 2): 3,
       };
       ArithmeticSquarePuzzle make(String minus) => ArithmeticSquarePuzzle(
             gridSize: 3,

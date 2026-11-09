@@ -51,9 +51,10 @@ void main() {
           scrollable: find.byType(Scrollable).first);
       await tester.tap(open);
       await tester.pumpAndSettle();
-        final expectedFamilies = (sheet['taskIds'] as List).map((id) => pack.taskById(id as String)!.familyId)
-            .toSet();
-        expect(store.exposedFamilies, expectedFamilies);
+      final expectedFamilies = (sheet['taskIds'] as List)
+          .map((id) => pack.taskById(id as String)!.familyId)
+          .toSet();
+      expect(store.exposedFamilies, expectedFamilies);
       expect(store.attempts, isEmpty);
       final first = pack.taskById((sheet['taskIds'] as List).first as String)!;
       final solution = first.solution[german ? 'de' : 'en']!;

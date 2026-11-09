@@ -49,8 +49,7 @@ void main() {
           final answer = solve(puzzle);
           expect(answer, isNotNull,
               reason: '${dims.$1}x${dims.$2} relic cannot be reassembled');
-          expect(
-              puzzle.validatePlacement(answer!.placement, answer.rotations),
+          expect(puzzle.validatePlacement(answer!.placement, answer.rotations),
               isTrue);
         }
       }
@@ -162,7 +161,8 @@ void main() {
               final left = puzzle.solutionTiles[r * cols + c];
               final right = puzzle.solutionTiles[r * cols + c + 1];
               expect(left.getEdge(1), right.getEdge(3),
-                  reason: 'right edge of ($r,$c) must match left edge of ($r,${c + 1})');
+                  reason:
+                      'right edge of ($r,$c) must match left edge of ($r,${c + 1})');
             }
           }
 
@@ -172,7 +172,8 @@ void main() {
               final top = puzzle.solutionTiles[r * cols + c];
               final bottom = puzzle.solutionTiles[(r + 1) * cols + c];
               expect(top.getEdge(2), bottom.getEdge(0),
-                  reason: 'bottom edge of ($r,$c) must match top edge of (${r + 1},$c)');
+                  reason:
+                      'bottom edge of ($r,$c) must match top edge of (${r + 1},$c)');
             }
           }
         }
@@ -224,8 +225,7 @@ void main() {
         );
 
         final placement = List.generate(puzzle.rows * puzzle.cols, (i) => i);
-        final rotations =
-            List.generate(puzzle.rows * puzzle.cols, (_) => 0);
+        final rotations = List.generate(puzzle.rows * puzzle.cols, (_) => 0);
 
         expect(testPuzzle.validatePlacement(placement, rotations), isTrue);
       }

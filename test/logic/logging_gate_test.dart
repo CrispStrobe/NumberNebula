@@ -30,35 +30,44 @@ void main() {
       expect(messages, hasLength(1));
     });
 
-    test('verbose generator does not use print when disabled, uses print when enabled (pure-dart CLI)', () async {
+    test(
+        'verbose generator does not use print when disabled, uses print when enabled (pure-dart CLI)',
+        () async {
       // verbose false must not print
       final silentPrints = <String>[];
-      await runZonedGuarded(() async {
-        final gen = LevelGenerator(verbose: false);
-        try {
-          gen.generateLevel(dimX: 5, dimY: 5, numBoxes: 1, maxTries: 1);
-        } catch (_) {}
-      }, (e, s) {}, zoneSpecification: ZoneSpecification(
-        print: (self, parent, zone, line) {
-          silentPrints.add(line);
-        },
-      ));
+      await runZonedGuarded(
+          () async {
+            final gen = LevelGenerator(verbose: false);
+            try {
+              gen.generateLevel(dimX: 5, dimY: 5, numBoxes: 1, maxTries: 1);
+            } catch (_) {}
+          },
+          (e, s) {},
+          zoneSpecification: ZoneSpecification(
+            print: (self, parent, zone, line) {
+              silentPrints.add(line);
+            },
+          ));
       expect(silentPrints, isEmpty, reason: 'verbose false must not print');
 
       // verbose true is allowed to print (pure-dart CLI harness) - ensure it does not throw and is captured via print
       final loudPrints = <String>[];
-      await runZonedGuarded(() async {
-        final gen = LevelGenerator(verbose: true);
-        try {
-          gen.generateLevel(dimX: 5, dimY: 5, numBoxes: 1, maxTries: 1);
-        } catch (_) {}
-      }, (e, s) {}, zoneSpecification: ZoneSpecification(
-        print: (self, parent, zone, line) {
-          loudPrints.add(line);
-        },
-      ));
+      await runZonedGuarded(
+          () async {
+            final gen = LevelGenerator(verbose: true);
+            try {
+              gen.generateLevel(dimX: 5, dimY: 5, numBoxes: 1, maxTries: 1);
+            } catch (_) {}
+          },
+          (e, s) {},
+          zoneSpecification: ZoneSpecification(
+            print: (self, parent, zone, line) {
+              loudPrints.add(line);
+            },
+          ));
       // When verbose, generator is expected to log via print (CLI mode). We just verify it does not crash.
-      expect(loudPrints, isNotEmpty, reason: 'verbose true should log via print in pure-dart mode');
+      expect(loudPrints, isNotEmpty,
+          reason: 'verbose true should log via print in pure-dart mode');
     });
   });
 
@@ -67,17 +76,18 @@ void main() {
     ArithmancerGame makeGame({required bool verbose}) =>
         ArithmancerGame(PrimeHunterAI(), Random(1), verbose: verbose);
 
-    MathResult makeResult(double v) => MathResult(v, const [], v.toString(), const []);
+    MathResult makeResult(double v) =>
+        MathResult(v, const [], v.toString(), const []);
 
     test('takeDamage result is identical regardless of verbose flag', () {
       for (final verbose in [true, false]) {
         final game = makeGame(verbose: verbose);
-        final enemyA = MathematicalEnemy(
-            name: 'Goblin', maxHealth: 100, behavior: [
+        final enemyA =
+            MathematicalEnemy(name: 'Goblin', maxHealth: 100, behavior: [
           {'attack': 5}
         ]);
-        final enemyB = MathematicalEnemy(
-            name: 'Goblin', maxHealth: 100, behavior: [
+        final enemyB =
+            MathematicalEnemy(name: 'Goblin', maxHealth: 100, behavior: [
           {'attack': 5}
         ]);
         final result = makeResult(10);
@@ -94,8 +104,7 @@ void main() {
 
     test('takeDamage with chained result sums correctly', () {
       final game = makeGame(verbose: false);
-      final enemy = MathematicalEnemy(
-          name: 'Boss', maxHealth: 200, behavior: [
+      final enemy = MathematicalEnemy(name: 'Boss', maxHealth: 200, behavior: [
         {'attack': 10}
       ]);
       final left = makeResult(7);
@@ -107,38 +116,47 @@ void main() {
       expect(enemy.health, 185);
     });
 
-    test('takeDamage does not log when verbose false, does log when verbose true (pure-dart verbose print)', () async {
+    test(
+        'takeDamage does not log when verbose false, does log when verbose true (pure-dart verbose print)',
+        () async {
       // verbose false must not print
       final silentPrints = <String>[];
-      await runZonedGuarded(() async {
-        final game = makeGame(verbose: false);
-        final enemy = MathematicalEnemy(
-            name: 'Goblin', maxHealth: 100, behavior: [
-          {'attack': 5}
-        ]);
-        enemy.takeDamage(makeResult(12), game);
-      }, (e, s) {}, zoneSpecification: ZoneSpecification(
-        print: (self, parent, zone, line) {
-          silentPrints.add(line);
-        },
-      ));
+      await runZonedGuarded(
+          () async {
+            final game = makeGame(verbose: false);
+            final enemy =
+                MathematicalEnemy(name: 'Goblin', maxHealth: 100, behavior: [
+              {'attack': 5}
+            ]);
+            enemy.takeDamage(makeResult(12), game);
+          },
+          (e, s) {},
+          zoneSpecification: ZoneSpecification(
+            print: (self, parent, zone, line) {
+              silentPrints.add(line);
+            },
+          ));
       expect(silentPrints, isEmpty, reason: 'verbose false must not print');
 
       // verbose true is allowed to print (pure-dart CLI mode) - ensure it does not throw
       final loudPrints = <String>[];
-      await runZonedGuarded(() async {
-        final game = makeGame(verbose: true);
-        final enemy = MathematicalEnemy(
-            name: 'Goblin', maxHealth: 100, behavior: [
-          {'attack': 5}
-        ]);
-        enemy.takeDamage(makeResult(12), game);
-      }, (e, s) {}, zoneSpecification: ZoneSpecification(
-        print: (self, parent, zone, line) {
-          loudPrints.add(line);
-        },
-      ));
-      expect(loudPrints, isNotEmpty, reason: 'verbose true should log via print in pure-dart mode');
+      await runZonedGuarded(
+          () async {
+            final game = makeGame(verbose: true);
+            final enemy =
+                MathematicalEnemy(name: 'Goblin', maxHealth: 100, behavior: [
+              {'attack': 5}
+            ]);
+            enemy.takeDamage(makeResult(12), game);
+          },
+          (e, s) {},
+          zoneSpecification: ZoneSpecification(
+            print: (self, parent, zone, line) {
+              loudPrints.add(line);
+            },
+          ));
+      expect(loudPrints, isNotEmpty,
+          reason: 'verbose true should log via print in pure-dart mode');
       expect(loudPrints.any((m) => m.contains('takeDamage')), isTrue);
     });
   });

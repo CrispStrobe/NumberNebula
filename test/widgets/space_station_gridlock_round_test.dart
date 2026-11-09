@@ -37,43 +37,43 @@ class GridlockTestApp {
     cognitiveProfileService: cognitive,
   );
   Widget build() => MultiProvider(
-    providers: [
-      ChangeNotifierProvider.value(value: gp),
-      ChangeNotifierProvider.value(value: sri),
-      ChangeNotifierProvider.value(value: cognitive),
-      ChangeNotifierProvider.value(value: debug),
-      ChangeNotifierProvider.value(value: tracker),
-    ],
-    child: MaterialApp(
-      locale: locale,
-      localizationsDelegates: S.localizationsDelegates,
-      supportedLocales: S.supportedLocales,
-      builder: (context, child) => ValueListenableBuilder<bool>(
-        valueListenable: motion,
-        builder: (_, reduced, __) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            disableAnimations: reduced,
-            textScaler: TextScaler.linear(scale),
-          ),
-          child: child!,
-        ),
-      ),
-      home: launchFromBridge
-          ? Builder(
-              builder: (context) => Scaffold(
-                body: Center(
-                  child: TextButton(
-                    onPressed: () => Navigator.of(
-                      context,
-                    ).push(MaterialPageRoute<void>(builder: (_) => game)),
-                    child: const Text('Enter Gridlock'),
-                  ),
-                ),
+        providers: [
+          ChangeNotifierProvider.value(value: gp),
+          ChangeNotifierProvider.value(value: sri),
+          ChangeNotifierProvider.value(value: cognitive),
+          ChangeNotifierProvider.value(value: debug),
+          ChangeNotifierProvider.value(value: tracker),
+        ],
+        child: MaterialApp(
+          locale: locale,
+          localizationsDelegates: S.localizationsDelegates,
+          supportedLocales: S.supportedLocales,
+          builder: (context, child) => ValueListenableBuilder<bool>(
+            valueListenable: motion,
+            builder: (_, reduced, __) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                disableAnimations: reduced,
+                textScaler: TextScaler.linear(scale),
               ),
-            )
-          : game,
-    ),
-  );
+              child: child!,
+            ),
+          ),
+          home: launchFromBridge
+              ? Builder(
+                  builder: (context) => Scaffold(
+                    body: Center(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(
+                          context,
+                        ).push(MaterialPageRoute<void>(builder: (_) => game)),
+                        child: const Text('Enter Gridlock'),
+                      ),
+                    ),
+                  ),
+                )
+              : game,
+        ),
+      );
 }
 
 final _screen = find.byType(SpaceStationGridlockGame);
@@ -87,17 +87,17 @@ List<Map<String, dynamic>> _ships(Map<String, dynamic> board) =>
         .map((v) => Map<String, dynamic>.from(v as Map))
         .toList();
 Finder _dialogs() => find.byElementPredicate((element) {
-  if (element.widget is! Dialog) return false;
-  var nested = false;
-  element.visitAncestorElements((e) {
-    if (e.widget is Dialog) {
-      nested = true;
-      return false;
-    }
-    return true;
-  });
-  return !nested;
-});
+      if (element.widget is! Dialog) return false;
+      var nested = false;
+      element.visitAncestorElements((e) {
+        if (e.widget is Dialog) {
+          nested = true;
+          return false;
+        }
+        return true;
+      });
+      return !nested;
+    });
 Future<(GridlockTestApp, Map<String, dynamic>)> _mount(
   WidgetTester t, {
   Locale locale = const Locale('en'),
@@ -136,11 +136,9 @@ Future<(GridlockTestApp, Map<String, dynamic>)> _mount(
   await t.pumpWidget(app.build());
   if (saved != null) {
     final s = S.of(t.element(_screen))!;
-    for (
-      var i = 0;
-      i < 20 && find.text(s.resumePuzzleTitle).evaluate().isEmpty;
-      i++
-    ) {
+    for (var i = 0;
+        i < 20 && find.text(s.resumePuzzleTitle).evaluate().isEmpty;
+        i++) {
       await t.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 10)),
       );
@@ -200,8 +198,8 @@ Map<String, dynamic> _fixture(
         color: configs[i]['isPlayer'] == true
             ? SpaceTheme.alienGreen
             : configs[i]['isBlocking'] == true
-            ? Colors.grey.shade800
-            : colors[i % colors.length],
+                ? Colors.grey.shade800
+                : colors[i % colors.length],
       ).toJson(),
   ];
   board.addAll({
@@ -241,12 +239,12 @@ Map<String, dynamic> _fixture(
 }
 
 Set<(int, int)> _cells(Map<String, dynamic> ship) => {
-  for (var k = 0; k < (ship['length'] as int); k++)
-    (
-      (ship['row'] as int) + (ship['isHorizontal'] == true ? 0 : k),
-      (ship['col'] as int) + (ship['isHorizontal'] == true ? k : 0),
-    ),
-};
+      for (var k = 0; k < (ship['length'] as int); k++)
+        (
+          (ship['row'] as int) + (ship['isHorizontal'] == true ? 0 : k),
+          (ship['col'] as int) + (ship['isHorizontal'] == true ? k : 0),
+        ),
+    };
 void _validate(Map<String, dynamic> board) {
   final occupied = <(int, int)>{};
   final ships = _ships(board);
@@ -289,8 +287,8 @@ void _legalStep(Map<String, dynamic> board, int index, int direction) {
 int _kind(Map<String, dynamic> ship) => ship['isPlayer'] == true
     ? 0
     : ship['isBlocking'] == true
-    ? 1
-    : 2;
+        ? 1
+        : 2;
 Finder _ship(WidgetTester t, int index) => _shipFor(t, _capture(t), index);
 Finder _shipFor(WidgetTester t, Map<String, dynamic> board, int index) {
   final ships = _ships(board),
@@ -299,8 +297,8 @@ Finder _shipFor(WidgetTester t, Map<String, dynamic> board, int index) {
   final label = kind == 0
       ? s.gridlockPlayerShip
       : kind == 1
-      ? s.gridlockBlockingShip
-      : s.gridlockShip;
+          ? s.gridlockBlockingShip
+          : s.gridlockShip;
   final rank = ships.take(index).where((ship) => _kind(ship) == kind).length;
   return find
       .byWidgetPredicate((w) => w is Semantics && w.properties.label == label)
@@ -481,12 +479,13 @@ Future<void> _popCover(WidgetTester t) async {
   await t.pump();
   await t.pump(const Duration(milliseconds: 400));
   await t.pump();
-  for (
-    var i = 0;
-    i < 4 &&
-        find.text('Covering route', skipOffstage: false).evaluate().isNotEmpty;
-    i++
-  ) {
+  for (var i = 0;
+      i < 4 &&
+          find
+              .text('Covering route', skipOffstage: false)
+              .evaluate()
+              .isNotEmpty;
+      i++) {
     await t.pump(const Duration(milliseconds: 100));
     await t.pump();
   }
@@ -816,8 +815,8 @@ void main() {
         final index = blocked == 'wall'
             ? 12
             : blocked == 'occupied'
-            ? 2
-            : 4;
+                ? 2
+                : 4;
         final finder = _ship(t, index);
         final gesture = await t.startGesture(t.getCenter(finder));
         final delta = blocked == 'cross-axis'

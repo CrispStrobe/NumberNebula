@@ -14,8 +14,7 @@ List<File> _dartFilesIn(String dir) {
   return root
       .listSync(recursive: true)
       .whereType<File>()
-      .where((f) =>
-          f.path.endsWith('.dart') && !f.path.contains('/generated/'))
+      .where((f) => f.path.endsWith('.dart') && !f.path.contains('/generated/'))
       .toList();
 }
 
@@ -54,8 +53,7 @@ void main() {
       }
 
       expect(violations, isEmpty,
-          reason:
-              'All debugPrint() calls must be wrapped in if (kDebugMode). '
+          reason: 'All debugPrint() calls must be wrapped in if (kDebugMode). '
               'Found ${violations.length} unguarded call(s):\n'
               '${violations.take(10).join('\n')}');
     });
@@ -252,7 +250,8 @@ void main() {
           .allMatches(registry)
           .map((m) => m.group(1)!)
           .toSet();
-      final deferredImports = RegExp(r"^import 'screens/\w+_game\.dart'\s+deferred as",
+      final deferredImports = RegExp(
+              r"^import 'screens/\w+_game\.dart'\s+deferred as",
               multiLine: true)
           .allMatches(registry)
           .length;
@@ -320,8 +319,8 @@ void main() {
     test('font files are declared individually, not as a whole folder', () {
       // A folder entry bundles every font in it, including the unused
       // variable font; the fonts: section already bundles the ones in use.
-      expect(pubspec, isNot(contains(RegExp(r'^\s*- assets/fonts/\s*$',
-          multiLine: true))));
+      expect(pubspec,
+          isNot(contains(RegExp(r'^\s*- assets/fonts/\s*$', multiLine: true))));
     });
 
     test('the app icon source is not inside a bundled asset folder', () {
@@ -440,9 +439,8 @@ Set<String> _eagerlyReachable(String entry, Map<String, String> parents) {
 List<String> _eagerLocalImports(String path) {
   final file = File(path);
   if (!file.existsSync()) return const [];
-  final directive = RegExp(
-      r"^(?:import|export)\s+'([^']+)'([^;]*);",
-      multiLine: true);
+  final directive =
+      RegExp(r"^(?:import|export)\s+'([^']+)'([^;]*);", multiLine: true);
   final result = <String>[];
   for (final m in directive.allMatches(file.readAsStringSync())) {
     if (m.group(2)!.contains('deferred')) continue;

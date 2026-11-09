@@ -20,7 +20,6 @@ import '../widgets/game_ui.dart';
 import '../services/starloader_level_manager.dart';
 import 'package:flutter/foundation.dart';
 
-
 // --- Enums for Game Logic ---
 
 enum CellType { floor, wall, target }
@@ -28,13 +27,18 @@ enum CellType { floor, wall, target }
 class MoveHistory {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-    'playerPos': [playerPos.dx, playerPos.dy],
-    'pushedBoxOrigin': (pushedBoxOrigin == null ? null : [pushedBoxOrigin!.dx, pushedBoxOrigin!.dy])
-  };
+        'playerPos': [playerPos.dx, playerPos.dy],
+        'pushedBoxOrigin': (pushedBoxOrigin == null
+            ? null
+            : [pushedBoxOrigin!.dx, pushedBoxOrigin!.dy])
+      };
   factory MoveHistory.fromJson(Map<String, dynamic> json) => MoveHistory(
-    playerPos: Offset((json['playerPos'][0] as num).toDouble(), (json['playerPos'][1] as num).toDouble()),
-    pushedBoxOrigin: (json['pushedBoxOrigin'] == null ? null : Offset((json['pushedBoxOrigin'][0] as num).toDouble(), (json['pushedBoxOrigin'][1] as num).toDouble()))
-  );
+      playerPos: Offset((json['playerPos'][0] as num).toDouble(),
+          (json['playerPos'][1] as num).toDouble()),
+      pushedBoxOrigin: (json['pushedBoxOrigin'] == null
+          ? null
+          : Offset((json['pushedBoxOrigin'][0] as num).toDouble(),
+              (json['pushedBoxOrigin'][1] as num).toDouble())));
 
   final Offset playerPos;
   final Offset? pushedBoxOrigin;
@@ -46,21 +50,21 @@ class MoveHistory {
 class LevelData {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'layout': layout.map((v0) => v0).toList(),
-    'optimalMoves': optimalMoves
-  };
+        'id': id,
+        'layout': layout.map((v0) => v0).toList(),
+        'optimalMoves': optimalMoves
+      };
   factory LevelData.fromJson(Map<String, dynamic> json) => LevelData(
-    id: json['id'] as String,
-    layout: (json['layout'] as List).map((v0) => v0 as String).toList(),
-    optimalMoves: json['optimalMoves'] as int
-  );
+      id: json['id'] as String,
+      layout: (json['layout'] as List).map((v0) => v0 as String).toList(),
+      optimalMoves: json['optimalMoves'] as int);
 
   final String id;
   final List<String> layout;
   final int optimalMoves;
 
-  LevelData({required this.id, required this.layout, required this.optimalMoves});
+  LevelData(
+      {required this.id, required this.layout, required this.optimalMoves});
 }
 
 // --- Main Game Widget ---
@@ -81,15 +85,25 @@ class StarLoaderGame extends StatefulWidget {
 
 class _StarLoaderGameState extends State<StarLoaderGame>
     with TickerProviderStateMixin, PuzzleSessionMixin<StarLoaderGame> {
-  @override void onPuzzleSessionPauseChanged(bool paused) {
-    if (paused) { _stopwatch.stop(); } else if (_sessionReady && !_hasWon) { _stopwatch.start(); }
+  @override
+  void onPuzzleSessionPauseChanged(bool paused) {
+    if (paused) {
+      _stopwatch.stop();
+    } else if (_sessionReady && !_hasWon) {
+      _stopwatch.start();
+    }
   }
+
   bool _sessionReady = false;
   int _elapsedBeforeResume = 0;
-  @override String get sessionGameKey => 'star_loader_game';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
+  @override
+  String get sessionGameKey => 'star_loader_game';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
     if (!_sessionReady || _isLoading) return null;
     return {
       '_currentLevelData': _currentLevelData.toJson(),
@@ -104,19 +118,42 @@ class _StarLoaderGameState extends State<StarLoaderGame>
       '_elapsed': _elapsedBeforeResume + _stopwatch.elapsedMilliseconds
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    _currentLevelData = LevelData.fromJson(Map<String, dynamic>.from(state["_currentLevelData"] as Map));
-    _grid = (state["_grid"] as List).map((v0) => (v0 as List).map((v1) => CellType.values.byName(v1 as String)).toList()).toList();
-    _playerPos = Offset((state["_playerPos"][0] as num).toDouble(), (state["_playerPos"][1] as num).toDouble());
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _currentLevelData = LevelData.fromJson(
+        Map<String, dynamic>.from(state["_currentLevelData"] as Map));
+    _grid = (state["_grid"] as List)
+        .map((v0) => (v0 as List)
+            .map((v1) => CellType.values.byName(v1 as String))
+            .toList())
+        .toList();
+    _playerPos = Offset((state["_playerPos"][0] as num).toDouble(),
+        (state["_playerPos"][1] as num).toDouble());
     _playerDirection = state["_playerDirection"] as int;
-    _boxPositions = (state["_boxPositions"] as List).map((v0) => Offset((v0[0] as num).toDouble(), (v0[1] as num).toDouble())).toList();
-    _targetPositions = (state["_targetPositions"] as List).map((v0) => Offset((v0[0] as num).toDouble(), (v0[1] as num).toDouble())).toList();
+    _boxPositions = (state["_boxPositions"] as List)
+        .map((v0) =>
+            Offset((v0[0] as num).toDouble(), (v0[1] as num).toDouble()))
+        .toList();
+    _targetPositions = (state["_targetPositions"] as List)
+        .map((v0) =>
+            Offset((v0[0] as num).toDouble(), (v0[1] as num).toDouble()))
+        .toList();
     _optimalMoves = state["_optimalMoves"] as int;
-    _moveHistory..clear()..addAll((state["_moveHistory"] as List).map((v0) => MoveHistory.fromJson(Map<String, dynamic>.from(v0 as Map))).toList());
+    _moveHistory
+      ..clear()
+      ..addAll((state["_moveHistory"] as List)
+          .map((v0) =>
+              MoveHistory.fromJson(Map<String, dynamic>.from(v0 as Map)))
+          .toList());
     _moveCount = state["_moveCount"] as int;
     _elapsedBeforeResume = state['_elapsed'] as int;
-    _isLoading = false; _hasWon = false; _stopwatch.reset(); _stopwatch.start();
+    _isLoading = false;
+    _hasWon = false;
+    _stopwatch.reset();
+    _stopwatch.start();
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_initGameFlow);
@@ -124,9 +161,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     if (mounted) setState(() => _sessionReady = true);
   }
 
-  
   // --- 1. Level & Grid State ---
-  late LevelData _currentLevelData; 
+  late LevelData _currentLevelData;
   late List<List<CellType>> _grid;
   late Offset _playerPos;
   late int _playerDirection;
@@ -134,11 +170,11 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   late List<Offset> _targetPositions;
   late int _optimalMoves;
   // In production, set this to false to hide the rating UI
-  static const bool ENABLE_LEVEL_RATING = true; // kDebugMode; 
+  static const bool ENABLE_LEVEL_RATING = true; // kDebugMode;
   int _currentRating = 0; // Local state for the dialog
 
   // --- 2. Loading State ---
-  bool _isLoading = true; 
+  bool _isLoading = true;
 
   // --- 3. Game Logic State (These were missing!) ---
   final List<MoveHistory> _moveHistory = [];
@@ -151,10 +187,10 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   late AnimationController _winPulseController;
   late AnimationController _particleController;
   late AnimationController _celebrationController;
-  late AnimationController _pushController; 
+  late AnimationController _pushController;
 
   late Animation<double> _winPulseAnimation;
-  late Animation<double> _pushAnimation; 
+  late Animation<double> _pushAnimation;
 
   final FocusNode _focusNode = FocusNode();
 
@@ -173,7 +209,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
     // Safety first
     _isLoading = true;
-    
+
     // Initialize Controllers
     _winPulseController = AnimationController(
       duration: const Duration(milliseconds: 1000),
@@ -198,16 +234,19 @@ class _StarLoaderGameState extends State<StarLoaderGame>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _pushAnimation = CurvedAnimation(parent: _pushController, curve: Curves.elasticOut)
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          _pushController.reverse();
-        }
-      });
+    _pushAnimation =
+        CurvedAnimation(parent: _pushController, curve: Curves.elasticOut)
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              _pushController.reverse();
+            }
+          });
 
     // Start Logic
     _generateStarfield();
-    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _restoreOrGenerate();
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
@@ -220,7 +259,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   void _handleDiscard() {
     // 1. Rate as -1 (The "Discard" Signal)
     StarLoaderLevelManager().rateLevel(_currentLevelData.id, -1);
-    
+
     // 2. Feedback
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -238,13 +277,13 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     beginPuzzleSession();
     // 1. Initialize the manager
     await StarLoaderLevelManager().initialize();
-    
+
     // 2. Load the level
     await _loadLevel();
 
     // 3. UI stuff after loading is done
     if (mounted) {
-       WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         _focusNode.requestFocus();
         if (widget.level == 1) _showTutorialHint();
@@ -361,14 +400,17 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     if (!mounted) return;
     setState(() => _isLoading = true);
 
-    final levelData = await StarLoaderLevelManager().getLevelForGrade(widget.grade, widget.level);
+    final levelData = await StarLoaderLevelManager()
+        .getLevelForGrade(widget.grade, widget.level);
 
     if (!mounted) return;
-    
-    if (kDebugMode) debugPrint('🚀 [Game] Loading Level ID: ${levelData.id} (Moves: ${levelData.optimalMoves})');
+
+    if (kDebugMode)
+      debugPrint(
+          '🚀 [Game] Loading Level ID: ${levelData.id} (Moves: ${levelData.optimalMoves})');
 
     _currentLevelData = levelData;
-    _resetCurrentLevel(); 
+    _resetCurrentLevel();
 
     setState(() {
       _isLoading = false;
@@ -412,19 +454,19 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     final velocity = details.velocity.pixelsPerSecond;
 
     if (velocity.dx.abs() > velocity.dy.abs()) {
-        if (velocity.dx > 0) {
+      if (velocity.dx > 0) {
         _movePlayer(1, 0); // Right
-        } else {
+      } else {
         _movePlayer(-1, 0); // Left
-        }
+      }
     } else {
-        if (velocity.dy > 0) {
+      if (velocity.dy > 0) {
         _movePlayer(0, 1); // Down
-        } else {
+      } else {
         _movePlayer(0, -1); // Up
-        }
+      }
     }
-    }
+  }
 
   void _movePlayer(int dx, int dy) {
     if (_hasWon) return;
@@ -453,8 +495,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
       final oldPlayerPos = _playerPos;
       final oldBoxPos = _boxPositions[boxIndex];
-      _moveHistory
-          .add(MoveHistory(playerPos: oldPlayerPos, pushedBoxOrigin: oldBoxPos));
+      _moveHistory.add(
+          MoveHistory(playerPos: oldPlayerPos, pushedBoxOrigin: oldBoxPos));
 
       setState(() {
         _playerPos = newPlayerPos;
@@ -548,8 +590,11 @@ class _StarLoaderGameState extends State<StarLoaderGame>
         position: _playerPos, // Store grid position
         velocity: Offset.fromDirection(angle, speed),
         size: 3 + random.nextDouble() * 5,
-        color: [SpaceTheme.alienGreen, SpaceTheme.starYellow, Colors.cyan]
-            [random.nextInt(3)],
+        color: [
+          SpaceTheme.alienGreen,
+          SpaceTheme.starYellow,
+          Colors.cyan
+        ][random.nextInt(3)],
       ));
     }
   }
@@ -557,46 +602,44 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   // --- FIX: Add this method to handle quitting ---
   void _handleQuit() {
     // If they already won or didn't make a single move, don't record a failure.
-    if (_hasWon || _moveCount == 0) return; 
+    if (_hasWon || _moveCount == 0) return;
 
     _stopwatch.stop();
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'star_loader_game',
-      difficulty: widget.level,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'star_loader_game',
+          difficulty: widget.level,
+        ));
   }
 
   void _handleSuccess() {
     final s = S.of(context)!;
-    final timeTaken = (_elapsedBeforeResume + _stopwatch.elapsedMilliseconds) ~/ 1000;
+    final timeTaken =
+        (_elapsedBeforeResume + _stopwatch.elapsedMilliseconds) ~/ 1000;
 
     int baseScore = 200 * widget.grade;
     int timeBonus = math.max(0, 1000 - (timeTaken * 5));
     int moveBonus = math.max(0, 500 - (_moveCount * 2));
 
     // Efficiency bonus for near-optimal solutions
-    final efficiency = _optimalMoves > 0
-        ? (_optimalMoves / _moveCount * 100).round()
-        : 100;
-    int efficiencyBonus =
-        efficiency >= 90 ? 500 : (efficiency >= 80 ? 300 : 0);
+    final efficiency =
+        _optimalMoves > 0 ? (_optimalMoves / _moveCount * 100).round() : 100;
+    int efficiencyBonus = efficiency >= 90 ? 500 : (efficiency >= 80 ? 300 : 0);
 
     int totalScore = baseScore + timeBonus + moveBonus + efficiencyBonus;
 
     // Use the correct framework method
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'star_loader_game',
-      difficulty: widget.level,
-      score: totalScore,
-      performance: Perf.fromMoves(_moveCount, _optimalMoves),
-
-      movesUsed: _moveCount,
-      optimalMoves: _optimalMoves,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'star_loader_game',
+          difficulty: widget.level,
+          score: totalScore,
+          performance: Perf.fromMoves(_moveCount, _optimalMoves),
+          movesUsed: _moveCount,
+          optimalMoves: _optimalMoves,
+        ));
 
     showDialog(
       context: context,
@@ -621,7 +664,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_isLoading) {
@@ -634,8 +678,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     }
 
     return Scaffold(
-      backgroundColor: SpaceTheme.deepSpace, 
-      body: SpaceBackground( 
+      backgroundColor: SpaceTheme.deepSpace,
+      body: SpaceBackground(
         child: KeyboardListener(
           focusNode: _focusNode,
           onKeyEvent: _handleKeyEvent,
@@ -666,7 +710,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                     title: S.of(context)!.starLoaderTitle, // Will be updated
                     level: widget.level,
                     // --- FIX: Call _handleQuit on back ---
-                    onBack: () { 
+                    onBack: () {
                       _handleQuit();
                       Navigator.of(context).pop();
                     },
@@ -677,10 +721,10 @@ class _StarLoaderGameState extends State<StarLoaderGame>
               // --- HINT OVERLAY ---
               if (_showingHint)
                 Positioned(
-                    top: 80,
-                    left: 20,
-                    right: 20,
-                    child: _buildHintBanner(),
+                  top: 80,
+                  left: 20,
+                  right: 20,
+                  child: _buildHintBanner(),
                 ),
             ],
           ),
@@ -731,7 +775,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   Widget _buildPortraitLayout(BuildContext context, S s) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(8.0).copyWith(top: 60), // Space for GameUI
+        padding:
+            const EdgeInsets.all(8.0).copyWith(top: 60), // Space for GameUI
         child: Column(
           children: [
             _buildGameStats(s),
@@ -752,7 +797,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   Widget _buildLandscapeLayout(BuildContext context, S s) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(16.0).copyWith(top: 60), // Space for GameUI
+        padding:
+            const EdgeInsets.all(16.0).copyWith(top: 60), // Space for GameUI
         child: Row(
           children: [
             Expanded(
@@ -762,7 +808,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
             const SizedBox(width: 24),
             Expanded(
               flex: 2,
-              child: SingleChildScrollView( // NEW: Added scroll for better fit
+              child: SingleChildScrollView(
+                // NEW: Added scroll for better fit
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -814,7 +861,9 @@ class _StarLoaderGameState extends State<StarLoaderGame>
           StreamBuilder(
             stream: Stream.periodic(const Duration(seconds: 1)),
             builder: (context, snapshot) {
-              final time = Duration(milliseconds: _elapsedBeforeResume + _stopwatch.elapsedMilliseconds);
+              final time = Duration(
+                  milliseconds:
+                      _elapsedBeforeResume + _stopwatch.elapsedMilliseconds);
               final formattedTime =
                   '${time.inMinutes.toString().padLeft(2, '0')}:${(time.inSeconds % 60).toString().padLeft(2, '0')}';
               return _buildStatItem(Icons.timer, formattedTime, s.time);
@@ -865,7 +914,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
               style: ElevatedButton.styleFrom(
                 backgroundColor: SpaceTheme.nebulaPurple,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -879,7 +929,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
               style: ElevatedButton.styleFrom(
                 backgroundColor: SpaceTheme.rocketRed.withValues(alpha: 0.8),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -888,17 +939,16 @@ class _StarLoaderGameState extends State<StarLoaderGame>
             ),
           ],
         ),
-        
+
         // --- DEV: DISCARD BUTTON ---
         if (ENABLE_LEVEL_RATING) ...[
           const SizedBox(height: 12),
           TextButton.icon(
             onPressed: _handleDiscard,
             icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
-            label: const Text(
-              "Verwerfe Level", 
-              style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)
-            ),
+            label: const Text("Verwerfe Level",
+                style: TextStyle(
+                    color: Colors.redAccent, fontWeight: FontWeight.bold)),
             style: TextButton.styleFrom(
               backgroundColor: Colors.red.withValues(alpha: 0.1),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1000,9 +1050,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
             ),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: _hasWon
-                  ? Colors.grey.shade600
-                  : SpaceTheme.alienGreen,
+              color: _hasWon ? Colors.grey.shade600 : SpaceTheme.alienGreen,
               width: 2,
             ),
             boxShadow: _hasWon
@@ -1031,80 +1079,80 @@ class _StarLoaderGameState extends State<StarLoaderGame>
         label: S.of(context)!.a11yGameArea,
         hint: 'Swipe in a direction to move the player',
         child: GestureDetector(
-        onVerticalDragEnd: _handleSwipe,
-        onHorizontalDragEnd: _handleSwipe,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            if (_grid.isEmpty || _grid[0].isEmpty) return Container();
+          onVerticalDragEnd: _handleSwipe,
+          onHorizontalDragEnd: _handleSwipe,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (_grid.isEmpty || _grid[0].isEmpty) return Container();
 
-            final maxW = constraints.maxWidth / _grid[0].length;
-            final maxH = constraints.maxHeight / _grid.length;
-            final cellSize = math.min(maxW, maxH).floorToDouble();
-            final gridWidth = cellSize * _grid[0].length;
-            final gridHeight = cellSize * _grid.length;
+              final maxW = constraints.maxWidth / _grid[0].length;
+              final maxH = constraints.maxHeight / _grid.length;
+              final cellSize = math.min(maxW, maxH).floorToDouble();
+              final gridWidth = cellSize * _grid[0].length;
+              final gridHeight = cellSize * _grid.length;
 
-            if (cellSize <= 0) return Container();
+              if (cellSize <= 0) return Container();
 
-            return ExcludeSemantics(
-              child: Container(
-              width: gridWidth,
-              height: gridHeight,
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  colors: [
-                    SpaceTheme.deepSpace.withValues(alpha: 0.5),
-                    SpaceTheme.deepSpace.withValues(alpha: 0.9),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: SpaceTheme.alienGreen.withValues(alpha: 0.5),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: SpaceTheme.alienGreen.withValues(alpha: 0.3),
-                    blurRadius: 20,
-                    spreadRadius: 3,
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: AnimatedBuilder(
-                  // Repaint painter when push animation runs or particles update
-                  animation: Listenable.merge([_pushAnimation, _particleController]),
-                  builder: (context, child) {
-                    return CustomPaint(
-                      painter: StarLoaderPainter(
-                        grid: _grid,
-                        playerPos: _playerPos,
-                        playerDirection: _playerDirection,
-                        boxPositions: _boxPositions,
-                        targetPositions: _targetPositions,
-                        trails: _trails, // Pass particles
-                        celebrationParticles:
-                            _celebrationParticles, // Pass particles
-                        cellSize: cellSize,
-                        winPulse: _hasWon ? _winPulseAnimation.value : 1.0,
-                        pushAnimValue: _pushAnimation.value,
+              return ExcludeSemantics(
+                child: Container(
+                  width: gridWidth,
+                  height: gridHeight,
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      colors: [
+                        SpaceTheme.deepSpace.withValues(alpha: 0.5),
+                        SpaceTheme.deepSpace.withValues(alpha: 0.9),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: SpaceTheme.alienGreen.withValues(alpha: 0.5),
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: SpaceTheme.alienGreen.withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        spreadRadius: 3,
                       ),
-                    );
-                  },
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: AnimatedBuilder(
+                      // Repaint painter when push animation runs or particles update
+                      animation: Listenable.merge(
+                          [_pushAnimation, _particleController]),
+                      builder: (context, child) {
+                        return CustomPaint(
+                          painter: StarLoaderPainter(
+                            grid: _grid,
+                            playerPos: _playerPos,
+                            playerDirection: _playerDirection,
+                            boxPositions: _boxPositions,
+                            targetPositions: _targetPositions,
+                            trails: _trails, // Pass particles
+                            celebrationParticles:
+                                _celebrationParticles, // Pass particles
+                            cellSize: cellSize,
+                            winPulse: _hasWon ? _winPulseAnimation.value : 1.0,
+                            pushAnimValue: _pushAnimation.value,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            );
-          },
+              );
+            },
+          ),
         ),
-      ),
       ),
     );
   }
 
   Widget _buildSuccessDialog(
       S s, int totalScore, int timeTaken, int efficiency) {
-    
     // Reset rating state every time dialog opens
     _currentRating = 0;
 
@@ -1137,7 +1185,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-              RoundSummary(gameKey: 'star_loader_game'),
+                  RoundSummary(gameKey: 'star_loader_game'),
                   // --- 1. Success Icon ---
                   ScaleTransition(
                     scale: _winPulseAnimation,
@@ -1167,7 +1215,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // --- 2. Title & Desc ---
                   Text(
                     s.starLoaderWinTitle,
@@ -1180,12 +1228,13 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                     style: SpaceTheme.bodyStyle.copyWith(fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
-                  
+
                   // --- 3. Rating System (Conditional) ---
                   if (ENABLE_LEVEL_RATING) ...[
                     const SizedBox(height: 24),
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 16),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
@@ -1193,15 +1242,13 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                       ),
                       child: Column(
                         children: [
-                          const Text(
-                            "RATE THIS LEVEL (DEV ONLY)", 
-                            style: TextStyle(
-                              color: SpaceTheme.starYellow, 
-                              fontSize: 12, 
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                            )
-                          ),
+                          const Text("RATE THIS LEVEL (DEV ONLY)",
+                              style: TextStyle(
+                                color: SpaceTheme.starYellow,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                              )),
                           const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -1215,9 +1262,12 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                                   AppHaptics.selectionClick();
                                 },
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4.0),
                                   child: Icon(
-                                    index < _currentRating ? Icons.star : Icons.star_border,
+                                    index < _currentRating
+                                        ? Icons.star
+                                        : Icons.star_border,
                                     color: SpaceTheme.starYellow,
                                     size: 36,
                                   ),
@@ -1231,7 +1281,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                   ],
 
                   const SizedBox(height: 24),
-                  
+
                   // --- 4. Stats Box ---
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -1248,13 +1298,13 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                                 ? SpaceTheme.alienGreen
                                 : SpaceTheme.starYellow),
                         const SizedBox(height: 8),
-                        _buildScoreRow(s.movesVsOptimal, '$_moveCount / $_optimalMoves',
-                            Colors.white70),
+                        _buildScoreRow(s.movesVsOptimal,
+                            '$_moveCount / $_optimalMoves', Colors.white70),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // --- 5. Buttons ---
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1266,9 +1316,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                             // SAVE RATING
                             if (ENABLE_LEVEL_RATING && _currentRating > 0) {
                               StarLoaderLevelManager().rateLevel(
-                                _currentLevelData.id,
-                                _currentRating
-                              );
+                                  _currentLevelData.id, _currentRating);
                             }
 
                             Navigator.of(context).pop();
@@ -1294,16 +1342,15 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                             // SAVE RATING
                             if (ENABLE_LEVEL_RATING && _currentRating > 0) {
                               StarLoaderLevelManager().rateLevel(
-                                _currentLevelData.id, 
-                                _currentRating
-                              );
+                                  _currentLevelData.id, _currentRating);
                             }
-                            
+
                             Navigator.of(context).pop();
                             Navigator.of(context).pop();
                           },
                           icon: const Icon(Icons.home),
-                          label: Text(s.toTheBridge, textAlign: TextAlign.center),
+                          label:
+                              Text(s.toTheBridge, textAlign: TextAlign.center),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: SpaceTheme.nebulaPurple,
                             foregroundColor: Colors.white,
@@ -1330,11 +1377,12 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+        Text(label,
+            style: const TextStyle(color: Colors.white70, fontSize: 14)),
         Text(
           value,
-          style:
-              TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              color: color, fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ],
     );
@@ -1435,7 +1483,7 @@ class StarLoaderPainter extends CustomPainter {
   final double pushAnimValue;
 
   final Paint _floorPaint = Paint()..color = Colors.transparent;
-  
+
   // --- FIX: Updated Wall Paint ---
   final Paint _wallPaint = Paint(); // Shader will be set in paint()
 
@@ -1476,7 +1524,8 @@ class StarLoaderPainter extends CustomPainter {
     // 1. Draw grid cells
     for (int y = 0; y < grid.length; y++) {
       for (int x = 0; x < grid[y].length; x++) {
-        final rect = Rect.fromLTWH(x * cellSize, y * cellSize, cellSize, cellSize);
+        final rect =
+            Rect.fromLTWH(x * cellSize, y * cellSize, cellSize, cellSize);
         final cell = grid[y][x];
 
         switch (cell) {
@@ -1487,7 +1536,7 @@ class StarLoaderPainter extends CustomPainter {
           // --- FIX: Updated Wall Painting ---
           case CellType.wall:
             final wallRect = rect.deflate(padding / 3);
-            
+
             _wallPaint.shader = const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -1497,26 +1546,30 @@ class StarLoaderPainter extends CustomPainter {
               ],
             ).createShader(wallRect);
 
-            canvas.drawRRect( 
-                RRect.fromRectAndRadius(wallRect, Radius.circular(cellSize * 0.1)),
-                _wallPaint
-            );
+            canvas.drawRRect(
+                RRect.fromRectAndRadius(
+                    wallRect, Radius.circular(cellSize * 0.1)),
+                _wallPaint);
             break;
           // --- END FIX ---
 
           case CellType.target:
             canvas.drawRect(rect, _floorPaint); // Transparent floor
-            
-            final targetPulse = (winPulse - 0.8) * 2.5; // Remap 0.8-1.2 to 0-1.0
-            final glowColor = SpaceTheme.alienGreen.withValues(alpha: 0.5 + targetPulse * 0.5);
-            
+
+            final targetPulse =
+                (winPulse - 0.8) * 2.5; // Remap 0.8-1.2 to 0-1.0
+            final glowColor = SpaceTheme.alienGreen
+                .withValues(alpha: 0.5 + targetPulse * 0.5);
+
             // Draw outer glow
             _targetPaint
               ..color = glowColor
-              ..maskFilter = MaskFilter.blur(BlurStyle.normal, (10 * targetPulse) + 5);
-            
+              ..maskFilter =
+                  MaskFilter.blur(BlurStyle.normal, (10 * targetPulse) + 5);
+
             // Draw inner fill
-            _targetFillPaint.color = SpaceTheme.alienGreen.withValues(alpha: 0.1 + targetPulse * 0.2);
+            _targetFillPaint.color = SpaceTheme.alienGreen
+                .withValues(alpha: 0.1 + targetPulse * 0.2);
 
             canvas.drawCircle(rect.center, innerSize / 2, _targetFillPaint);
             canvas.drawCircle(rect.center, innerSize / 2, _targetPaint);
@@ -1550,15 +1603,24 @@ class StarLoaderPainter extends CustomPainter {
           pushAnimValue > 0.0;
 
       if (isPushedBox) {
-        if (playerDirection == 1 || playerDirection == 3) { // Horizontal push
-          rect = Rect.fromCenter(center: rect.center, width: innerSize * boxSquash, height: innerSize * boxStretch);
-        } else { // Vertical push
-          rect = Rect.fromCenter(center: rect.center, width: innerSize * boxStretch, height: innerSize * boxSquash);
+        if (playerDirection == 1 || playerDirection == 3) {
+          // Horizontal push
+          rect = Rect.fromCenter(
+              center: rect.center,
+              width: innerSize * boxSquash,
+              height: innerSize * boxStretch);
+        } else {
+          // Vertical push
+          rect = Rect.fromCenter(
+              center: rect.center,
+              width: innerSize * boxStretch,
+              height: innerSize * boxSquash);
         }
       }
 
-      final rrect = RRect.fromRectAndRadius(rect, Radius.circular(cellSize * 0.1));
-      
+      final rrect =
+          RRect.fromRectAndRadius(rect, Radius.circular(cellSize * 0.1));
+
       canvas.drawRRect(rrect.shift(const Offset(2, 2)), _boxShadowPaint);
 
       final bool onTarget = targetPositions.contains(pos);
@@ -1583,11 +1645,19 @@ class StarLoaderPainter extends CustomPainter {
       innerSize,
       innerSize,
     );
-    
-    if (playerDirection == 1 || playerDirection == 3) { // Horizontal move
-      playerRect = Rect.fromCenter(center: playerRect.center, width: innerSize * playerStretch, height: innerSize * playerSquash);
-    } else { // Vertical move
-      playerRect = Rect.fromCenter(center: playerRect.center, width: innerSize * playerSquash, height: innerSize * playerStretch);
+
+    if (playerDirection == 1 || playerDirection == 3) {
+      // Horizontal move
+      playerRect = Rect.fromCenter(
+          center: playerRect.center,
+          width: innerSize * playerStretch,
+          height: innerSize * playerSquash);
+    } else {
+      // Vertical move
+      playerRect = Rect.fromCenter(
+          center: playerRect.center,
+          width: innerSize * playerSquash,
+          height: innerSize * playerStretch);
     }
 
     final path = Path();
@@ -1597,15 +1667,11 @@ class StarLoaderPainter extends CustomPainter {
     path.close();
 
     canvas.save();
-    canvas.translate(
-        playerPos.dx * cellSize + cellSize / 2,
-        playerPos.dy * cellSize + cellSize / 2
-    );
+    canvas.translate(playerPos.dx * cellSize + cellSize / 2,
+        playerPos.dy * cellSize + cellSize / 2);
     canvas.rotate(playerDirection * math.pi / 2);
-    canvas.translate(
-        -(playerPos.dx * cellSize + cellSize / 2),
-        -(playerPos.dy * cellSize + cellSize / 2)
-    );
+    canvas.translate(-(playerPos.dx * cellSize + cellSize / 2),
+        -(playerPos.dy * cellSize + cellSize / 2));
 
     _playerPaint.shader = const LinearGradient(
       begin: Alignment.topCenter,
@@ -1614,9 +1680,8 @@ class StarLoaderPainter extends CustomPainter {
     ).createShader(playerRect);
 
     final windowRect = Rect.fromCircle(
-      center: playerRect.center.translate(0, innerSize * 0.15),
-      radius: innerSize * 0.15 * playerSquash
-    );
+        center: playerRect.center.translate(0, innerSize * 0.15),
+        radius: innerSize * 0.15 * playerSquash);
 
     _playerWindowPaint.shader = RadialGradient(
       colors: [Colors.white, Colors.cyan.shade200, Colors.cyan.shade600],
@@ -1630,11 +1695,12 @@ class StarLoaderPainter extends CustomPainter {
     );
 
     canvas.restore();
-    
+
     // 5. Draw celebration particles
     for (final p in celebrationParticles) {
       final center = p.position * cellSize + Offset(cellSize / 2, cellSize / 2);
-      _celebrationPaint.color = p.color.withValues(alpha: p.life.clamp(0.0, 1.0));
+      _celebrationPaint.color =
+          p.color.withValues(alpha: p.life.clamp(0.0, 1.0));
       canvas.drawCircle(center, p.size * (p.life + 0.5), _celebrationPaint);
     }
   }

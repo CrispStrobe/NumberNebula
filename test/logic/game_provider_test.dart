@@ -160,8 +160,7 @@ void main() {
         win(arithmeticGame, problems: [sampleProblem()]),
       );
     }
-    expect(advanced, isFalse,
-        reason: 'Win count met but mastery gate failed.');
+    expect(advanced, isFalse, reason: 'Win count met but mastery gate failed.');
     expect(provider.getGameProgress(arithmeticGame), 0);
     // Win threshold is met, so the gate must be failing purely on mastery.
     expect(provider.canAdvanceToNextLevel(arithmeticGame, 1), isFalse);
@@ -181,16 +180,16 @@ void main() {
     );
 
     // Third win opens the gate and advances.
-    final advanced =
-        provider.reportOutcome(win(arithmeticGame, problems: [sampleProblem()]));
+    final advanced = provider
+        .reportOutcome(win(arithmeticGame, problems: [sampleProblem()]));
     expect(advanced, isTrue);
 
     // Level went from default(1) to 2.
     expect(provider.getGameProgress(arithmeticGame), 2);
 
     // currentLevelWins reset to 0: a single subsequent win must NOT advance.
-    final advancedAgain =
-        provider.reportOutcome(win(arithmeticGame, problems: [sampleProblem()]));
+    final advancedAgain = provider
+        .reportOutcome(win(arithmeticGame, problems: [sampleProblem()]));
     expect(advancedAgain, isFalse,
         reason: 'Win counter should have reset to 0 after advancing.');
     expect(provider.canAdvanceToNextLevel(arithmeticGame, 2), isFalse);

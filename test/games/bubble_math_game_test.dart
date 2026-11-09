@@ -71,10 +71,9 @@ void main() {
       expect(b.size, 110);
     });
 
-    test('mutable fields support the physics update used by the game loop',
-        () {
-      final b = _makeBubble(position: const Offset(0, 0),
-          velocity: const Offset(60, -60));
+    test('mutable fields support the physics update used by the game loop', () {
+      final b = _makeBubble(
+          position: const Offset(0, 0), velocity: const Offset(60, -60));
 
       // Mirror _updateBubblePositions: position += velocity * 0.016.
       b.position += b.velocity * 0.016;

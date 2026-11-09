@@ -74,7 +74,8 @@ void main() {
     );
   }
 
-  testWidgets('builds its first (loading) frame inside the real provider tree '
+  testWidgets(
+      'builds its first (loading) frame inside the real provider tree '
       'without throwing', (tester) async {
     await tester.pumpWidget(buildHarness());
     // Single pump only: the screen runs infinitely-repeating animations, so

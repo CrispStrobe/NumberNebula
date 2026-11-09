@@ -54,7 +54,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       end: 2 * math.pi,
     ).animate(_sparkleController);
 
-    _achievementAnimations = List.generate(12, (index) { // Increased list size for all achievements
+    _achievementAnimations = List.generate(12, (index) {
+      // Increased list size for all achievements
       return Tween<Offset>(
         begin: Offset(1.0 + (index * 0.1), 0.0),
         end: Offset.zero,
@@ -77,7 +78,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     _sparkleController.dispose();
     super.dispose();
   }
-  
+
   // --- REFACTOR STEP 2: Create a list of all possible achievement IDs ---
   // This replaces the old method that contained hardcoded text.
   List<String> _getAllAchievementIds() {
@@ -103,31 +104,68 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     final s = S.of(context)!; // Helper for brevity
     switch (id) {
       case 'first_century':
-        return AchievementUIData(title: s.achievementFirstCenturyTitle, description: s.achievementFirstCenturyDesc, icon: '💯');
+        return AchievementUIData(
+            title: s.achievementFirstCenturyTitle,
+            description: s.achievementFirstCenturyDesc,
+            icon: '💯');
       case 'score_master':
-        return AchievementUIData(title: s.achievementScoreMasterTitle, description: s.achievementScoreMasterDesc, icon: '⭐');
+        return AchievementUIData(
+            title: s.achievementScoreMasterTitle,
+            description: s.achievementScoreMasterDesc,
+            icon: '⭐');
       case 'thousand_club':
-        return AchievementUIData(title: s.achievementThousandClubTitle, description: s.achievementThousandClubDesc, icon: '🚀');
+        return AchievementUIData(
+            title: s.achievementThousandClubTitle,
+            description: s.achievementThousandClubDesc,
+            icon: '🚀');
       case 'level_explorer':
-        return AchievementUIData(title: s.achievementLevelExplorerTitle, description: s.achievementLevelExplorerDesc, icon: '🌟');
+        return AchievementUIData(
+            title: s.achievementLevelExplorerTitle,
+            description: s.achievementLevelExplorerDesc,
+            icon: '🌟');
       case 'space_commander':
-        return AchievementUIData(title: s.achievementSpaceCommanderTitle, description: s.achievementSpaceCommanderDesc, icon: '👨‍🚀');
+        return AchievementUIData(
+            title: s.achievementSpaceCommanderTitle,
+            description: s.achievementSpaceCommanderDesc,
+            icon: '👨‍🚀');
       case 'triangle_wizard':
-        return AchievementUIData(title: s.achievementTriangleWizardTitle, description: s.achievementTriangleWizardDesc, icon: '🔺');
+        return AchievementUIData(
+            title: s.achievementTriangleWizardTitle,
+            description: s.achievementTriangleWizardDesc,
+            icon: '🔺');
       case 'bubble_popper':
-        return AchievementUIData(title: s.achievementBubblePopperTitle, description: s.achievementBubblePopperDesc, icon: '🫧');
+        return AchievementUIData(
+            title: s.achievementBubblePopperTitle,
+            description: s.achievementBubblePopperDesc,
+            icon: '🫧');
       case 'puzzle_solver':
-        return AchievementUIData(title: s.achievementPuzzleSolverTitle, description: s.achievementPuzzleSolverDesc, icon: '🧩');
+        return AchievementUIData(
+            title: s.achievementPuzzleSolverTitle,
+            description: s.achievementPuzzleSolverDesc,
+            icon: '🧩');
       case 'all_rounder':
-        return AchievementUIData(title: s.achievementAllRounderTitle, description: s.achievementAllRounderDesc, icon: '🎯');
+        return AchievementUIData(
+            title: s.achievementAllRounderTitle,
+            description: s.achievementAllRounderDesc,
+            icon: '🎯');
       case 'speed_demon':
-        return AchievementUIData(title: s.achievementSpeedDemonTitle, description: s.achievementSpeedDemonDesc, icon: '⚡');
+        return AchievementUIData(
+            title: s.achievementSpeedDemonTitle,
+            description: s.achievementSpeedDemonDesc,
+            icon: '⚡');
       case 'perfectionist':
-        return AchievementUIData(title: s.achievementPerfectionistTitle, description: s.achievementPerfectionistDesc, icon: '💎');
+        return AchievementUIData(
+            title: s.achievementPerfectionistTitle,
+            description: s.achievementPerfectionistDesc,
+            icon: '💎');
       case 'mathematician':
-        return AchievementUIData(title: s.achievementMathematicianTitle, description: s.achievementMathematicianDesc, icon: '🧮');
+        return AchievementUIData(
+            title: s.achievementMathematicianTitle,
+            description: s.achievementMathematicianDesc,
+            icon: '🧮');
       default:
-        return AchievementUIData(title: 'Unknown', description: 'Error', icon: '❓');
+        return AchievementUIData(
+            title: 'Unknown', description: 'Error', icon: '❓');
     }
   }
 
@@ -318,10 +356,12 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             final achievementId = allAchievementIds[index];
             final isUnlocked = unlockedIds.contains(achievementId);
             // REFACTOR: Get display data here using the context
-            final achievementUiData = _getAchievementUIData(context, achievementId);
+            final achievementUiData =
+                _getAchievementUIData(context, achievementId);
 
             return SlideTransition(
-              position: _achievementAnimations[index % _achievementAnimations.length],
+              position:
+                  _achievementAnimations[index % _achievementAnimations.length],
               child: AchievementCard(
                 uiData: achievementUiData, // Pass the UI data
                 isUnlocked: isUnlocked,
@@ -622,7 +662,8 @@ class AchievementDialog extends StatelessWidget {
                 color: SpaceTheme.alienGreen,
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Text( // REMOVED const
+              child: Text(
+                // REMOVED const
                 S.of(context)!.achievementUnlocked,
                 style: const TextStyle(
                   color: Colors.white,

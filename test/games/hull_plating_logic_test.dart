@@ -85,7 +85,9 @@ void main() {
     test('grade 1: 3x4 board', () {
       for (int seed = 0; seed < 3; seed++) {
         final puzzle = HullPlatingPuzzle.generate(
-          grade: 1, level: 1, seed: seed,
+          grade: 1,
+          level: 1,
+          seed: seed,
         );
         expect(puzzle.rows, 3);
         expect(puzzle.cols, 4);
@@ -101,7 +103,9 @@ void main() {
 
     test('grade 2: 4x4 board', () {
       final puzzle = HullPlatingPuzzle.generate(
-        grade: 2, level: 1, seed: 42,
+        grade: 2,
+        level: 1,
+        seed: 42,
       );
       expect(puzzle.rows, 4);
       expect(puzzle.cols, 4);
@@ -109,7 +113,9 @@ void main() {
 
     test('grade 3+: 4x6 board', () {
       final puzzle = HullPlatingPuzzle.generate(
-        grade: 3, level: 1, seed: 42,
+        grade: 3,
+        level: 1,
+        seed: 42,
       );
       expect(puzzle.rows, 4);
       expect(puzzle.cols, 6);
@@ -121,7 +127,9 @@ void main() {
       for (int grade = 1; grade <= 3; grade++) {
         for (int seed = 0; seed < 3; seed++) {
           final puzzle = HullPlatingPuzzle.generate(
-            grade: grade, level: 1, seed: seed,
+            grade: grade,
+            level: 1,
+            seed: seed,
           );
 
           final covered = <String>{};
@@ -156,14 +164,18 @@ void main() {
 
     test('pieces list matches solution piece count', () {
       final puzzle = HullPlatingPuzzle.generate(
-        grade: 2, level: 1, seed: 0,
+        grade: 2,
+        level: 1,
+        seed: 0,
       );
       expect(puzzle.pieces.length, puzzle.solution.length);
     });
 
     test('total cells in solution equals active cell count', () {
       final puzzle = HullPlatingPuzzle.generate(
-        grade: 1, level: 1, seed: 0,
+        grade: 1,
+        level: 1,
+        seed: 0,
       );
       int totalCells = 0;
       for (final placed in puzzle.solution) {

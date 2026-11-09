@@ -66,7 +66,8 @@ void main() {
   group('Void Crossing diagrams', () {
     testWidgets('the conflict diagram contrasts left-alone with supervised',
         (tester) async {
-      await _pump(tester, const VoidConflictDiagram(predator: '🦎', prey: '🐛'));
+      await _pump(
+          tester, const VoidConflictDiagram(predator: '🦎', prey: '🐛'));
       // The same pair appears in both situations -- that is the point: the
       // only thing that changed is who is watching.
       expect(find.text('🦎'), findsNWidgets(2));

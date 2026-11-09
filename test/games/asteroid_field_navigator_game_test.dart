@@ -26,8 +26,10 @@ void main() {
     });
 
     test('cells with different coordinates are not equal', () {
-      expect(AsteroidCell(row: 1, col: 2), isNot(equals(AsteroidCell(row: 2, col: 1))));
-      expect(AsteroidCell(row: 0, col: 0), isNot(equals(AsteroidCell(row: 0, col: 1))));
+      expect(AsteroidCell(row: 1, col: 2),
+          isNot(equals(AsteroidCell(row: 2, col: 1))));
+      expect(AsteroidCell(row: 0, col: 0),
+          isNot(equals(AsteroidCell(row: 0, col: 1))));
     });
 
     test('a Set deduplicates by coordinate regardless of mutable state', () {
@@ -35,7 +37,8 @@ void main() {
       // (e.g. a freshly built copy) must not grow the visited set.
       final visited = <AsteroidCell>{};
       expect(visited.add(AsteroidCell(row: 2, col: 2)), isTrue);
-      expect(visited.add(AsteroidCell(row: 2, col: 2, isRevealed: true)), isFalse);
+      expect(
+          visited.add(AsteroidCell(row: 2, col: 2, isRevealed: true)), isFalse);
       expect(visited.length, 1);
     });
 

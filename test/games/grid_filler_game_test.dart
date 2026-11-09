@@ -16,7 +16,8 @@ import 'package:space_math_academy/features/games/screens/grid_filler_game.dart'
 void main() {
   group('GridPiece model', () {
     test('remainingCount initializes to count', () {
-      final piece = GridPiece(size: 3, count: 3, color: const Color(0xFF112233));
+      final piece =
+          GridPiece(size: 3, count: 3, color: const Color(0xFF112233));
       expect(piece.size, 3);
       expect(piece.count, 3);
       expect(piece.remainingCount, 3);
@@ -29,8 +30,10 @@ void main() {
       expect(piece.count, 5, reason: 'count is final and must not change');
     });
 
-    test('the game initial inventory invariant holds: size==count for 1..9 '
-        'so the total placed area exactly fills a 45x45 grid (sum of n*n^2)', () {
+    test(
+        'the game initial inventory invariant holds: size==count for 1..9 '
+        'so the total placed area exactly fills a 45x45 grid (sum of n*n^2)',
+        () {
       // The screen builds 9 pieces where piece i has size==count==(i+1).
       // Total covered cells = sum_{n=1..9} n * (n*n) = sum n^3 = 2025 = 45^2.
       final pieces = List.generate(

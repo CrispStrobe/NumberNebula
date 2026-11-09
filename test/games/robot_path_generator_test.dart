@@ -46,7 +46,11 @@ bool _reaches(List<List<int>> grid, _P from, _P to) {
   final dimX = grid.length;
   final dimY = grid[0].length;
   bool walkable(int t) =>
-      t == _path || t == _start || t == _goal || t == _jumpable || t == _destructible;
+      t == _path ||
+      t == _start ||
+      t == _goal ||
+      t == _jumpable ||
+      t == _destructible;
   final visited = <String>{'${from.x},${from.y}'};
   final queue = <_P>[from];
   const deltas = [

@@ -31,5 +31,4 @@ class DebugProvider with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_forceUnlockKey, _isPaidUnlockedForced);
   }
-
 }

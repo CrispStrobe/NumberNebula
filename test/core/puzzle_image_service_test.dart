@@ -21,7 +21,8 @@ void main() {
     // The hardcoded list is only a fallback; the manifest must be what
     // found them.
     expect(logs.where((l) => l.contains('fallback')), isEmpty);
-    expect(logs.where((l) => l.contains('Found 7 puzzle images')), hasLength(1));
+    expect(
+        logs.where((l) => l.contains('Found 7 puzzle images')), hasLength(1));
 
     final paths = [
       for (var level = 1; level <= 7; level++)

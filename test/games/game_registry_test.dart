@@ -57,7 +57,8 @@ void main() {
   });
 
   group('DeferredGameLoader', () {
-    testWidgets('shows a loading screen until the code arrives', (tester) async {
+    testWidgets('shows a loading screen until the code arrives',
+        (tester) async {
       final download = Completer<void>();
       await tester.pumpWidget(_app(DeferredGameLoader(
         gameKey: 'slow',
@@ -65,7 +66,8 @@ void main() {
         builder: (_) => const Text('game ready'),
       )));
 
-      expect(find.byKey(const ValueKey('deferred_game_loading')), findsOneWidget);
+      expect(
+          find.byKey(const ValueKey('deferred_game_loading')), findsOneWidget);
       expect(find.text('game ready'), findsNothing);
 
       download.complete();

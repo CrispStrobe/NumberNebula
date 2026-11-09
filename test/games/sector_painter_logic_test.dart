@@ -134,7 +134,8 @@ void main() {
         }
       });
 
-      test('grade=$grade level=$level: graph is connected (circular construction)',
+      test(
+          'grade=$grade level=$level: graph is connected (circular construction)',
           () {
         for (int seed = 0; seed < 3; seed++) {
           final gen = SectorPainterGenerator(seed: seed);
@@ -158,23 +159,25 @@ void main() {
         }
       });
 
-      test('grade=$grade level=$level: chromatic number is positive and consistent', () {
+      test(
+          'grade=$grade level=$level: chromatic number is positive and consistent',
+          () {
         for (int seed = 0; seed < 3; seed++) {
           final gen = SectorPainterGenerator(seed: seed);
           final puzzle = gen.generate(grade: grade, level: level);
 
           expect(puzzle.chromaticNumber, greaterThan(0));
           // The chromatic number should not exceed the region count
-          expect(puzzle.chromaticNumber,
-              lessThanOrEqualTo(puzzle.regions.length),
-              reason:
-                  'chromatic number cannot exceed total region count');
+          expect(
+              puzzle.chromaticNumber, lessThanOrEqualTo(puzzle.regions.length),
+              reason: 'chromatic number cannot exceed total region count');
           // Available colors should be positive
           expect(puzzle.availableColors, greaterThan(0));
         }
       });
 
-      test('grade=$grade level=$level: greedy coloring validates successfully', () {
+      test('grade=$grade level=$level: greedy coloring validates successfully',
+          () {
         for (int seed = 0; seed < 3; seed++) {
           final gen = SectorPainterGenerator(seed: seed);
           final puzzle = gen.generate(grade: grade, level: level);

@@ -268,6 +268,12 @@ void main() {
       await tester.pumpAndSettle();
       final answer = find.byKey(const ValueKey('answer-stable-number'));
       expect(answer, findsOneWidget);
+      // The restored hint sits below the fold of the lazily built task list.
+      await tester.scrollUntilVisible(
+        find.textContaining('Make 10 first.'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.textContaining('Make 10 first.'), findsOneWidget);
       await tester.ensureVisible(answer);
       await tester.enterText(answer, '12');

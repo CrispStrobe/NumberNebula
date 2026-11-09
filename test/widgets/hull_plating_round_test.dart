@@ -840,8 +840,8 @@ void main() {
       (t) async {
     final app = await _mount(t);
     await _finish(t);
-    await t.runAsync(
-        () => OnboardingOverlay.markSeen('hull_plating_all_games_guided_v3_mechanics'));
+    await t.runAsync(() => OnboardingOverlay.markSeen(
+        'hull_plating_all_games_guided_v3_mechanics'));
     await t.runAsync(() => loadGameLibrary('hull_plating'));
     final original = _state(t);
     final suggestion = find.descendant(

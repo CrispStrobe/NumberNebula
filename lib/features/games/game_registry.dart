@@ -17,38 +17,37 @@ import '../../generated/l10n.dart';
 import 'widgets/game_learning_shell.dart';
 import '../../shared/utils/app_utilities.dart' show SpaceErrorScreen;
 
-import 'screens/magic_triangles_game.dart'
-    deferred as magic_triangles_game show MagicTrianglesGame;
-import 'screens/asteroid_math_game.dart'
-    deferred as asteroid_math_game show AsteroidMathGame;
-import 'screens/puzzle_math_game.dart'
-    deferred as puzzle_math_game show PuzzleMathGame;
-import 'screens/hyperdrive_gates_game.dart'
-    deferred as hyperdrive_gates_game show HyperdriveGatesGame;
-import 'screens/path_finder_game.dart'
-    deferred as path_finder_game show PathFinderGame;
-import 'screens/planet_hopping_game.dart'
-    deferred as planet_hopping_game show PlanetHoppingGame;
-import 'screens/number_walls_game.dart'
-    deferred as number_walls_game show NumberWallsGame;
-import 'screens/codebreaker_game.dart'
-    deferred as codebreaker_game show CodebreakerGame;
+import 'screens/magic_triangles_game.dart' deferred as magic_triangles_game
+    show MagicTrianglesGame;
+import 'screens/asteroid_math_game.dart' deferred as asteroid_math_game
+    show AsteroidMathGame;
+import 'screens/puzzle_math_game.dart' deferred as puzzle_math_game
+    show PuzzleMathGame;
+import 'screens/hyperdrive_gates_game.dart' deferred as hyperdrive_gates_game
+    show HyperdriveGatesGame;
+import 'screens/path_finder_game.dart' deferred as path_finder_game
+    show PathFinderGame;
+import 'screens/planet_hopping_game.dart' deferred as planet_hopping_game
+    show PlanetHoppingGame;
+import 'screens/number_walls_game.dart' deferred as number_walls_game
+    show NumberWallsGame;
+import 'screens/codebreaker_game.dart' deferred as codebreaker_game
+    show CodebreakerGame;
 import 'screens/perspective_puzzle_game.dart'
     deferred as perspective_puzzle_game show PerspectivePuzzleGame;
-import 'screens/blocks_counter_game.dart'
-    deferred as blocks_counter_game show BlockCounterGame;
+import 'screens/blocks_counter_game.dart' deferred as blocks_counter_game
+    show BlockCounterGame;
 import 'screens/signal_triangulation_game.dart'
     deferred as signal_triangulation_game show SignalTriangulationGame;
 import 'screens/cryptex_lock_breaker_game.dart'
     deferred as cryptex_lock_breaker_game show CryptexLockBreakerGame;
-import 'screens/arithmancer_duel_game.dart'
-    deferred as arithmancer_duel_game show ArithmancerDuelGame;
-import 'screens/arithmatic_square_game.dart'
-    deferred as arithmatic_square_game show ArithmeticSquareGame;
+import 'screens/arithmancer_duel_game.dart' deferred as arithmancer_duel_game
+    show ArithmancerDuelGame;
+import 'screens/arithmatic_square_game.dart' deferred as arithmatic_square_game
+    show ArithmeticSquareGame;
 import 'screens/arithmancer_crosswords_game.dart'
     deferred as arithmancer_crosswords_game show ArithmancerCrosswordsGame;
-import 'screens/kenken_game.dart'
-    deferred as kenken_game show KenkenGame;
+import 'screens/kenken_game.dart' deferred as kenken_game show KenkenGame;
 import 'screens/asteroid_field_navigator_game.dart'
     deferred as asteroid_field_navigator_game show AsteroidFieldNavigatorGame;
 import 'screens/cargo_bay_arranger_game.dart'
@@ -57,62 +56,62 @@ import 'screens/quantum_molecule_builder_game.dart'
     deferred as quantum_molecule_builder_game show QuantumMoleculeBuilderGame;
 import 'screens/space_station_gridlock_game.dart'
     deferred as space_station_gridlock_game show SpaceStationGridlockGame;
-import 'screens/star_loader_game.dart'
-    deferred as star_loader_game show StarLoaderGame;
-import 'screens/robot_path_game.dart'
-    deferred as robot_path_game show RobotPathGame;
-import 'screens/solarpanel_game.dart'
-    deferred as solarpanel_game show SolarPanelGame;
-import 'screens/grid_filler_game.dart'
-    deferred as grid_filler_game show GridFillerGame;
-import 'screens/star_chart_scan_game.dart'
-    deferred as star_chart_scan_game show StarChartScanGame;
-import 'screens/comm_relay_game.dart'
-    deferred as comm_relay_game show CommRelayGame;
-import 'screens/hull_plating_game.dart'
-    deferred as hull_plating_game show HullPlatingGame;
-import 'screens/vault_cracker_game.dart'
-    deferred as vault_cracker_game show VaultCrackerGame;
-import 'screens/crew_manifest_game.dart'
-    deferred as crew_manifest_game show CrewManifestGame;
-import 'screens/alien_tribunal_game.dart'
-    deferred as alien_tribunal_game show AlienTribunalGame;
-import 'screens/gravity_well_game.dart'
-    deferred as gravity_well_game show GravityWellGame;
-import 'screens/sector_painter_game.dart'
-    deferred as sector_painter_game show SectorPainterGame;
-import 'screens/warp_fold_game.dart'
-    deferred as warp_fold_game show WarpFoldGame;
-import 'screens/cube_scanner_game.dart'
-    deferred as cube_scanner_game show CubeScannerGame;
-import 'screens/circuit_repair_game.dart'
-    deferred as circuit_repair_game show CircuitRepairGame;
-import 'screens/dark_matter_grid_game.dart'
-    deferred as dark_matter_grid_game show DarkMatterGridGame;
-import 'screens/ion_chain_game.dart'
-    deferred as ion_chain_game show IonChainGame;
-import 'screens/launch_sequence_game.dart'
-    deferred as launch_sequence_game show LaunchSequenceGame;
-import 'screens/star_forge_game.dart'
-    deferred as star_forge_game show StarForgeGame;
-import 'screens/nebula_matrix_game.dart'
-    deferred as nebula_matrix_game show NebulaMatrixGame;
-import 'screens/orbital_towers_game.dart'
-    deferred as orbital_towers_game show OrbitalTowersGame;
-import 'screens/hive_station_game.dart'
-    deferred as hive_station_game show HiveStationGame;
-import 'screens/relic_assembly_game.dart'
-    deferred as relic_assembly_game show RelicAssemblyGame;
-import 'screens/xenobiology_lab_game.dart'
-    deferred as xenobiology_lab_game show XenobiologyLabGame;
-import 'screens/galactic_market_game.dart'
-    deferred as galactic_market_game show GalacticMarketGame;
-import 'screens/asteroid_duel_game.dart'
-    deferred as asteroid_duel_game show AsteroidDuelGame;
-import 'screens/chrono_repair_game.dart'
-    deferred as chrono_repair_game show ChronoRepairGame;
-import 'screens/void_crossing_game.dart'
-    deferred as void_crossing_game show VoidCrossingGame;
+import 'screens/star_loader_game.dart' deferred as star_loader_game
+    show StarLoaderGame;
+import 'screens/robot_path_game.dart' deferred as robot_path_game
+    show RobotPathGame;
+import 'screens/solarpanel_game.dart' deferred as solarpanel_game
+    show SolarPanelGame;
+import 'screens/grid_filler_game.dart' deferred as grid_filler_game
+    show GridFillerGame;
+import 'screens/star_chart_scan_game.dart' deferred as star_chart_scan_game
+    show StarChartScanGame;
+import 'screens/comm_relay_game.dart' deferred as comm_relay_game
+    show CommRelayGame;
+import 'screens/hull_plating_game.dart' deferred as hull_plating_game
+    show HullPlatingGame;
+import 'screens/vault_cracker_game.dart' deferred as vault_cracker_game
+    show VaultCrackerGame;
+import 'screens/crew_manifest_game.dart' deferred as crew_manifest_game
+    show CrewManifestGame;
+import 'screens/alien_tribunal_game.dart' deferred as alien_tribunal_game
+    show AlienTribunalGame;
+import 'screens/gravity_well_game.dart' deferred as gravity_well_game
+    show GravityWellGame;
+import 'screens/sector_painter_game.dart' deferred as sector_painter_game
+    show SectorPainterGame;
+import 'screens/warp_fold_game.dart' deferred as warp_fold_game
+    show WarpFoldGame;
+import 'screens/cube_scanner_game.dart' deferred as cube_scanner_game
+    show CubeScannerGame;
+import 'screens/circuit_repair_game.dart' deferred as circuit_repair_game
+    show CircuitRepairGame;
+import 'screens/dark_matter_grid_game.dart' deferred as dark_matter_grid_game
+    show DarkMatterGridGame;
+import 'screens/ion_chain_game.dart' deferred as ion_chain_game
+    show IonChainGame;
+import 'screens/launch_sequence_game.dart' deferred as launch_sequence_game
+    show LaunchSequenceGame;
+import 'screens/star_forge_game.dart' deferred as star_forge_game
+    show StarForgeGame;
+import 'screens/nebula_matrix_game.dart' deferred as nebula_matrix_game
+    show NebulaMatrixGame;
+import 'screens/orbital_towers_game.dart' deferred as orbital_towers_game
+    show OrbitalTowersGame;
+import 'screens/hive_station_game.dart' deferred as hive_station_game
+    show HiveStationGame;
+import 'screens/relic_assembly_game.dart' deferred as relic_assembly_game
+    show RelicAssemblyGame;
+import 'screens/xenobiology_lab_game.dart' deferred as xenobiology_lab_game
+    show XenobiologyLabGame;
+import 'screens/galactic_market_game.dart' deferred as galactic_market_game
+    show GalacticMarketGame;
+import 'screens/asteroid_duel_game.dart' deferred as asteroid_duel_game
+    show AsteroidDuelGame;
+import 'screens/chrono_repair_game.dart' deferred as chrono_repair_game
+    show ChronoRepairGame;
+import 'screens/void_crossing_game.dart' deferred as void_crossing_game
+    show VoidCrossingGame;
 
 /// Build a game widget from its grade and level.
 typedef GameBuilder = Widget Function(int grade, int level);
@@ -140,30 +139,48 @@ final Map<String, _DeferredGame> _games = {
       (g, l) => number_walls_game.NumberWallsGame(grade: g, level: l)),
   'codebreaker': _DeferredGame(codebreaker_game.loadLibrary,
       (g, l) => codebreaker_game.CodebreakerGame(grade: g, level: l)),
-  'perspective_puzzle': _DeferredGame(perspective_puzzle_game.loadLibrary,
-      (g, l) => perspective_puzzle_game.PerspectivePuzzleGame(grade: g, level: l)),
+  'perspective_puzzle': _DeferredGame(
+      perspective_puzzle_game.loadLibrary,
+      (g, l) =>
+          perspective_puzzle_game.PerspectivePuzzleGame(grade: g, level: l)),
   'block_counter': _DeferredGame(blocks_counter_game.loadLibrary,
       (g, l) => blocks_counter_game.BlockCounterGame(grade: g, level: l)),
-  'signal_triangulation': _DeferredGame(signal_triangulation_game.loadLibrary,
-      (g, l) => signal_triangulation_game.SignalTriangulationGame(grade: g, level: l)),
-  'cryptex_lock_breaker': _DeferredGame(cryptex_lock_breaker_game.loadLibrary,
-      (g, l) => cryptex_lock_breaker_game.CryptexLockBreakerGame(grade: g, level: l)),
+  'signal_triangulation': _DeferredGame(
+      signal_triangulation_game.loadLibrary,
+      (g, l) => signal_triangulation_game.SignalTriangulationGame(
+          grade: g, level: l)),
+  'cryptex_lock_breaker': _DeferredGame(
+      cryptex_lock_breaker_game.loadLibrary,
+      (g, l) =>
+          cryptex_lock_breaker_game.CryptexLockBreakerGame(grade: g, level: l)),
   'arithmancer_duel': _DeferredGame(arithmancer_duel_game.loadLibrary,
       (g, l) => arithmancer_duel_game.ArithmancerDuelGame(grade: g, level: l)),
-  'arithmatic_square': _DeferredGame(arithmatic_square_game.loadLibrary,
-      (g, l) => arithmatic_square_game.ArithmeticSquareGame(grade: g, level: l)),
-  'arithmancer_crosswords': _DeferredGame(arithmancer_crosswords_game.loadLibrary,
-      (g, l) => arithmancer_crosswords_game.ArithmancerCrosswordsGame(grade: g, level: l)),
+  'arithmatic_square': _DeferredGame(
+      arithmatic_square_game.loadLibrary,
+      (g, l) =>
+          arithmatic_square_game.ArithmeticSquareGame(grade: g, level: l)),
+  'arithmancer_crosswords': _DeferredGame(
+      arithmancer_crosswords_game.loadLibrary,
+      (g, l) => arithmancer_crosswords_game.ArithmancerCrosswordsGame(
+          grade: g, level: l)),
   'kenken': _DeferredGame(kenken_game.loadLibrary,
       (g, l) => kenken_game.KenkenGame(grade: g, level: l)),
-  'asteroid_field_navigator': _DeferredGame(asteroid_field_navigator_game.loadLibrary,
-      (g, l) => asteroid_field_navigator_game.AsteroidFieldNavigatorGame(grade: g, level: l)),
-  'cargo_bay_arranger': _DeferredGame(cargo_bay_arranger_game.loadLibrary,
-      (g, l) => cargo_bay_arranger_game.CargoBayArrangerGame(grade: g, level: l)),
-  'quantum_molecule_builder': _DeferredGame(quantum_molecule_builder_game.loadLibrary,
-      (g, l) => quantum_molecule_builder_game.QuantumMoleculeBuilderGame(grade: g, level: l)),
-  'space_station_gridlock': _DeferredGame(space_station_gridlock_game.loadLibrary,
-      (g, l) => space_station_gridlock_game.SpaceStationGridlockGame(grade: g, level: l)),
+  'asteroid_field_navigator': _DeferredGame(
+      asteroid_field_navigator_game.loadLibrary,
+      (g, l) => asteroid_field_navigator_game.AsteroidFieldNavigatorGame(
+          grade: g, level: l)),
+  'cargo_bay_arranger': _DeferredGame(
+      cargo_bay_arranger_game.loadLibrary,
+      (g, l) =>
+          cargo_bay_arranger_game.CargoBayArrangerGame(grade: g, level: l)),
+  'quantum_molecule_builder': _DeferredGame(
+      quantum_molecule_builder_game.loadLibrary,
+      (g, l) => quantum_molecule_builder_game.QuantumMoleculeBuilderGame(
+          grade: g, level: l)),
+  'space_station_gridlock': _DeferredGame(
+      space_station_gridlock_game.loadLibrary,
+      (g, l) => space_station_gridlock_game.SpaceStationGridlockGame(
+          grade: g, level: l)),
   'star_loader_game': _DeferredGame(star_loader_game.loadLibrary,
       (g, l) => star_loader_game.StarLoaderGame(grade: g, level: l)),
   'robot_path_game': _DeferredGame(robot_path_game.loadLibrary,
@@ -243,7 +260,7 @@ GameBuilder? gameBuilderFor(String gameKey) {
         gameKey: gameKey,
         load: game.load,
         builder: (_) => GameLearningShell(
-          gameKey: gameKey, builder: (_) => game.build(grade, level)),
+            gameKey: gameKey, builder: (_) => game.build(grade, level)),
       );
 }
 

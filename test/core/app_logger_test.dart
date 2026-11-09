@@ -10,8 +10,10 @@ void main() {
     });
 
     test('verbose does not throw regardless of flag', () {
-      expect(() => AppLogger.verbose('msg', enabled: true, tag: 'V'), returnsNormally);
-      expect(() => AppLogger.verbose('msg', enabled: false, tag: 'V'), returnsNormally);
+      expect(() => AppLogger.verbose('msg', enabled: true, tag: 'V'),
+          returnsNormally);
+      expect(() => AppLogger.verbose('msg', enabled: false, tag: 'V'),
+          returnsNormally);
     });
 
     test('verbose only emits when enabled=true in debug mode', () {

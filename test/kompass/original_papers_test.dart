@@ -88,9 +88,14 @@ void main() {
   });
 
   test('euro answers accept cents and count words are optional', () {
-    expect(KompassScorer.parseNumber('200 ct', unit: '€'), 2);
-    expect(KompassScorer.parseNumber('2 € 5 ct', unit: '€'), 2.05);
-    expect(KompassScorer.parseNumber('2 cm', unit: '€'), isNull);
+    expect(
+        KompassScorer.parseNumber('200 ct', unit: '€', acceptCents: true), 2);
+    expect(KompassScorer.parseNumber('2 € 5 ct', unit: '€', acceptCents: true),
+        2.05);
+    expect(KompassScorer.parseNumber('200 ct', unit: '€'), isNull);
+    final euro = _pack().taskById('k4_m4_14')!;
+    expect(KompassScorer.score(euro, {'a': '1200 ct', 'b': '2 €'}).fullyCorrect,
+        isTrue);
     final labelled = _pack()
         .tasks
         .where((t) => t.use == 'original')

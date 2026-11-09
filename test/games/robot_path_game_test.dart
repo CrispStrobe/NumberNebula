@@ -164,8 +164,7 @@ void main() {
       // (startRow,startCol). We verify the chosen direction is consistent:
       // the neighbour it points to is in-bounds, and if ANY orthogonal
       // walkable neighbour exists the chosen one is itself walkable.
-      bool walkable(CellType t) =>
-          t == CellType.empty || t == CellType.goal;
+      bool walkable(CellType t) => t == CellType.empty || t == CellType.goal;
       for (int grade = 1; grade <= 4; grade++) {
         for (int level = 1; level <= 5; level++) {
           for (int i = 0; i < 5; i++) {

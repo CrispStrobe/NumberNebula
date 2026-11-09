@@ -23,7 +23,8 @@ void main() {
 
   group('molecule levels asset', () {
     test('holds all 30 levels, numbered 1..30 in order', () {
-      expect(levelsData.map((l) => l['levelNumber']), [for (var i = 1; i <= 30; i++) i]);
+      expect(levelsData.map((l) => l['levelNumber']),
+          [for (var i = 1; i <= 30; i++) i]);
     });
 
     test('expands cells back into the maps the game reads', () {
@@ -72,10 +73,18 @@ void main() {
 
     test('maps the 12 bonus-stage specials cyclically and stably', () {
       const expected = [
-        AtomType.special1, AtomType.special2, AtomType.special3,
-        AtomType.special4, AtomType.special5, AtomType.special6,
-        AtomType.special7, AtomType.special8, AtomType.special9,
-        AtomType.special10, AtomType.special11, AtomType.special12,
+        AtomType.special1,
+        AtomType.special2,
+        AtomType.special3,
+        AtomType.special4,
+        AtomType.special5,
+        AtomType.special6,
+        AtomType.special7,
+        AtomType.special8,
+        AtomType.special9,
+        AtomType.special10,
+        AtomType.special11,
+        AtomType.special12,
       ];
       for (var i = 32; i <= 43; i++) {
         expect(getAtomTypeFromIndex(i), expected[i - 32], reason: 'index $i');
@@ -122,12 +131,14 @@ void main() {
       expect(getBondingDirections(100), isEmpty);
       // Each direction in a set is unique by definition of Set.
       final dirs = getBondingDirections(14);
-      expect(dirs, containsAll(<BondDirection>{
-        BondDirection.left,
-        BondDirection.right,
-        BondDirection.up,
-        BondDirection.down,
-      }));
+      expect(
+          dirs,
+          containsAll(<BondDirection>{
+            BondDirection.left,
+            BondDirection.right,
+            BondDirection.up,
+            BondDirection.down,
+          }));
     });
   });
 
@@ -159,12 +170,22 @@ void main() {
       expect(AtomType.fluorine.symbol, 'F');
     });
 
-    test('the 12 special types all use the generic "Special" name and are distinct', () {
+    test(
+        'the 12 special types all use the generic "Special" name and are distinct',
+        () {
       const specials = [
-        AtomType.special1, AtomType.special2, AtomType.special3,
-        AtomType.special4, AtomType.special5, AtomType.special6,
-        AtomType.special7, AtomType.special8, AtomType.special9,
-        AtomType.special10, AtomType.special11, AtomType.special12,
+        AtomType.special1,
+        AtomType.special2,
+        AtomType.special3,
+        AtomType.special4,
+        AtomType.special5,
+        AtomType.special6,
+        AtomType.special7,
+        AtomType.special8,
+        AtomType.special9,
+        AtomType.special10,
+        AtomType.special11,
+        AtomType.special12,
       ];
       for (final s in specials) {
         expect(s.name, 'Special');

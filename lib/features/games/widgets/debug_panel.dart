@@ -19,7 +19,7 @@ class DebugPanel extends StatefulWidget {
 class _DebugPanelState extends State<DebugPanel> {
   late int _grade;
   late int _level;
-  
+
   // --- NEW STATE VARIABLES ---
   Set<String> _selectedGameKeys = {};
   bool _selectAll = false;
@@ -47,13 +47,16 @@ class _DebugPanelState extends State<DebugPanel> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
         ),
-        child: SingleChildScrollView( // ensures dialog can scroll if content is tall
+        child: SingleChildScrollView(
+          // ensures dialog can scroll if content is tall
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(s.debugPanelTitle, style: SpaceTheme.headlineStyle),
               const SizedBox(height: 24),
-              _buildSwitch(s.debugForceUnlock, debugProvider.isPaidUnlockedForced, (value) {
+              _buildSwitch(
+                  s.debugForceUnlock, debugProvider.isPaidUnlockedForced,
+                  (value) {
                 context.read<DebugProvider>().setPaidUnlock(value);
               }),
               const Divider(color: SpaceTheme.nebulaPurple, height: 32),
@@ -66,10 +69,9 @@ class _DebugPanelState extends State<DebugPanel> {
 
               // --- NEW GAME SELECTOR UI ---
               const Divider(color: SpaceTheme.nebulaPurple, height: 32),
-              Text(
-                "Force Level for Selected Games:", 
-                style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow)
-              ),
+              Text("Force Level for Selected Games:",
+                  style: SpaceTheme.bodyStyle
+                      .copyWith(color: SpaceTheme.starYellow)),
               _buildSelectAllToggle(),
               _buildGameCheckboxList(),
               // --- END NEW UI ---
@@ -86,7 +88,8 @@ class _DebugPanelState extends State<DebugPanel> {
 
                   // --- UPDATED LOGIC ---
                   // Force-set progress only for the selected games
-                  gameProvider.debugSetGameLevels(_level, _selectedGameKeys.toList());
+                  gameProvider.debugSetGameLevels(
+                      _level, _selectedGameKeys.toList());
 
                   Navigator.of(context).pop();
                 },
@@ -99,7 +102,8 @@ class _DebugPanelState extends State<DebugPanel> {
                 builder: (context) {
                   final evalService = PuzzleEvaluationService.instance;
                   final gridlockTracker = context.read<GridlockPuzzleTracker>();
-                  final totalCount = evalService.count + gridlockTracker.evaluationCount;
+                  final totalCount =
+                      evalService.count + gridlockTracker.evaluationCount;
                   if (totalCount == 0) return const SizedBox.shrink();
                   return ElevatedButton.icon(
                     icon: const Icon(Icons.file_download, size: 18),
@@ -110,7 +114,8 @@ class _DebugPanelState extends State<DebugPanel> {
                         allEvals.add('"general": ${evalService.exportJson()}');
                       }
                       if (gridlockTracker.evaluationCount > 0) {
-                        allEvals.add('"gridlock": ${gridlockTracker.exportEvaluationsJson()}');
+                        allEvals.add(
+                            '"gridlock": ${gridlockTracker.exportEvaluationsJson()}');
                       }
                       final json = '{${allEvals.join(', ')}}';
                       Clipboard.setData(ClipboardData(text: json));
@@ -138,7 +143,8 @@ class _DebugPanelState extends State<DebugPanel> {
   // --- NEW HELPER WIDGET ---
   Widget _buildSelectAllToggle() {
     return CheckboxListTile(
-      title: Text("Select All Games", style: SpaceTheme.bodyStyle.copyWith(fontStyle: FontStyle.italic)),
+      title: Text("Select All Games",
+          style: SpaceTheme.bodyStyle.copyWith(fontStyle: FontStyle.italic)),
       value: _selectAll,
       onChanged: (bool? value) {
         setState(() {
@@ -169,7 +175,8 @@ class _DebugPanelState extends State<DebugPanel> {
       width: double.maxFinite,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+        border:
+            Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
       ),
       child: ListView.builder(
         shrinkWrap: true,
@@ -177,7 +184,8 @@ class _DebugPanelState extends State<DebugPanel> {
         itemBuilder: (context, index) {
           final gameKey = allGameKeys[index];
           return CheckboxListTile(
-            title: Text(gameKey, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+            title: Text(gameKey,
+                style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
             value: _selectedGameKeys.contains(gameKey),
             onChanged: (bool? value) {
               setState(() {
@@ -210,7 +218,8 @@ class _DebugPanelState extends State<DebugPanel> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow)),
+        Text(label,
+            style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow)),
         Switch(
           value: value,
           onChanged: onChanged,
@@ -220,11 +229,13 @@ class _DebugPanelState extends State<DebugPanel> {
     );
   }
 
-  Widget _buildSlider(String label, double value, double min, double max, ValueChanged<double> onChanged) {
+  Widget _buildSlider(String label, double value, double min, double max,
+      ValueChanged<double> onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$label: ${value.toInt()}', style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow)),
+        Text('$label: ${value.toInt()}',
+            style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow)),
         Slider(
           value: value,
           min: min,

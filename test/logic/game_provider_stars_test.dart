@@ -65,7 +65,8 @@ class FakeCognitiveProfileService extends CognitiveProfileService {
   }
 }
 
-GameProvider _buildProvider(FakeSriService sri, FakeCognitiveProfileService cog) {
+GameProvider _buildProvider(
+    FakeSriService sri, FakeCognitiveProfileService cog) {
   return GameProvider(
     progressService: FakeProgressService(),
     sriService: sri,
@@ -225,7 +226,8 @@ void main() {
       expect(json['bestStars']['kenken'], 3);
 
       // Create a fresh provider and load
-      final provider2 = _buildProvider(FakeSriService(), FakeCognitiveProfileService());
+      final provider2 =
+          _buildProvider(FakeSriService(), FakeCognitiveProfileService());
       provider2.fromJson(json);
       expect(provider2.bestStars['kenken'], 3);
     });

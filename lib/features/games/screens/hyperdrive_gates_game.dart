@@ -47,32 +47,39 @@ class Star {
   double size;
   double speed;
   double brightness;
-  Star({required this.position, required this.size, required this.speed, required this.brightness});
+  Star(
+      {required this.position,
+      required this.size,
+      required this.speed,
+      required this.brightness});
 }
 
 class GravityField {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-    'center': [center.dx, center.dy],
-    'strength': strength,
-    'maxDistance': maxDistance
-  };
+        'center': [center.dx, center.dy],
+        'strength': strength,
+        'maxDistance': maxDistance
+      };
   factory GravityField.fromJson(Map<String, dynamic> json) => GravityField(
-    center: Offset((json['center'][0] as num).toDouble(), (json['center'][1] as num).toDouble()),
-    strength: (json['strength'] as num).toDouble(),
-    maxDistance: (json['maxDistance'] as num).toDouble()
-  );
+      center: Offset((json['center'][0] as num).toDouble(),
+          (json['center'][1] as num).toDouble()),
+      strength: (json['strength'] as num).toDouble(),
+      maxDistance: (json['maxDistance'] as num).toDouble());
 
   final Offset center;
   final double strength;
   final double maxDistance;
-  
-  GravityField({required this.center, required this.strength, required this.maxDistance});
-  
+
+  GravityField(
+      {required this.center,
+      required this.strength,
+      required this.maxDistance});
+
   Offset calculateForce(Offset objectPosition, double objectMass) {
     final distance = (center - objectPosition).distance;
     if (distance > maxDistance || distance < 10) return Offset.zero;
-    
+
     final direction = (center - objectPosition) / distance;
     final force = (strength * objectMass) / (distance * distance);
     return direction * force;
@@ -87,40 +94,51 @@ class PowerUp extends GameObject {
   final Color color;
   double rotation = 0.0;
   double pulsePhase = 0.0;
-  
+
   PowerUp({required super.position, required this.type})
       : color = _getColorForType(type);
-  
+
   static Color _getColorForType(PowerUpType type) {
     switch (type) {
-      case PowerUpType.shield: return Colors.blue;
-      case PowerUpType.slowTime: return Colors.purple;
-      case PowerUpType.extraLife: return Colors.red;
-      case PowerUpType.magneticField: return Colors.orange;
-      case PowerUpType.speedBoost: return Colors.green;
+      case PowerUpType.shield:
+        return Colors.blue;
+      case PowerUpType.slowTime:
+        return Colors.purple;
+      case PowerUpType.extraLife:
+        return Colors.red;
+      case PowerUpType.magneticField:
+        return Colors.orange;
+      case PowerUpType.speedBoost:
+        return Colors.green;
     }
   }
-  
+
   IconData get icon {
     switch (type) {
-      case PowerUpType.shield: return Icons.shield;
-      case PowerUpType.slowTime: return Icons.schedule;
-      case PowerUpType.extraLife: return Icons.favorite;
-      case PowerUpType.magneticField: return Icons.radio_button_checked;
-      case PowerUpType.speedBoost: return Icons.flash_on;
+      case PowerUpType.shield:
+        return Icons.shield;
+      case PowerUpType.slowTime:
+        return Icons.schedule;
+      case PowerUpType.extraLife:
+        return Icons.favorite;
+      case PowerUpType.magneticField:
+        return Icons.radio_button_checked;
+      case PowerUpType.speedBoost:
+        return Icons.flash_on;
     }
   }
-  
+
   @override
-  Rect get collisionRect => Rect.fromCenter(center: position, width: 40, height: 40);
-  
+  Rect get collisionRect =>
+      Rect.fromCenter(center: position, width: 40, height: 40);
+
   @override
   void update(double dt, double gameSpeed) {
     position = Offset(position.dx - gameSpeed * dt, position.dy);
     rotation += dt * 2;
     pulsePhase += dt * 3;
   }
-  
+
   @override
   Widget build() {
     final pulse = math.sin(pulsePhase) * 0.3 + 0.7;
@@ -167,41 +185,113 @@ class HyperdriveGatesGame extends StatefulWidget {
   State<HyperdriveGatesGame> createState() => _HyperdriveGatesGameState();
 }
 
-class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerProviderStateMixin, PuzzleSessionMixin<HyperdriveGatesGame> {
+class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
+    with TickerProviderStateMixin, PuzzleSessionMixin<HyperdriveGatesGame> {
   bool _sessionReady = false;
 
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
-    updateDecorativeMotion([_thrusterController, _problemGlowController], reduced);
+    updateDecorativeMotion(
+        [_thrusterController, _problemGlowController], reduced);
   }
 
-  @override String get sessionGameKey => 'hyperdrive_gates';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
+  @override
+  String get sessionGameKey => 'hyperdrive_gates';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
     if (!_sessionReady) return null;
-    return {'lives': lives, 'gatesCleared': gatesCleared, 'targetGatesForLevel': targetGatesForLevel, 'gameSpeed': gameSpeed, 'comboCounter': comboCounter, '_levelScore': _levelScore, '_temporarySpeedBoost': _temporarySpeedBoost, 'hasShield': hasShield, 'timeSlowActive': timeSlowActive, 'activePowerUps': activePowerUps.entries.map((v0) => [v0.key.name, v0.value]).toList(), '_choiceMadeForCurrentSet': _choiceMadeForCurrentSet, 'currentProblem': (currentProblem?.toJson()), 'laneCenters': laneCenters.map((v0) => [v0.dx, v0.dy]).toList(), 'gravityFields': gravityFields.map((v0) => v0.toJson()).toList(), 'objects': gameObjects.map(gameObjectToJson).toList(), 'powerups': powerUps.map((p) => {'position': [p.position.dx, p.position.dy], 'type': p.type.name}).toList(), 'ship': {'pos': [spaceship.position.dx, spaceship.position.dy], 'target': spaceship.targetY, 'velocity': [spaceship.velocity.dx, spaceship.velocity.dy], 'cooldown': spaceship.damageCooldown}};
+    return {
+      'lives': lives,
+      'gatesCleared': gatesCleared,
+      'targetGatesForLevel': targetGatesForLevel,
+      'gameSpeed': gameSpeed,
+      'comboCounter': comboCounter,
+      '_levelScore': _levelScore,
+      '_temporarySpeedBoost': _temporarySpeedBoost,
+      'hasShield': hasShield,
+      'timeSlowActive': timeSlowActive,
+      'activePowerUps':
+          activePowerUps.entries.map((v0) => [v0.key.name, v0.value]).toList(),
+      '_choiceMadeForCurrentSet': _choiceMadeForCurrentSet,
+      'currentProblem': (currentProblem?.toJson()),
+      'laneCenters': laneCenters.map((v0) => [v0.dx, v0.dy]).toList(),
+      'gravityFields': gravityFields.map((v0) => v0.toJson()).toList(),
+      'objects': gameObjects.map(gameObjectToJson).toList(),
+      'powerups': powerUps
+          .map((p) => {
+                'position': [p.position.dx, p.position.dy],
+                'type': p.type.name
+              })
+          .toList(),
+      'ship': {
+        'pos': [spaceship.position.dx, spaceship.position.dy],
+        'target': spaceship.targetY,
+        'velocity': [spaceship.velocity.dx, spaceship.velocity.dy],
+        'cooldown': spaceship.damageCooldown
+      }
+    };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
     lives = state["lives"] as int;
-gatesCleared = state["gatesCleared"] as int;
-targetGatesForLevel = state["targetGatesForLevel"] as int;
-gameSpeed = (state["gameSpeed"] as num).toDouble();
-comboCounter = state["comboCounter"] as int;
-_levelScore = state["_levelScore"] as int;
-_temporarySpeedBoost = (state["_temporarySpeedBoost"] as num).toDouble();
-hasShield = state["hasShield"] as bool;
-timeSlowActive = state["timeSlowActive"] as bool;
-activePowerUps = Map<PowerUpType, double>.fromEntries((state["activePowerUps"] as List).map((v0) => MapEntry(PowerUpType.values.byName(v0[0] as String), (v0[1] as num).toDouble())));
-_choiceMadeForCurrentSet = state["_choiceMadeForCurrentSet"] as bool;
-currentProblem = (state["currentProblem"] == null ? null : MathProblem.fromJson(Map<String, dynamic>.from(state["currentProblem"] as Map)));
-laneCenters = (state["laneCenters"] as List).map((v0) => Offset((v0[0] as num).toDouble(), (v0[1] as num).toDouble())).toList();
-gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
-    gameObjects = (state['objects'] as List).map((v) => gameObjectFromJson(Map<String, dynamic>.from(v as Map))).toList(); powerUps = (state['powerups'] as List).map((v) => PowerUp(position: Offset((v['position'][0] as num).toDouble(), (v['position'][1] as num).toDouble()), type: PowerUpType.values.byName(v['type'] as String))).toList(); final h = state['ship']; spaceship.position = Offset((h['pos'][0] as num).toDouble(), (h['pos'][1] as num).toDouble()); spaceship.targetY = (h['target'] as num).toDouble(); spaceship.velocity = Offset((h['velocity'][0] as num).toDouble(), (h['velocity'][1] as num).toDouble()); spaceship.damageCooldown = (h['cooldown'] as num).toDouble(); _generateBackgroundStars(MediaQuery.of(context).size);
-    gameActive = true; gameInitialized = true; _resumeTimers();
+    gatesCleared = state["gatesCleared"] as int;
+    targetGatesForLevel = state["targetGatesForLevel"] as int;
+    gameSpeed = (state["gameSpeed"] as num).toDouble();
+    comboCounter = state["comboCounter"] as int;
+    _levelScore = state["_levelScore"] as int;
+    _temporarySpeedBoost = (state["_temporarySpeedBoost"] as num).toDouble();
+    hasShield = state["hasShield"] as bool;
+    timeSlowActive = state["timeSlowActive"] as bool;
+    activePowerUps = Map<PowerUpType, double>.fromEntries(
+        (state["activePowerUps"] as List).map((v0) => MapEntry(
+            PowerUpType.values.byName(v0[0] as String),
+            (v0[1] as num).toDouble())));
+    _choiceMadeForCurrentSet = state["_choiceMadeForCurrentSet"] as bool;
+    currentProblem = (state["currentProblem"] == null
+        ? null
+        : MathProblem.fromJson(
+            Map<String, dynamic>.from(state["currentProblem"] as Map)));
+    laneCenters = (state["laneCenters"] as List)
+        .map((v0) =>
+            Offset((v0[0] as num).toDouble(), (v0[1] as num).toDouble()))
+        .toList();
+    gravityFields = (state["gravityFields"] as List)
+        .map(
+            (v0) => GravityField.fromJson(Map<String, dynamic>.from(v0 as Map)))
+        .toList();
+    gameObjects = (state['objects'] as List)
+        .map((v) => gameObjectFromJson(Map<String, dynamic>.from(v as Map)))
+        .toList();
+    powerUps = (state['powerups'] as List)
+        .map((v) => PowerUp(
+            position: Offset((v['position'][0] as num).toDouble(),
+                (v['position'][1] as num).toDouble()),
+            type: PowerUpType.values.byName(v['type'] as String)))
+        .toList();
+    final h = state['ship'];
+    spaceship.position = Offset(
+        (h['pos'][0] as num).toDouble(), (h['pos'][1] as num).toDouble());
+    spaceship.targetY = (h['target'] as num).toDouble();
+    spaceship.velocity = Offset((h['velocity'][0] as num).toDouble(),
+        (h['velocity'][1] as num).toDouble());
+    spaceship.damageCooldown = (h['cooldown'] as num).toDouble();
+    _generateBackgroundStars(MediaQuery.of(context).size);
+    gameActive = true;
+    gameInitialized = true;
+    _resumeTimers();
   }
+
   Future<void> _restoreOrGenerate() async {
-    if (!await restorePuzzleSession() && mounted) { await Future<void>.sync(() { _initializeGame(MediaQuery.of(context).size); }); }
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(() {
+        _initializeGame(MediaQuery.of(context).size);
+      });
+    }
     if (mounted) setState(() => _sessionReady = true);
   }
 
@@ -248,19 +338,23 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
   @override
   void initState() {
     super.initState();
-    _gameController = AnimationController(vsync: this, duration: const Duration(seconds: 1))
-      ..addListener(_updateGame);
+    _gameController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 1))
+          ..addListener(_updateGame);
 
-    _thrusterController = AnimationController(vsync: this, duration: const Duration(milliseconds: 150))
+    _thrusterController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 150))
       ..repeat(reverse: true);
-      
-    _screenShakeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
-        
-    _problemGlowController = AnimationController(vsync: this, duration: const Duration(seconds: 2))
-        ..repeat(reverse: true);
-        
-    _timeSlowController = AnimationController(vsync: this, duration: const Duration(seconds: 1));
 
+    _screenShakeController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 400));
+
+    _problemGlowController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2))
+          ..repeat(reverse: true);
+
+    _timeSlowController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 1));
   }
 
   @override
@@ -268,9 +362,12 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
     super.didChangeDependencies();
     if (!gameInitialized) {
       final screenSize = MediaQuery.of(context).size;
-      spaceship = Spaceship(initialPosition: Offset(150, screenSize.height / 2));
+      spaceship =
+          Spaceship(initialPosition: Offset(150, screenSize.height / 2));
       gameInitialized = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _restoreOrGenerate();
+      });
     }
   }
 
@@ -301,7 +398,8 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
       activePowerUps.clear();
 
       targetGatesForLevel = TARGET_GATES_TO_WIN + widget.level;
-      gameSpeed = BASE_GAME_SPEED + (widget.grade * 15.0) + (widget.level * 5.0);
+      gameSpeed =
+          BASE_GAME_SPEED + (widget.grade * 15.0) + (widget.level * 5.0);
       spaceship.reset(screenSize);
       gameObjects.clear();
       effects.clear();
@@ -315,7 +413,8 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
 
     _speedIncreaseTimer?.cancel();
     _speedIncreaseTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context)) return;
+      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context))
+        return;
       if (gameActive) {
         setState(() => gameSpeed += 12);
       }
@@ -323,7 +422,8 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
 
     _powerUpSpawnTimer?.cancel();
     _powerUpSpawnTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
-      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context)) return;
+      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context))
+        return;
       if (gameActive && math.Random().nextDouble() < 0.4) {
         _spawnRandomPowerUp(screenSize);
       }
@@ -336,7 +436,8 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
     final screenSize = MediaQuery.of(context).size;
     _speedIncreaseTimer?.cancel();
     _speedIncreaseTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context)) return;
+      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context))
+        return;
       if (gameActive) {
         setState(() => gameSpeed += 12);
       }
@@ -344,7 +445,8 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
 
     _powerUpSpawnTimer?.cancel();
     _powerUpSpawnTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
-      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context)) return;
+      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context))
+        return;
       if (gameActive && math.Random().nextDouble() < 0.4) {
         _spawnRandomPowerUp(screenSize);
       }
@@ -359,7 +461,8 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
     for (int layer = 0; layer < 3; layer++) {
       for (int i = 0; i < 80; i++) {
         backgroundStars[layer].add(Star(
-          position: Offset(random.nextDouble() * screenSize.width, random.nextDouble() * screenSize.height),
+          position: Offset(random.nextDouble() * screenSize.width,
+              random.nextDouble() * screenSize.height),
           size: (random.nextDouble() * 1.8 + 0.5) * (layer + 1),
           speed: (random.nextDouble() * 25 + 15) * (layer + 1),
           brightness: random.nextDouble() * 0.6 + 0.4,
@@ -370,15 +473,17 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
 
   void _spawnRandomPowerUp(Size screenSize) {
     final random = math.Random();
-    final powerUpType = PowerUpType.values[random.nextInt(PowerUpType.values.length)];
-    
+    final powerUpType =
+        PowerUpType.values[random.nextInt(PowerUpType.values.length)];
+
     double yPos;
     if (laneCenters.isNotEmpty) {
       yPos = laneCenters[random.nextInt(laneCenters.length)].dy;
     } else {
-      yPos = random.nextDouble() * screenSize.height * 0.8 + screenSize.height * 0.1;
+      yPos = random.nextDouble() * screenSize.height * 0.8 +
+          screenSize.height * 0.1;
     }
-    
+
     powerUps.add(PowerUp(
       position: Offset(screenSize.width + 50, yPos),
       type: powerUpType,
@@ -391,24 +496,26 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
     });
     final sriService = context.read<SriService>();
     final gameProvider = context.read<GameProvider>();
-    currentProblem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
-    
+    currentProblem =
+        MathProblem.generateProblem(gameProvider, widget.level, sriService);
+
     final random = math.Random();
-    
+
     final mutablePalettes = List.of(gateColorPalettes);
     mutablePalettes.shuffle();
     final colors = mutablePalettes.first;
 
-    final numPaths = random.nextInt(2) + 2; 
-    final answers = currentProblem!.generateMultipleChoiceOptions(optionsCount: numPaths);
-    
+    final numPaths = random.nextInt(2) + 2;
+    final answers =
+        currentProblem!.generateMultipleChoiceOptions(optionsCount: numPaths);
+
     laneCenters.clear();
-    
+
     // Spawn planets with gravity fields
     if (random.nextDouble() < 0.6) {
       _spawnPlanetWithGravity(screenSize);
     }
-    
+
     if (numPaths == 2) {
       _spawnTwoGates(screenSize, answers, colors);
     } else {
@@ -419,16 +526,17 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
   void _spawnPlanetWithGravity(Size screenSize) {
     final random = math.Random();
     final planetX = screenSize.width + 200 + random.nextDouble() * 300;
-    final planetY = random.nextDouble() * screenSize.height * 0.6 + screenSize.height * 0.2;
+    final planetY =
+        random.nextDouble() * screenSize.height * 0.6 + screenSize.height * 0.2;
     final planetPosition = Offset(planetX, planetY);
-    
+
     // Add planet as visual object
     gameObjects.add(Planet(
       position: planetPosition,
       radius: 40 + random.nextDouble() * 30,
       color: planetColors[random.nextInt(planetColors.length)],
     ));
-    
+
     // Add gravity field
     gravityFields.add(GravityField(
       center: planetPosition,
@@ -441,15 +549,17 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
     final random = math.Random();
     final gateHeight = screenSize.height * 0.4;
     final verticalGap = screenSize.height * 0.2;
-    final topGateY = (screenSize.height / 2) - (verticalGap / 2) - (gateHeight / 2);
-    final bottomGateY = (screenSize.height / 2) + (verticalGap / 2) + (gateHeight / 2);
+    final topGateY =
+        (screenSize.height / 2) - (verticalGap / 2) - (gateHeight / 2);
+    final bottomGateY =
+        (screenSize.height / 2) + (verticalGap / 2) + (gateHeight / 2);
 
     laneCenters.add(Offset(spaceship.position.dx, topGateY));
     laneCenters.add(Offset(spaceship.position.dx, bottomGateY));
-    
+
     final shuffledColors = List.of(colors)..shuffle();
 
-    for(int i = 0; i < answers.length; i++) {
+    for (int i = 0; i < answers.length; i++) {
       final yPos = i == 0 ? topGateY : bottomGateY;
       gameObjects.add(Gate(
         position: Offset(screenSize.width + 150, yPos),
@@ -459,20 +569,24 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
         color: shuffledColors[i],
       ));
     }
-    
+
     // Spawn space debris instead of just asteroids
     for (int i = 0; i < 6; i++) {
       final yPos = (screenSize.height / 2) + (random.nextDouble() - 0.5) * 60;
       final xOffset = 100 + random.nextDouble() * 80;
       if (random.nextBool()) {
-        gameObjects.add(Asteroid(position: Offset(screenSize.width + xOffset, yPos), sizeValue: 20.0 + random.nextDouble() * 5));
+        gameObjects.add(Asteroid(
+            position: Offset(screenSize.width + xOffset, yPos),
+            sizeValue: 20.0 + random.nextDouble() * 5));
       } else {
-        gameObjects.add(SpaceDebris(position: Offset(screenSize.width + xOffset, yPos)));
+        gameObjects.add(
+            SpaceDebris(position: Offset(screenSize.width + xOffset, yPos)));
       }
     }
   }
 
-  void _spawnThreeGates(Size screenSize, List<int> answers, List<Color> colors) {
+  void _spawnThreeGates(
+      Size screenSize, List<int> answers, List<Color> colors) {
     final random = math.Random();
     final gateHeight = screenSize.height * 0.25;
     final topGateY = screenSize.height * 0.25;
@@ -484,9 +598,10 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
     laneCenters.add(Offset(spaceship.position.dx, bottomGateY));
 
     final yPositions = [topGateY, middleGateY, bottomGateY];
-    final shuffledColors = (gateColorPalettes.expand((p) => p).toList()..shuffle());
+    final shuffledColors =
+        (gateColorPalettes.expand((p) => p).toList()..shuffle());
 
-    for(int i = 0; i < answers.length; i++) {
+    for (int i = 0; i < answers.length; i++) {
       gameObjects.add(Gate(
         position: Offset(screenSize.width + 150, yPositions[i]),
         answer: answers[i],
@@ -499,8 +614,14 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
     final barrierY1 = (topGateY + middleGateY) / 2;
     final barrierY2 = (middleGateY + bottomGateY) / 2;
     for (int i = 0; i < 4; i++) {
-      gameObjects.add(Asteroid(position: Offset(screenSize.width + 100 + random.nextDouble() * 80, barrierY1 + (random.nextDouble() - 0.5) * 50), sizeValue: 15.0));
-      gameObjects.add(Asteroid(position: Offset(screenSize.width + 100 + random.nextDouble() * 80, barrierY2 + (random.nextDouble() - 0.5) * 50), sizeValue: 15.0));
+      gameObjects.add(Asteroid(
+          position: Offset(screenSize.width + 100 + random.nextDouble() * 80,
+              barrierY1 + (random.nextDouble() - 0.5) * 50),
+          sizeValue: 15.0));
+      gameObjects.add(Asteroid(
+          position: Offset(screenSize.width + 100 + random.nextDouble() * 80,
+              barrierY2 + (random.nextDouble() - 0.5) * 50),
+          sizeValue: 15.0));
     }
   }
 
@@ -517,17 +638,15 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
 
     if (_screenShakeController.isAnimating) {
       final progress = 1 - _screenShakeController.value;
-      screenShakeOffset = Offset(
-        (random.nextDouble() - 0.5) * 12 * progress,
-        (random.nextDouble() - 0.5) * 12 * progress
-      );
+      screenShakeOffset = Offset((random.nextDouble() - 0.5) * 12 * progress,
+          (random.nextDouble() - 0.5) * 12 * progress);
     } else {
       screenShakeOffset = Offset.zero;
     }
-    
+
     if (_temporarySpeedBoost > 1.0) {
       setVisualState(() {
-        _temporarySpeedBoost *= 0.95; 
+        _temporarySpeedBoost *= 0.95;
       });
     } else {
       _temporarySpeedBoost = 0.0;
@@ -539,9 +658,12 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
       // Update background stars
       for (var layer in backgroundStars) {
         for (var star in layer) {
-          star.position = Offset(star.position.dx - (star.speed + effectiveGameSpeed * 0.08) * dt, star.position.dy);
+          star.position = Offset(
+              star.position.dx - (star.speed + effectiveGameSpeed * 0.08) * dt,
+              star.position.dy);
           if (star.position.dx < -10) {
-            star.position = Offset(screenSize.width + 10, random.nextDouble() * screenSize.height);
+            star.position = Offset(
+                screenSize.width + 10, random.nextDouble() * screenSize.height);
           }
         }
       }
@@ -557,7 +679,8 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
 
       // Update gravity fields (move with game objects)
       gravityFields.removeWhere((field) {
-        final newCenter = Offset(field.center.dx - effectiveGameSpeed * dt, field.center.dy);
+        final newCenter =
+            Offset(field.center.dx - effectiveGameSpeed * dt, field.center.dy);
         if (newCenter.dx < -200) return true;
         final index = gravityFields.indexOf(field);
         if (index != -1) {
@@ -598,7 +721,8 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
 
         obj.update(dt, effectiveGameSpeed);
 
-        if (obj.position.dx > spaceship.position.dx - 50 && obj.position.dx < spaceship.position.dx + 50) {
+        if (obj.position.dx > spaceship.position.dx - 50 &&
+            obj.position.dx < spaceship.position.dx + 50) {
           if (obj is Gate) {
             if (obj.collisionRect.overlaps(spaceship.collisionRect)) {
               _handleGateCollision(obj);
@@ -619,18 +743,19 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
 
         return obj.position.dx < -200;
       });
-      
+
       if (shouldSpawnNext) {
-        gameObjects.removeWhere((obj) => obj is Gate || obj is Asteroid || obj is SpaceDebris);
+        gameObjects.removeWhere(
+            (obj) => obj is Gate || obj is Asteroid || obj is SpaceDebris);
         gravityFields.clear(); // Clear old gravity fields
         _spawnNextGateSet(screenSize);
       }
 
       effects.removeWhere((e) => e.isComplete);
-      for (var effect in effects) { 
+      for (var effect in effects) {
         effect.update(dt);
       }
-      
+
       if (lives <= 0) _gameOver();
       if (gatesCleared >= targetGatesForLevel) _winGame();
     });
@@ -648,7 +773,7 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
         activePowerUps[type] = newTime;
       }
     });
-    
+
     for (final type in toRemove) {
       activePowerUps.remove(type);
     }
@@ -686,17 +811,23 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
     ));
 
     for (int i = 0; i < 20; i++) {
-      effects.add(ParticleEffect.powerUpParticle(powerUp.position, powerUp.color));
+      effects
+          .add(ParticleEffect.powerUpParticle(powerUp.position, powerUp.color));
     }
   }
 
   String _getPowerUpText(PowerUpType type) {
     switch (type) {
-      case PowerUpType.shield: return 'SHIELD!';
-      case PowerUpType.slowTime: return 'SLOW TIME!';
-      case PowerUpType.extraLife: return 'EXTRA LIFE!';
-      case PowerUpType.speedBoost: return 'SPEED BOOST!';
-      case PowerUpType.magneticField: return 'MAGNETIC!';
+      case PowerUpType.shield:
+        return 'SHIELD!';
+      case PowerUpType.slowTime:
+        return 'SLOW TIME!';
+      case PowerUpType.extraLife:
+        return 'EXTRA LIFE!';
+      case PowerUpType.speedBoost:
+        return 'SPEED BOOST!';
+      case PowerUpType.magneticField:
+        return 'MAGNETIC!';
     }
   }
 
@@ -717,7 +848,6 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
   }
 
   void _handleGateCollision(Gate gate) {
-    
     // Record with SRI immediately for adaptive difficulty
     final sriService = context.read<SriService>();
     sriService.recordResponse(currentProblem!, gate.isCorrect);
@@ -725,14 +855,14 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
     if (gate.isCorrect) {
       gatesCleared++;
       comboCounter++;
-      
+
       final scoreMultiplier = comboCounter > 0 ? comboCounter : 1;
       final scoreToAdd = (10 * widget.grade) * scoreMultiplier;
       _levelScore += scoreToAdd;
-      
+
       effects.add(FloatingScore(position: gate.position, text: '+$scoreToAdd'));
       _addGateEntryWarpEffect();
-      
+
       if (comboCounter > 1 && comboCounter % 4 == 0) {
         setState(() => gameSpeed += 8);
         effects.add(FloatingScore(
@@ -765,12 +895,12 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
       comboCounter = 0;
       _addDamageEffect();
     }
-    
+
     for (int i = 0; i < 15; i++) {
       effects.add(ParticleEffect.explosionParticle(obstacle.position));
     }
   }
-  
+
   void _addGateEntryWarpEffect() {
     final screenSize = MediaQuery.of(context).size;
     effects.add(WarpLinesEffect(screenSize: screenSize));
@@ -787,20 +917,22 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
       effects.add(ParticleEffect.explosionParticle(spaceship.position));
     }
   }
-  
+
   void _addThrusterEffects() {
     effects.add(ParticleEffect.thrusterParticle(spaceship.position));
   }
 
   void _triggerDecisionBoost(Gate targetGate) {
     final screenSize = MediaQuery.of(context).size;
-    double bonusMultiplier = ((targetGate.position.dx - spaceship.position.dx) / (screenSize.width - spaceship.position.dx)).clamp(0.0, 1.0);
-    
+    double bonusMultiplier = ((targetGate.position.dx - spaceship.position.dx) /
+            (screenSize.width - spaceship.position.dx))
+        .clamp(0.0, 1.0);
+
     if (bonusMultiplier < 0.1) return;
 
     final int bonusPoints = (40 * bonusMultiplier).toInt() + 10;
     _levelScore += bonusPoints;
-    
+
     setState(() {
       _temporarySpeedBoost = 700.0 * bonusMultiplier;
     });
@@ -815,16 +947,19 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
 
   void _handleGateChoice(double targetY) {
     if (_choiceMadeForCurrentSet) return;
-    
+
     final gates = gameObjects.whereType<Gate>();
     if (gates.isEmpty) return;
-    
-    Gate targetGate = gates.reduce((a, b) => (a.position.dy - targetY).abs() < (b.position.dy - targetY).abs() ? a : b);
+
+    Gate targetGate = gates.reduce((a, b) =>
+        (a.position.dy - targetY).abs() < (b.position.dy - targetY).abs()
+            ? a
+            : b);
 
     if (targetGate.isCorrect) {
       _triggerDecisionBoost(targetGate);
     }
-    
+
     setState(() {
       _choiceMadeForCurrentSet = true;
     });
@@ -841,13 +976,17 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
           currentLane = i;
         }
       }
-      
+
       double? targetY;
-      if (event.logicalKey == LogicalKeyboardKey.keyW || event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      if (event.logicalKey == LogicalKeyboardKey.keyW ||
+          event.logicalKey == LogicalKeyboardKey.arrowUp) {
         if (currentLane > 0) targetY = laneCenters[currentLane - 1].dy;
-      } else if (event.logicalKey == LogicalKeyboardKey.keyS || event.logicalKey == LogicalKeyboardKey.arrowDown) {
-        if (currentLane < laneCenters.length - 1) targetY = laneCenters[currentLane + 1].dy;
-      } else if (event.logicalKey == LogicalKeyboardKey.space && laneCenters.length == 3) {
+      } else if (event.logicalKey == LogicalKeyboardKey.keyS ||
+          event.logicalKey == LogicalKeyboardKey.arrowDown) {
+        if (currentLane < laneCenters.length - 1)
+          targetY = laneCenters[currentLane + 1].dy;
+      } else if (event.logicalKey == LogicalKeyboardKey.space &&
+          laneCenters.length == 3) {
         targetY = laneCenters[1].dy;
       }
 
@@ -874,59 +1013,57 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
     _handleGateChoice(closestY);
     spaceship.moveTo(closestY);
   }
-  
+
   void _handleDrag(Offset localPosition) {
     if (!gameActive) return;
     _handleGateChoice(localPosition.dy);
     spaceship.moveTo(localPosition.dy);
   }
-  
+
   void _winGame() {
     if (!gameActive) return;
     setState(() => gameActive = false);
     _gameController.stop();
-    
+
     // DON'T pass mathProblems - already recorded during gameplay
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'hyperdrive_gates',
-      difficulty: widget.level,
-      score: _levelScore,
-      // Flying the run without taking a hit is the perfect flight.
-      performance: Perf.fromLives(lives, INITIAL_LIVES),
-    ));
-    
+          skillLevel: widget.grade,
+          gameType: 'hyperdrive_gates',
+          difficulty: widget.level,
+          score: _levelScore,
+          // Flying the run without taking a hit is the perfect flight.
+          performance: Perf.fromLives(lives, INITIAL_LIVES),
+        ));
+
     showDialog(
-      context: context, 
-      barrierDismissible: false, 
-      builder: (ctx) => _buildEndGameDialog(isWin: true)
-    );
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => _buildEndGameDialog(isWin: true));
   }
 
   void _gameOver() {
     if (!gameActive) return;
     setState(() => gameActive = false);
     _gameController.stop();
-    
+
     // DON'T pass mathProblems - already recorded during gameplay
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'hyperdrive_gates',
-      difficulty: widget.level,
-      progress: targetGatesForLevel == 0
-          ? 0.0
-          : gatesCleared / targetGatesForLevel,
-    ));
-    
+          skillLevel: widget.grade,
+          gameType: 'hyperdrive_gates',
+          difficulty: widget.level,
+          progress: targetGatesForLevel == 0
+              ? 0.0
+              : gatesCleared / targetGatesForLevel,
+        ));
+
     showDialog(
-      context: context, 
-      barrierDismissible: false, 
-      builder: (ctx) => _buildEndGameDialog(isWin: false)
-    );
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => _buildEndGameDialog(isWin: false));
   }
-  
+
   void _resetGame() {
     Navigator.of(context).pop();
     final screenSize = MediaQuery.of(context).size;
@@ -935,9 +1072,12 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (!gameInitialized) {
-      return const Scaffold(backgroundColor: Color(0xFF000510), body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+          backgroundColor: Color(0xFF000510),
+          body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
       body: KeyboardListener(
@@ -948,100 +1088,111 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
           label: S.of(context)!.a11yGameArea,
           hint: 'Tap or drag to steer your ship through gates',
           child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTapDown: (details) => _handleScreenInteraction(details.localPosition),
-          onVerticalDragStart: (details) => _handleDrag(details.localPosition),
-          onVerticalDragUpdate: (details) => _handleDrag(details.localPosition),
-          child: Transform.translate(
-            offset: screenShakeOffset,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
+            behavior: HitTestBehavior.translucent,
+            onTapDown: (details) =>
+                _handleScreenInteraction(details.localPosition),
+            onVerticalDragStart: (details) =>
+                _handleDrag(details.localPosition),
+            onVerticalDragUpdate: (details) =>
+                _handleDrag(details.localPosition),
+            child: Transform.translate(
+              offset: screenShakeOffset,
+              child: Container(
+                decoration: BoxDecoration(
+                    gradient: RadialGradient(
                   center: Alignment.center,
                   radius: 1.0,
-                  colors: timeSlowActive 
-                    ? [const Color(0xFF2A1A3A), const Color(0xFF1A0A2A)]
-                    : [const Color(0xFF0A0A2A), const Color(0xFF000510)],
-                )
-              ),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  ..._buildBackground(),
-                  ..._buildGravityFieldVisuals(),
-                  ...gameObjects.map((obj) => obj.build()),
-                  ...powerUps.map((powerUp) => powerUp.build()),
-                  ...effects.map((e) => e.build()),
-                  Positioned(
-                    left: spaceship.position.dx - spaceship.sizeValue,
-                    top: spaceship.position.dy - spaceship.sizeValue,
-                    child: SpaceshipWidget(
-                      spaceship: spaceship, 
-                      thrusterAnimation: _thrusterController,
-                      hasShield: hasShield,
+                  colors: timeSlowActive
+                      ? [const Color(0xFF2A1A3A), const Color(0xFF1A0A2A)]
+                      : [const Color(0xFF0A0A2A), const Color(0xFF000510)],
+                )),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ..._buildBackground(),
+                    ..._buildGravityFieldVisuals(),
+                    ...gameObjects.map((obj) => obj.build()),
+                    ...powerUps.map((powerUp) => powerUp.build()),
+                    ...effects.map((e) => e.build()),
+                    Positioned(
+                      left: spaceship.position.dx - spaceship.sizeValue,
+                      top: spaceship.position.dy - spaceship.sizeValue,
+                      child: SpaceshipWidget(
+                        spaceship: spaceship,
+                        thrusterAnimation: _thrusterController,
+                        hasShield: hasShield,
+                      ),
                     ),
-                  ),
-                  _buildGameHeader(),
-                  _buildProblemDisplay(),
-                  if (comboCounter > 1) _buildComboDisplay(),
-                  _buildActivePowerUpsDisplay(),
-                ],
+                    _buildGameHeader(),
+                    _buildProblemDisplay(),
+                    if (comboCounter > 1) _buildComboDisplay(),
+                    _buildActivePowerUpsDisplay(),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
         ),
       ),
     );
   }
 
   List<Widget> _buildBackground() {
-    return backgroundStars.expand<Widget>((layer) => layer.map<Widget>((Star star) => Positioned(
-      left: star.position.dx,
-      top: star.position.dy,
-      child: Container(
-        width: star.size,
-        height: star.size,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: star.brightness), 
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(color: Colors.white.withValues(alpha: star.brightness * 0.5), blurRadius: star.size * 2)
-          ]
-        ),
-      ),
-    ))).toList();
+    return backgroundStars
+        .expand<Widget>((layer) => layer.map<Widget>((Star star) => Positioned(
+              left: star.position.dx,
+              top: star.position.dy,
+              child: Container(
+                width: star.size,
+                height: star.size,
+                decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: star.brightness),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.white
+                              .withValues(alpha: star.brightness * 0.5),
+                          blurRadius: star.size * 2)
+                    ]),
+              ),
+            )))
+        .toList();
   }
 
   List<Widget> _buildGravityFieldVisuals() {
-    return gravityFields.map((field) => Positioned(
-      left: field.center.dx - field.maxDistance,
-      top: field.center.dy - field.maxDistance,
-      child: Container(
-        width: field.maxDistance * 2,
-        height: field.maxDistance * 2,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: Colors.purple.withValues(alpha: 0.3),
-            width: 2,
-          ),
-          gradient: RadialGradient(
-            colors: [
-              Colors.purple.withValues(alpha: 0.1),
-              Colors.transparent,
-            ],
-          ),
-        ),
-      ),
-    )).toList();
+    return gravityFields
+        .map((field) => Positioned(
+              left: field.center.dx - field.maxDistance,
+              top: field.center.dy - field.maxDistance,
+              child: Container(
+                width: field.maxDistance * 2,
+                height: field.maxDistance * 2,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.purple.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.purple.withValues(alpha: 0.1),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ))
+        .toList();
   }
-  
+
   Widget _buildGameHeader() {
     final l10n = S.of(context)!;
-    final titleText = '${l10n.hyperdriveGatesTitle}: $gatesCleared / $targetGatesForLevel';
+    final titleText =
+        '${l10n.hyperdriveGatesTitle}: $gatesCleared / $targetGatesForLevel';
     return Positioned(
-      top: 0, left: 0, right: 0,
+      top: 0,
+      left: 0,
+      right: 0,
       child: SafeArea(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1057,17 +1208,30 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
               ),
               Expanded(
                 child: Text(
-                  titleText, 
-                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                  titleText,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2),
                   textAlign: TextAlign.center,
                 ),
               ),
               Row(
-                children: List.generate(INITIAL_LIVES, (index) => Icon(
-                  index < lives ? Icons.favorite : Icons.favorite_border,
-                  color: Colors.redAccent.shade100, size: 30,
-                  shadows: [Shadow(color: Colors.redAccent.shade100, blurRadius: index < lives ? 6 : 0)],
-                )),
+                children: List.generate(
+                    INITIAL_LIVES,
+                    (index) => Icon(
+                          index < lives
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: Colors.redAccent.shade100,
+                          size: 30,
+                          shadows: [
+                            Shadow(
+                                color: Colors.redAccent.shade100,
+                                blurRadius: index < lives ? 6 : 0)
+                          ],
+                        )),
               ),
             ],
           ),
@@ -1078,7 +1242,7 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
 
   Widget _buildActivePowerUpsDisplay() {
     if (activePowerUps.isEmpty) return const SizedBox.shrink();
-    
+
     return Positioned(
       top: 100,
       right: 20,
@@ -1109,7 +1273,7 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
       ),
     );
   }
-  
+
   Widget _buildProblemDisplay() {
     if (currentProblem == null) return const SizedBox.shrink();
     final l10n = S.of(context)!;
@@ -1118,41 +1282,59 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
       builder: (context, child) {
         final glow = _problemGlowController.value * 0.5 + 0.5;
         return Positioned(
-          top: 80, left: 20, right: 20,
+          top: 80,
+          left: 20,
+          right: 20,
           child: Center(
             child: IgnorePointer(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.75),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.yellow.withValues(alpha: glow), width: 2.5),
-                  boxShadow: [
-                    BoxShadow(color: Colors.yellow.withValues(alpha: glow * 0.6), blurRadius: 18, spreadRadius: 3),
-                  ]
-                ),
-                child: RichText(
-                  text: TextSpan(
-                    style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
-                    children: [
-                      TextSpan(text: '${l10n.solve} ', style: TextStyle(color: Colors.yellow.shade300)),
-                      TextSpan(
-                        text: currentProblem!.expression
-                            .replaceAll('÷', context.read<GameProvider>().divisionSymbol)
-                            .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
-                        style: const TextStyle(color: Colors.white)
-                      ),
-                    ]
-                  ),
-                )
-              ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.75),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: Colors.yellow.withValues(alpha: glow),
+                          width: 2.5),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.yellow.withValues(alpha: glow * 0.6),
+                            blurRadius: 18,
+                            spreadRadius: 3),
+                      ]),
+                  child: RichText(
+                    text: TextSpan(
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'monospace'),
+                        children: [
+                          TextSpan(
+                              text: '${l10n.solve} ',
+                              style: TextStyle(color: Colors.yellow.shade300)),
+                          TextSpan(
+                              text: currentProblem!.expression
+                                  .replaceAll(
+                                      '÷',
+                                      context
+                                          .read<GameProvider>()
+                                          .divisionSymbol)
+                                  .replaceAll(
+                                      '×',
+                                      context
+                                          .read<GameProvider>()
+                                          .multiplicationSymbol),
+                              style: const TextStyle(color: Colors.white)),
+                        ]),
+                  )),
             ),
           ),
         );
       },
     );
   }
-  
+
   Widget _buildComboDisplay() {
     const comboText = 'COMBO';
 
@@ -1164,14 +1346,16 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
         child: Text(
           '$comboText x$comboCounter',
           style: TextStyle(
-            fontSize: 36,
-            fontWeight: FontWeight.w900,
-            color: Colors.orangeAccent,
-            shadows: [
-              Shadow(blurRadius: 20, color: Colors.orangeAccent.withValues(alpha: 0.9)),
-              const Shadow(blurRadius: 8, color: Colors.white, offset: Offset(0,0)),
-            ]
-          ),
+              fontSize: 36,
+              fontWeight: FontWeight.w900,
+              color: Colors.orangeAccent,
+              shadows: [
+                Shadow(
+                    blurRadius: 20,
+                    color: Colors.orangeAccent.withValues(alpha: 0.9)),
+                const Shadow(
+                    blurRadius: 8, color: Colors.white, offset: Offset(0, 0)),
+              ]),
         ),
       ),
     );
@@ -1179,19 +1363,36 @@ gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJs
 
   Widget _buildEndGameDialog({required bool isWin}) {
     final l10n = S.of(context)!;
-    return AlertDialog(scrollable: true,
+    return AlertDialog(
+      scrollable: true,
       backgroundColor: const Color(0xFF1A1A3E),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0), side: BorderSide(color: isWin ? Colors.cyanAccent : Colors.redAccent, width: 3)),
-      title: Text(isWin ? l10n.hyperdriveGatesWinTitle : l10n.hyperdriveGatesLoseTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [RoundSummary(gameKey: 'hyperdrive_gates'), Text(
-        isWin ? l10n.hyperdriveGatesWinDesc(targetGatesForLevel) : l10n.hyperdriveGatesLoseDesc,
-        style: const TextStyle(color: Colors.white70, fontSize: 16),
-        textAlign: TextAlign.center,
-      )]),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+          side: BorderSide(
+              color: isWin ? Colors.cyanAccent : Colors.redAccent, width: 3)),
+      title: Text(
+          isWin ? l10n.hyperdriveGatesWinTitle : l10n.hyperdriveGatesLoseTitle,
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.bold)),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        RoundSummary(gameKey: 'hyperdrive_gates'),
+        Text(
+          isWin
+              ? l10n.hyperdriveGatesWinDesc(targetGatesForLevel)
+              : l10n.hyperdriveGatesLoseDesc,
+          style: const TextStyle(color: Colors.white70, fontSize: 16),
+          textAlign: TextAlign.center,
+        )
+      ]),
       actions: <Widget>[
-        TextButton(autofocus: true, onPressed: _resetGame, child: Text(l10n.flyAgain, style: const TextStyle(color: Colors.white, fontSize: 16))),
         TextButton(
-          child: Text(l10n.backToMenu, style: const TextStyle(color: Colors.white, fontSize: 16)),
+            autofocus: true,
+            onPressed: _resetGame,
+            child: Text(l10n.flyAgain,
+                style: const TextStyle(color: Colors.white, fontSize: 16))),
+        TextButton(
+          child: Text(l10n.backToMenu,
+              style: const TextStyle(color: Colors.white, fontSize: 16)),
           onPressed: () {
             Navigator.of(context).pop();
             Navigator.of(context).pop();

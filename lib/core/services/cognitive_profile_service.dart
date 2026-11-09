@@ -12,7 +12,7 @@ class SkillStats {
   SkillStats({this.attempts = 0, this.successes = 0});
 
   Map<String, dynamic> toJson() => {'a': attempts, 's': successes};
-  
+
   factory SkillStats.fromJson(Map<String, dynamic> json) =>
       SkillStats(attempts: json['a'] ?? 0, successes: json['s'] ?? 0);
 }
@@ -53,8 +53,9 @@ class CognitiveProfileService extends ChangeNotifier {
   }
 
   void recordAttempt(SkillCategory skill, int difficulty, bool success) {
-    _log('Recording attempt for $skill at difficulty $difficulty: ${success ? "SUCCESS" : "FAILURE"}');
-    
+    _log(
+        'Recording attempt for $skill at difficulty $difficulty: ${success ? "SUCCESS" : "FAILURE"}');
+
     _skillData[skill] ??= {};
     _skillData[skill]![difficulty] ??= SkillStats();
 
@@ -62,8 +63,9 @@ class CognitiveProfileService extends ChangeNotifier {
     stats.attempts++;
     if (success) stats.successes++;
 
-    _log('Updated stats for $skill @ $difficulty: ${stats.successes}/${stats.attempts}');
-    
+    _log(
+        'Updated stats for $skill @ $difficulty: ${stats.successes}/${stats.attempts}');
+
     notifyListeners();
     saveProfile();
   }
@@ -75,11 +77,12 @@ class CognitiveProfileService extends ChangeNotifier {
       _log('No mastery for $skill @ $difficulty (insufficient data)');
       return false;
     }
-    
+
     final masteryLevel = stats.successes / stats.attempts;
     final hasMastery = masteryLevel >= threshold;
-    _log('Mastery check for $skill @ $difficulty: ${(masteryLevel * 100).toStringAsFixed(1)}% ${hasMastery ? "✓" : "✗"}');
-    
+    _log(
+        'Mastery check for $skill @ $difficulty: ${(masteryLevel * 100).toStringAsFixed(1)}% ${hasMastery ? "✓" : "✗"}');
+
     return hasMastery;
   }
 
@@ -87,9 +90,9 @@ class CognitiveProfileService extends ChangeNotifier {
     _log('Saving cognitive profile...');
     try {
       final json = _skillData.map((skill, diffMap) => MapEntry(
-        skill.toString(),
-        diffMap.map((diff, stats) => MapEntry(diff.toString(), stats.toJson()))
-      ));
+          skill.toString(),
+          diffMap.map(
+              (diff, stats) => MapEntry(diff.toString(), stats.toJson()))));
       final encoded = jsonEncode(json);
       await ProfilePreferences.writeString(_storageKey, encoded);
       _log('✅ Cognitive profile saved successfully');
@@ -106,15 +109,11 @@ class CognitiveProfileService extends ChangeNotifier {
       if (jsonString != null) {
         final json = jsonDecode(jsonString) as Map<String, dynamic>;
         _skillData = json.map((skillStr, diffMap) {
-          final skill = SkillCategory.values.firstWhere(
-            (e) => e.toString() == skillStr
-          );
+          final skill =
+              SkillCategory.values.firstWhere((e) => e.toString() == skillStr);
           final diffMapTyped = (diffMap as Map<String, dynamic>).map(
-            (diffStr, statsJson) => MapEntry(
-              int.parse(diffStr),
-              SkillStats.fromJson(statsJson)
-            )
-          );
+              (diffStr, statsJson) =>
+                  MapEntry(int.parse(diffStr), SkillStats.fromJson(statsJson)));
           return MapEntry(skill, diffMapTyped);
         });
         _log('✅ Loaded ${_skillData.length} skill categories');

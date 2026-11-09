@@ -16,39 +16,38 @@ class AnimatedLogo extends StatefulWidget {
 
 class _AnimatedLogoState extends State<AnimatedLogo>
     with TickerProviderStateMixin {
-  
   late AnimationController _rotationController;
   late AnimationController _scaleController;
   late AnimationController _glowController;
-  
+
   late Animation<double> _rotationAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _glowAnimation;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _rotationController = AnimationController(
       duration: const Duration(seconds: 20),
       vsync: this,
     )..repeat();
-    
+
     _scaleController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _glowController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _rotationAnimation = Tween<double>(
       begin: 0.0,
       end: 2 * math.pi,
     ).animate(_rotationController);
-    
+
     _scaleAnimation = Tween<double>(
       begin: 0.9,
       end: 1.1,
@@ -56,7 +55,7 @@ class _AnimatedLogoState extends State<AnimatedLogo>
       parent: _scaleController,
       curve: Curves.easeInOut,
     ));
-    
+
     _glowAnimation = Tween<double>(
       begin: 0.5,
       end: 1.0,
@@ -65,7 +64,7 @@ class _AnimatedLogoState extends State<AnimatedLogo>
       curve: Curves.easeInOut,
     ));
   }
-  
+
   @override
   void dispose() {
     _rotationController.dispose();
@@ -93,13 +92,15 @@ class _AnimatedLogoState extends State<AnimatedLogo>
               gradient: RadialGradient(
                 colors: [
                   SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value),
-                  SpaceTheme.planetOrange.withValues(alpha: _glowAnimation.value * 0.8),
+                  SpaceTheme.planetOrange
+                      .withValues(alpha: _glowAnimation.value * 0.8),
                   SpaceTheme.deepSpace.withValues(alpha: 0.3),
                 ],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value * 0.5),
+                  color: SpaceTheme.starYellow
+                      .withValues(alpha: _glowAnimation.value * 0.5),
                   blurRadius: 30,
                   spreadRadius: 10,
                 ),
@@ -123,7 +124,7 @@ class _AnimatedLogoState extends State<AnimatedLogo>
                     ),
                   ),
                 ),
-                
+
                 Transform.rotate(
                   angle: -_rotationAnimation.value * 0.7,
                   child: Container(
@@ -138,7 +139,7 @@ class _AnimatedLogoState extends State<AnimatedLogo>
                     ),
                   ),
                 ),
-                
+
                 // Center rocket icon
                 Container(
                   width: 80,
@@ -153,7 +154,7 @@ class _AnimatedLogoState extends State<AnimatedLogo>
                     size: 40,
                   ),
                 ),
-                
+
                 // App title
                 Positioned(
                   bottom: -10,
@@ -208,14 +209,12 @@ class GradeSelector extends StatelessWidget {
                   ),
                 ],
               ),
-              
               const SizedBox(height: 20),
-              
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [3, 4, 5, 6].map((grade) {
                   final isSelected = gameProvider.grade == grade;
-                  
+
                   return GestureDetector(
                     onTap: () => gameProvider.setGrade(grade),
                     child: AnimatedContainer(
@@ -241,7 +240,8 @@ class GradeSelector extends StatelessWidget {
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: SpaceTheme.starYellow.withValues(alpha: 0.5),
+                                  color: SpaceTheme.starYellow
+                                      .withValues(alpha: 0.5),
                                   blurRadius: 10,
                                   spreadRadius: 2,
                                 ),
@@ -261,9 +261,7 @@ class GradeSelector extends StatelessWidget {
                   );
                 }).toList(),
               ),
-              
               const SizedBox(height: 12),
-              
               Text(
                 _getGradeDescription(context, gameProvider.grade),
                 style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
@@ -275,7 +273,7 @@ class GradeSelector extends StatelessWidget {
       },
     );
   }
-  
+
   String _getGradeDescription(BuildContext context, int grade) {
     switch (grade) {
       case 3:
@@ -302,19 +300,18 @@ class StatsCard extends StatefulWidget {
 
 class _StatsCardState extends State<StatsCard>
     with SingleTickerProviderStateMixin {
-  
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _pulseController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _pulseAnimation = Tween<double>(
       begin: 0.8,
       end: 1.0,
@@ -323,7 +320,7 @@ class _StatsCardState extends State<StatsCard>
       curve: Curves.easeInOut,
     ));
   }
-  
+
   @override
   void dispose() {
     _pulseController.dispose();
@@ -354,9 +351,9 @@ class _StatsCardState extends State<StatsCard>
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Score
               _buildStatItem(
                 icon: Icons.star,
@@ -364,9 +361,9 @@ class _StatsCardState extends State<StatsCard>
                 value: gameProvider.score.toString(),
                 color: SpaceTheme.starYellow,
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // Level
               _buildStatItem(
                 icon: Icons.trending_up,
@@ -374,9 +371,9 @@ class _StatsCardState extends State<StatsCard>
                 value: gameProvider.level.toString(),
                 color: SpaceTheme.alienGreen,
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // Games played
               _buildStatItem(
                 icon: Icons.games,
@@ -384,9 +381,9 @@ class _StatsCardState extends State<StatsCard>
                 value: gameProvider.totalGamesPlayed.toString(),
                 color: SpaceTheme.cosmicPink,
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // Achievements
               AnimatedBuilder(
                 animation: _pulseAnimation,
@@ -408,7 +405,7 @@ class _StatsCardState extends State<StatsCard>
       },
     );
   }
-  
+
   Widget _buildStatItem({
     required IconData icon,
     required String label,
@@ -430,9 +427,7 @@ class _StatsCardState extends State<StatsCard>
             size: 20,
           ),
         ),
-        
         const SizedBox(width: 12),
-        
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -527,7 +522,7 @@ class QuickStats extends StatelessWidget {
       },
     );
   }
-  
+
   Widget _buildQuickStat({
     required IconData icon,
     required String value,

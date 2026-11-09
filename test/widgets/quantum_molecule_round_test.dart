@@ -58,51 +58,51 @@ class _Harness {
     // the constructor tear-off keeps original-API counterfactual cases
     // compilable when run against the preceding screen without this seam.
     return Function.apply(QuantumMoleculeBuilderGame.new, const [], {
-          #grade: 1,
-          #level: 1,
-          #levelLoader: levelLoader,
-        })
-        as Widget;
+      #grade: 1,
+      #level: 1,
+      #levelLoader: levelLoader,
+    }) as Widget;
   }
 
   Widget build() => MultiProvider(
-    providers: [
-      ChangeNotifierProvider.value(value: gp),
-      ChangeNotifierProvider.value(value: sri),
-      ChangeNotifierProvider.value(value: cognitive),
-      ChangeNotifierProvider.value(value: debug),
-    ],
-    child: MaterialApp(
-      locale: locale,
-      navigatorObservers: [observer],
-      localizationsDelegates: S.localizationsDelegates,
-      supportedLocales: S.supportedLocales,
-      builder: (context, child) => ValueListenableBuilder<bool>(
-        valueListenable: motion,
-        builder: (_, reduced, __) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            disableAnimations: reduced,
-            textScaler: TextScaler.linear(scale),
-          ),
-          child: child!,
-        ),
-      ),
-      home: pushed
-          ? Builder(
-              builder: (context) => Scaffold(
-                body: Center(
-                  child: TextButton(
-                    onPressed: () => Navigator.of(
-                      context,
-                    ).push(MaterialPageRoute<void>(builder: (_) => _game())),
-                    child: const Text('Start molecule'),
-                  ),
-                ),
+        providers: [
+          ChangeNotifierProvider.value(value: gp),
+          ChangeNotifierProvider.value(value: sri),
+          ChangeNotifierProvider.value(value: cognitive),
+          ChangeNotifierProvider.value(value: debug),
+        ],
+        child: MaterialApp(
+          locale: locale,
+          navigatorObservers: [observer],
+          localizationsDelegates: S.localizationsDelegates,
+          supportedLocales: S.supportedLocales,
+          builder: (context, child) => ValueListenableBuilder<bool>(
+            valueListenable: motion,
+            builder: (_, reduced, __) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                disableAnimations: reduced,
+                textScaler: TextScaler.linear(scale),
               ),
-            )
-          : _game(),
-    ),
-  );
+              child: child!,
+            ),
+          ),
+          home: pushed
+              ? Builder(
+                  builder: (context) => Scaffold(
+                    body: Center(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(
+                          context,
+                        ).push(
+                            MaterialPageRoute<void>(builder: (_) => _game())),
+                        child: const Text('Start molecule'),
+                      ),
+                    ),
+                  ),
+                )
+              : _game(),
+        ),
+      );
 }
 
 final _screen = find.byType(QuantumMoleculeBuilderGame);
@@ -112,10 +112,10 @@ Map<String, dynamic> _copy(Map<String, dynamic> value) =>
 Map<String, dynamic> _capture(WidgetTester t) =>
     _copy(_state(t).capturePuzzleSession() as Map<String, dynamic>);
 Finder _atom(WidgetTester t, String type) => find.byWidgetPredicate(
-  (w) =>
-      w is Semantics &&
-      w.properties.label == S.of(t.element(_screen))!.a11yAtom(type),
-);
+      (w) =>
+          w is Semantics &&
+          w.properties.label == S.of(t.element(_screen))!.a11yAtom(type),
+    );
 Finder _undo() => find.widgetWithIcon(ElevatedButton, Icons.undo);
 Atom _model(Map<String, dynamic> board, String id) => (board['atoms'] as List)
     .map((v) => Atom.fromJson(Map<String, dynamic>.from(v as Map)))
@@ -317,8 +317,7 @@ void _renderedHMatchesRestoredModel(
   final cell = t.getSize(_atom(t, 'Hydrogen')).width;
   // Both visuals have one whole-cell SizedBox. Oxygen is an independent,
   // stationary coordinate reference for the shared grid origin and cellsize.
-  final expected =
-      t.getCenter(_atom(t, 'Oxygen')) +
+  final expected = t.getCenter(_atom(t, 'Oxygen')) +
       Offset((h.col - o.col) * cell, (h.row - o.row) * cell);
   expect((t.getCenter(_atom(t, 'Hydrogen')) - expected).distance, lessThan(.1));
 }
@@ -326,9 +325,9 @@ void _renderedHMatchesRestoredModel(
 Finder _retry(WidgetTester t) =>
     find.widgetWithText(ElevatedButton, S.of(t.element(_screen))!.tryAgain);
 Finder _next(WidgetTester t) => find.widgetWithText(
-  ElevatedButton,
-  S.of(t.element(_screen))!.moleculeBuilderNextMolecule,
-);
+      ElevatedButton,
+      S.of(t.element(_screen))!.moleculeBuilderNextMolecule,
+    );
 Finder _bridge(WidgetTester t) =>
     find.widgetWithText(ElevatedButton, S.of(t.element(_screen))!.toTheBridge);
 Future<void> _settleSlide(WidgetTester t) async {
@@ -594,8 +593,7 @@ void main() {
         await t.pump();
       }
       final afterTap = _capture(t);
-      final accepted =
-          (beforeTap['_moveHistory'] as List).isNotEmpty &&
+      final accepted = (beforeTap['_moveHistory'] as List).isNotEmpty &&
           (afterTap['_moveHistory'] as List).isEmpty;
       // The later repair may disable/defer Undo while busy or apply it safely.
       // This probe requires coherent settled behavior under either policy.
@@ -747,8 +745,8 @@ void main() {
         final finder = held == 'direction'
             ? find.widgetWithIcon(ElevatedButton, Icons.arrow_forward)
             : held == 'undo'
-            ? _undo()
-            : _atom(t, 'Hydrogen');
+                ? _undo()
+                : _atom(t, 'Hydrogen');
         await t.ensureVisible(finder);
         await t.pump();
         final press = await t.startGesture(t.getCenter(finder));
@@ -938,9 +936,8 @@ void main() {
         final (app, real) = await _mount(t);
         await _finish(t, real, win: win);
         await _result(t);
-        final action = t
-            .widget<ElevatedButton>(win ? _next(t) : _retry(t))
-            .onPressed!;
+        final action =
+            t.widget<ElevatedButton>(win ? _next(t) : _retry(t)).onPressed!;
         final back = t.widget<ElevatedButton>(_bridge(t)).onPressed!;
         await _cover(t);
         final covering = ModalRoute.of(t.element(find.text('Covering route')))!;
@@ -955,15 +952,13 @@ void main() {
         await t.pump();
         await t.pump(const Duration(milliseconds: 400));
         await t.pump();
-        for (
-          var frame = 0;
-          frame < 4 &&
-              find
-                  .text('Covering route', skipOffstage: false)
-                  .evaluate()
-                  .isNotEmpty;
-          frame++
-        ) {
+        for (var frame = 0;
+            frame < 4 &&
+                find
+                    .text('Covering route', skipOffstage: false)
+                    .evaluate()
+                    .isNotEmpty;
+            frame++) {
           await t.pump(const Duration(milliseconds: 100));
           await t.pump();
         }

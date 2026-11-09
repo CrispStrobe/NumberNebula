@@ -9,7 +9,7 @@ import '../providers/game_provider.dart';
 // Space Background Widget with animated stars and planets
 class SpaceBackground extends StatefulWidget {
   final Widget child;
-  
+
   const SpaceBackground({
     super.key,
     required this.child,
@@ -21,37 +21,36 @@ class SpaceBackground extends StatefulWidget {
 
 class _SpaceBackgroundState extends State<SpaceBackground>
     with TickerProviderStateMixin {
-  
   late AnimationController _starsController;
   late AnimationController _planetsController;
   late List<Star> stars;
   late List<Planet> planets;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _starsController = AnimationController(
       duration: const Duration(seconds: 20),
       vsync: this,
     )..repeat();
-    
+
     _planetsController = AnimationController(
       duration: const Duration(seconds: 30),
       vsync: this,
     )..repeat();
-    
+
     _generateStars();
     _generatePlanets();
   }
-  
+
   @override
   void dispose() {
     _starsController.dispose();
     _planetsController.dispose();
     super.dispose();
   }
-  
+
   void _generateStars() {
     final random = math.Random();
     stars = List.generate(100, (index) {
@@ -66,7 +65,7 @@ class _SpaceBackgroundState extends State<SpaceBackground>
       );
     });
   }
-  
+
   void _generatePlanets() {
     final random = math.Random();
     planets = List.generate(5, (index) {
@@ -127,7 +126,7 @@ class _SpaceBackgroundState extends State<SpaceBackground>
               },
             ),
           ),
-          
+
           // Content
           widget.child,
         ],
@@ -142,7 +141,7 @@ class GameUI extends StatelessWidget {
   final int level;
   final int? timeLeft;
   final VoidCallback onBack;
-  
+
   const GameUI({
     super.key,
     required this.title,
@@ -180,9 +179,9 @@ class GameUI extends StatelessWidget {
               padding: const EdgeInsets.all(12),
             ),
           ),
-          
+
           const SizedBox(width: 20),
-          
+
           // Title
           Expanded(
             child: Text(
@@ -190,7 +189,7 @@ class GameUI extends StatelessWidget {
               style: SpaceTheme.headlineStyle.copyWith(fontSize: 28),
             ),
           ),
-          
+
           // Game Stats
           Row(
             children: [
@@ -201,9 +200,9 @@ class GameUI extends StatelessWidget {
                 value: level.toString(),
                 color: SpaceTheme.starYellow,
               ),
-              
+
               const SizedBox(width: 20),
-              
+
               // Score
               Consumer<GameProvider>(
                 builder: (context, gameProvider, child) {
@@ -215,7 +214,7 @@ class GameUI extends StatelessWidget {
                   );
                 },
               ),
-              
+
               // Time (if provided)
               if (timeLeft != null) ...[
                 const SizedBox(width: 20),
@@ -223,7 +222,9 @@ class GameUI extends StatelessWidget {
                   icon: Icons.timer,
                   label: S.of(context)!.time,
                   value: _formatTime(timeLeft!),
-                  color: timeLeft! > 10 ? SpaceTheme.cosmicPink : SpaceTheme.rocketRed,
+                  color: timeLeft! > 10
+                      ? SpaceTheme.cosmicPink
+                      : SpaceTheme.rocketRed,
                 ),
               ],
             ],
@@ -232,7 +233,7 @@ class GameUI extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildStatItem({
     required IconData icon,
     required String label,
@@ -277,7 +278,7 @@ class GameUI extends StatelessWidget {
       ),
     );
   }
-  
+
   String _formatTime(int seconds) {
     final minutes = seconds ~/ 60;
     final remainingSeconds = seconds % 60;
@@ -293,7 +294,7 @@ class SpaceButton extends StatefulWidget {
   final Color? color;
   final double? width;
   final double? height;
-  
+
   const SpaceButton({
     super.key,
     required this.text,
@@ -310,19 +311,18 @@ class SpaceButton extends StatefulWidget {
 
 class _SpaceButtonState extends State<SpaceButton>
     with SingleTickerProviderStateMixin {
-  
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
-    
+
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.95,
@@ -331,21 +331,21 @@ class _SpaceButtonState extends State<SpaceButton>
       curve: Curves.easeInOut,
     ));
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-  
+
   void _onTapDown(TapDownDetails details) {
     _controller.forward();
   }
-  
+
   void _onTapUp(TapUpDetails details) {
     _controller.reverse();
   }
-  
+
   void _onTapCancel() {
     _controller.reverse();
   }
@@ -371,13 +371,15 @@ class _SpaceButtonState extends State<SpaceButton>
                   end: Alignment.bottomRight,
                   colors: [
                     widget.color ?? SpaceTheme.planetOrange,
-                    (widget.color ?? SpaceTheme.planetOrange).withValues(alpha: 0.8),
+                    (widget.color ?? SpaceTheme.planetOrange)
+                        .withValues(alpha: 0.8),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
-                    color: (widget.color ?? SpaceTheme.planetOrange).withValues(alpha: 0.5),
+                    color: (widget.color ?? SpaceTheme.planetOrange)
+                        .withValues(alpha: 0.5),
                     blurRadius: 15,
                     offset: const Offset(0, 5),
                   ),
@@ -414,7 +416,7 @@ class Star {
   final double size;
   final double opacity;
   final double twinkleSpeed;
-  
+
   Star({
     required this.position,
     required this.size,
@@ -428,7 +430,7 @@ class Planet {
   final double size;
   final Color color;
   final double rotationSpeed;
-  
+
   Planet({
     required this.position,
     required this.size,
@@ -441,7 +443,7 @@ class Planet {
 class StarsPainter extends CustomPainter {
   final List<Star> stars;
   final double animation;
-  
+
   StarsPainter({
     required this.stars,
     required this.animation,
@@ -450,11 +452,13 @@ class StarsPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     for (final star in stars) {
-      final twinkle = math.sin(animation * 2 * math.pi * star.twinkleSpeed) * 0.5 + 0.5;
+      final twinkle =
+          math.sin(animation * 2 * math.pi * star.twinkleSpeed) * 0.5 + 0.5;
       final paint = Paint()
-        ..color = SpaceTheme.starYellow.withValues(alpha: star.opacity * twinkle)
+        ..color =
+            SpaceTheme.starYellow.withValues(alpha: star.opacity * twinkle)
         ..style = PaintingStyle.fill;
-      
+
       canvas.drawCircle(
         Offset(
           star.position.dx % size.width,
@@ -475,7 +479,7 @@ class StarsPainter extends CustomPainter {
 class PlanetsPainter extends CustomPainter {
   final List<Planet> planets;
   final double animation;
-  
+
   PlanetsPainter({
     required this.planets,
     required this.animation,
@@ -485,14 +489,14 @@ class PlanetsPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (final planet in planets) {
       final rotation = animation * planet.rotationSpeed * 2 * math.pi;
-      
+
       canvas.save();
       canvas.translate(
         planet.position.dx % size.width,
         planet.position.dy % size.height,
       );
       canvas.rotate(rotation);
-      
+
       // Planet gradient
       final paint = Paint()
         ..shader = RadialGradient(
@@ -505,17 +509,17 @@ class PlanetsPainter extends CustomPainter {
           center: Offset.zero,
           radius: planet.size / 2,
         ));
-      
+
       canvas.drawCircle(Offset.zero, planet.size / 2, paint);
-      
+
       // Planet details (rings, spots, etc.)
       final detailPaint = Paint()
         ..color = Colors.white.withValues(alpha: 0.2)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
-      
+
       canvas.drawCircle(Offset.zero, planet.size / 3, detailPaint);
-      
+
       canvas.restore();
     }
   }

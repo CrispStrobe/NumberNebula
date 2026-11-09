@@ -50,8 +50,7 @@ class MissionGenerator {
     final pool = usable.isEmpty ? words : usable;
     final codeword = pool[_rng.nextInt(pool.length)];
 
-    final taskCount =
-        min(missionTaskCountForGrade(g), codeword.length);
+    final taskCount = min(missionTaskCountForGrade(g), codeword.length);
     final gameTypes = _pickGames(taskCount);
     final letterGroups = _splitLetters(codeword, taskCount);
 
@@ -96,8 +95,7 @@ class MissionGenerator {
 
     // Seed the puzzle half with a signature puzzle so every mission has at
     // least one hands-on game to play with.
-    final signatures =
-        puzzlePool.where(signaturePuzzleGames.contains).toList();
+    final signatures = puzzlePool.where(signaturePuzzleGames.contains).toList();
     if (puzzleCount > 0 && signatures.isNotEmpty) {
       picked.add(signatures.first);
     }

@@ -13,9 +13,11 @@ class ProfilePreferences {
       final prefs = await preferences;
       return prefs.setString(key, value);
     });
-    _pendingWrites = result.then<void>((_) {}, onError: (Object _, StackTrace __) {});
+    _pendingWrites =
+        result.then<void>((_) {}, onError: (Object _, StackTrace __) {});
     return result;
   }
+
   static Future<void> flushWrites() => _pendingWrites;
 
   static String activeId = 'default';

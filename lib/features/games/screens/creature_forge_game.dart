@@ -18,19 +18,27 @@ import '../constants/difficulty_manager.dart';
 class CreatureForgeGame extends StatefulWidget {
   final int grade;
   final int level;
-  const CreatureForgeGame({super.key, required this.grade, required this.level});
+  const CreatureForgeGame(
+      {super.key, required this.grade, required this.level});
 
   @override
   State<CreatureForgeGame> createState() => _CreatureForgeGameState();
 }
 
 class _CreatureForgeGameState extends State<CreatureForgeGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<CreatureForgeGame>, PuzzleSessionMixin<CreatureForgeGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<CreatureForgeGame>,
+        PuzzleSessionMixin<CreatureForgeGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'creature_forge';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
+  @override
+  String get sessionGameKey => 'creature_forge';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
     if (!_sessionReady || _isGenerating) return null;
     return {
       '_headCount': _headCount,
@@ -48,7 +56,9 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       '_text': _answerController.text
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
     _headCount = state["_headCount"] as int;
     _bodyCount = state["_bodyCount"] as int;
     _tailCount = state["_tailCount"] as int;
@@ -59,18 +69,23 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
     _selectedHead = state["_selectedHead"] as int;
     _selectedBody = state["_selectedBody"] as int;
     _selectedTail = state["_selectedTail"] as int;
-    _discoveredCombos..clear()..addAll((state["_discoveredCombos"] as List).map((v0) => v0 as String).toSet());
+    _discoveredCombos
+      ..clear()
+      ..addAll((state["_discoveredCombos"] as List)
+          .map((v0) => v0 as String)
+          .toSet());
     _wrongForges = state["_wrongForges"] as int;
     _answerController.text = state['_text'] as String;
-    _isGenerating = false; _gameOver = false;
+    _isGenerating = false;
+    _gameOver = false;
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
     if (mounted) setState(() => _sessionReady = true);
   }
-
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -95,11 +110,25 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
   final Set<String> _discoveredCombos = {};
   final TextEditingController _answerController = TextEditingController();
 
-
   // Colors per part category
-  static const _headColors = [Color(0xFF06FFA5), Color(0xFFFFD700), Color(0xFFFF69B4), Color(0xFF00C9DB)];
-  static const _bodyColors = [Color(0xFF6B48FF), Color(0xFFFF6B35), Color(0xFF457B9D), Color(0xFFBB86FC)];
-  static const _tailColors = [Color(0xFFE63946), Color(0xFF06FFA5), Color(0xFFFFD700), Color(0xFF00C9DB)];
+  static const _headColors = [
+    Color(0xFF06FFA5),
+    Color(0xFFFFD700),
+    Color(0xFFFF69B4),
+    Color(0xFF00C9DB)
+  ];
+  static const _bodyColors = [
+    Color(0xFF6B48FF),
+    Color(0xFFFF6B35),
+    Color(0xFF457B9D),
+    Color(0xFFBB86FC)
+  ];
+  static const _tailColors = [
+    Color(0xFFE63946),
+    Color(0xFF06FFA5),
+    Color(0xFFFFD700),
+    Color(0xFF00C9DB)
+  ];
 
   @override
   void initState() {
@@ -112,7 +141,8 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -185,10 +215,14 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
 
   String _partVariantName(int partType, int variant) {
     switch (partType) {
-      case 0: return _headNames[variant % _headNames.length];
-      case 1: return _bodyNames[variant % _bodyNames.length];
-      case 2: return _tailNames[variant % _tailNames.length];
-      default: return '';
+      case 0:
+        return _headNames[variant % _headNames.length];
+      case 1:
+        return _bodyNames[variant % _bodyNames.length];
+      case 2:
+        return _tailNames[variant % _tailNames.length];
+      default:
+        return '';
     }
   }
 
@@ -225,7 +259,8 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       AppHaptics.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(S.of(context)!.creatureForgeInvalidCombo(_constraintText)),
+          content:
+              Text(S.of(context)!.creatureForgeInvalidCombo(_constraintText)),
           backgroundColor: SpaceTheme.rocketRed,
           duration: const Duration(seconds: 2),
         ),
@@ -271,12 +306,12 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'creature_forge',
-      difficulty: widget.level,
-      score: totalScore,
-      performance: Perf.fromMistakes(_wrongForges, per: 0.15),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'creature_forge',
+          difficulty: widget.level,
+          score: totalScore,
+          performance: Perf.fromMistakes(_wrongForges, per: 0.15),
+        ));
 
     successController.forward(from: 0.0);
     if (mounted) {
@@ -290,7 +325,8 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_isGenerating || currentDifficulty == null) {
@@ -332,14 +368,29 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
                           const SizedBox(height: 8),
 
                           // Part selection rows
-                          _buildPartRow('HEADS', 0, _headCount, _selectedHead,
-                              _headColors, (i) => setState(() => _selectedHead = i)),
+                          _buildPartRow(
+                              'HEADS',
+                              0,
+                              _headCount,
+                              _selectedHead,
+                              _headColors,
+                              (i) => setState(() => _selectedHead = i)),
                           const SizedBox(height: 8),
-                          _buildPartRow('BODIES', 1, _bodyCount, _selectedBody,
-                              _bodyColors, (i) => setState(() => _selectedBody = i)),
+                          _buildPartRow(
+                              'BODIES',
+                              1,
+                              _bodyCount,
+                              _selectedBody,
+                              _bodyColors,
+                              (i) => setState(() => _selectedBody = i)),
                           const SizedBox(height: 8),
-                          _buildPartRow('TAILS', 2, _tailCount, _selectedTail,
-                              _tailColors, (i) => setState(() => _selectedTail = i)),
+                          _buildPartRow(
+                              'TAILS',
+                              2,
+                              _tailCount,
+                              _selectedTail,
+                              _tailColors,
+                              (i) => setState(() => _selectedTail = i)),
 
                           const SizedBox(height: 12),
 
@@ -375,11 +426,13 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+        border:
+            Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline, color: SpaceTheme.starYellow, size: 18),
+          const Icon(Icons.info_outline,
+              color: SpaceTheme.starYellow, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -399,7 +452,8 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
+        border:
+            Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -438,7 +492,11 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
                         width: isSelected ? 2.5 : 1,
                       ),
                       boxShadow: isSelected
-                          ? [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 8)]
+                          ? [
+                              BoxShadow(
+                                  color: color.withValues(alpha: 0.4),
+                                  blurRadius: 8)
+                            ]
                           : null,
                     ),
                     child: Column(
@@ -498,7 +556,8 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
                   ? SpaceTheme.rocketRed.withValues(alpha: glowAnimation.value)
                   : alreadyFound
                       ? Colors.white24
-                      : SpaceTheme.starYellow.withValues(alpha: glowAnimation.value * 0.6),
+                      : SpaceTheme.starYellow
+                          .withValues(alpha: glowAnimation.value * 0.6),
               width: 2,
             ),
           ),
@@ -509,21 +568,33 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
               Column(
                 children: [
                   SizedBox(
-                    width: 44, height: 44,
+                    width: 44,
+                    height: 44,
                     child: CustomPaint(
-                      painter: _CreaturePartPainter(partType: 0, variant: _selectedHead, color: headColor),
+                      painter: _CreaturePartPainter(
+                          partType: 0,
+                          variant: _selectedHead,
+                          color: headColor),
                     ),
                   ),
                   SizedBox(
-                    width: 44, height: 44,
+                    width: 44,
+                    height: 44,
                     child: CustomPaint(
-                      painter: _CreaturePartPainter(partType: 1, variant: _selectedBody, color: bodyColor),
+                      painter: _CreaturePartPainter(
+                          partType: 1,
+                          variant: _selectedBody,
+                          color: bodyColor),
                     ),
                   ),
                   SizedBox(
-                    width: 44, height: 44,
+                    width: 44,
+                    height: 44,
                     child: CustomPaint(
-                      painter: _CreaturePartPainter(partType: 2, variant: _selectedTail, color: tailColor),
+                      painter: _CreaturePartPainter(
+                          partType: 2,
+                          variant: _selectedTail,
+                          color: tailColor),
                     ),
                   ),
                 ],
@@ -532,18 +603,32 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
               Column(
                 children: [
                   if (forbidden)
-                    Text(S.of(context)!.creatureForgeForbidden, style: const TextStyle(color: SpaceTheme.rocketRed, fontSize: 12, fontWeight: FontWeight.bold))
+                    Text(S.of(context)!.creatureForgeForbidden,
+                        style: const TextStyle(
+                            color: SpaceTheme.rocketRed,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold))
                   else if (alreadyFound)
-                    Text(S.of(context)!.creatureForgeAlreadyFound, style: const TextStyle(color: Colors.white54, fontSize: 12))
+                    Text(S.of(context)!.creatureForgeAlreadyFound,
+                        style: const TextStyle(
+                            color: Colors.white54, fontSize: 12))
                   else
-                    Text(S.of(context)!.creatureForgeNewSpecies, style: const TextStyle(color: SpaceTheme.alienGreen, fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text(S.of(context)!.creatureForgeNewSpecies,
+                        style: const TextStyle(
+                            color: SpaceTheme.alienGreen,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   ElevatedButton.icon(
-                    onPressed: (alreadyFound || forbidden || _gameOver) ? null : _addCreature,
+                    onPressed: (alreadyFound || forbidden || _gameOver)
+                        ? null
+                        : _addCreature,
                     icon: const Icon(Icons.add, size: 18),
                     label: Text(S.of(context)!.creatureForgeAdd),
                     style: SpaceTheme.primaryButtonStyle.copyWith(
-                      padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+                      padding: WidgetStateProperty.all(
+                          const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8)),
                     ),
                   ),
                 ],
@@ -565,12 +650,14 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       ),
       child: Row(
         children: [
-          const Icon(Icons.warning_amber, color: SpaceTheme.rocketRed, size: 16),
+          const Icon(Icons.warning_amber,
+              color: SpaceTheme.rocketRed, size: 16),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               _constraintText,
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 14, color: SpaceTheme.rocketRed),
+              style: SpaceTheme.bodyStyle
+                  .copyWith(fontSize: 14, color: SpaceTheme.rocketRed),
             ),
           ),
         ],
@@ -585,7 +672,8 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
         // Discovery counter
         Text(
           '${_discoveredCombos.length} discovered${_hasConstraints ? "" : " of $total"}',
-          style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 16),
+          style: SpaceTheme.titleStyle
+              .copyWith(color: SpaceTheme.starYellow, fontSize: 16),
         ),
         const SizedBox(height: 8),
 
@@ -610,21 +698,33 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(height: 20, width: 20,
-                        child: CustomPaint(painter: _CreaturePartPainter(
-                          partType: 0, variant: parts[0],
-                          color: _headColors[parts[0] % _headColors.length],
-                        ))),
-                      SizedBox(height: 20, width: 20,
-                        child: CustomPaint(painter: _CreaturePartPainter(
-                          partType: 1, variant: parts[1],
-                          color: _bodyColors[parts[1] % _bodyColors.length],
-                        ))),
-                      SizedBox(height: 20, width: 20,
-                        child: CustomPaint(painter: _CreaturePartPainter(
-                          partType: 2, variant: parts[2],
-                          color: _tailColors[parts[2] % _tailColors.length],
-                        ))),
+                      SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CustomPaint(
+                              painter: _CreaturePartPainter(
+                            partType: 0,
+                            variant: parts[0],
+                            color: _headColors[parts[0] % _headColors.length],
+                          ))),
+                      SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CustomPaint(
+                              painter: _CreaturePartPainter(
+                            partType: 1,
+                            variant: parts[1],
+                            color: _bodyColors[parts[1] % _bodyColors.length],
+                          ))),
+                      SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CustomPaint(
+                              painter: _CreaturePartPainter(
+                            partType: 2,
+                            variant: parts[2],
+                            color: _tailColors[parts[2] % _tailColors.length],
+                          ))),
                     ],
                   ),
                 );
@@ -639,7 +739,8 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(S.of(context)!.creatureForgeTotalPossible, style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
+              Text(S.of(context)!.creatureForgeTotalPossible,
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
               SizedBox(
                 width: 60,
                 child: TextField(
@@ -649,15 +750,19 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
                   style: SpaceTheme.headlineStyle.copyWith(fontSize: 22),
                   decoration: InputDecoration(
                     hintText: '?',
-                    hintStyle: SpaceTheme.bodyStyle.copyWith(color: Colors.white30),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    hintStyle:
+                        SpaceTheme.bodyStyle.copyWith(color: Colors.white30),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: SpaceTheme.nebulaPurple),
+                      borderSide:
+                          const BorderSide(color: SpaceTheme.nebulaPurple),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: SpaceTheme.starYellow, width: 2),
+                      borderSide: const BorderSide(
+                          color: SpaceTheme.starYellow, width: 2),
                     ),
                     contentPadding: const EdgeInsets.symmetric(vertical: 8),
                   ),
@@ -691,13 +796,16 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'creature_forge'),
-                  const Icon(Icons.pets, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.pets,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.creatureForgeWinTitle,
-                      style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 12),
                   Text(
-                    s.creatureForgeFoundSpecies(_discoveredCombos.length, _correctAnswer),
+                    s.creatureForgeFoundSpecies(
+                        _discoveredCombos.length, _correctAnswer),
                     style: SpaceTheme.bodyStyle,
                     textAlign: TextAlign.center,
                   ),
@@ -744,7 +852,8 @@ class _CreaturePartPainter extends CustomPainter {
   final int variant;
   final Color color;
 
-  _CreaturePartPainter({required this.partType, required this.variant, required this.color});
+  _CreaturePartPainter(
+      {required this.partType, required this.variant, required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -754,25 +863,42 @@ class _CreaturePartPainter extends CustomPainter {
     final cy = h / 2;
     final r = math.min(w, h) * 0.4;
 
-    final fillPaint = Paint()..color = color.withValues(alpha: 0.4)..style = PaintingStyle.fill;
-    final edgePaint = Paint()..color = color..style = PaintingStyle.stroke..strokeWidth = 2.0;
+    final fillPaint = Paint()
+      ..color = color.withValues(alpha: 0.4)
+      ..style = PaintingStyle.fill;
+    final edgePaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
 
     if (partType == 0) {
       // HEADS
       switch (variant % 4) {
         case 0: // Triangle (crystal)
-          final path = Path()..moveTo(cx, 2)..lineTo(w - 2, h - 2)..lineTo(2, h - 2)..close();
+          final path = Path()
+            ..moveTo(cx, 2)
+            ..lineTo(w - 2, h - 2)
+            ..lineTo(2, h - 2)
+            ..close();
           canvas.drawPath(path, fillPaint);
           canvas.drawPath(path, edgePaint);
-          _drawEye(canvas, cx - w * 0.12, cy + h * 0.08, math.max(2, r * 0.15), color);
-          _drawEye(canvas, cx + w * 0.12, cy + h * 0.08, math.max(2, r * 0.15), color);
+          _drawEye(canvas, cx - w * 0.12, cy + h * 0.08, math.max(2, r * 0.15),
+              color);
+          _drawEye(canvas, cx + w * 0.12, cy + h * 0.08, math.max(2, r * 0.15),
+              color);
         case 1: // Circle (flame)
           canvas.drawCircle(Offset(cx, cy), r, fillPaint);
           canvas.drawCircle(Offset(cx, cy), r, edgePaint);
-          final sp = Paint()..color = color..style = PaintingStyle.stroke..strokeWidth = 1.5;
-          canvas.drawLine(Offset(cx - 4, cy - r * 0.7), Offset(cx - 2, cy - r * 1.1), sp);
-          canvas.drawLine(Offset(cx, cy - r * 0.8), Offset(cx, cy - r * 1.2), sp);
-          canvas.drawLine(Offset(cx + 4, cy - r * 0.7), Offset(cx + 2, cy - r * 1.1), sp);
+          final sp = Paint()
+            ..color = color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.5;
+          canvas.drawLine(
+              Offset(cx - 4, cy - r * 0.7), Offset(cx - 2, cy - r * 1.1), sp);
+          canvas.drawLine(
+              Offset(cx, cy - r * 0.8), Offset(cx, cy - r * 1.2), sp);
+          canvas.drawLine(
+              Offset(cx + 4, cy - r * 0.7), Offset(cx + 2, cy - r * 1.1), sp);
           _drawEye(canvas, cx - r * 0.3, cy, math.max(2, r * 0.12), color);
           _drawEye(canvas, cx + r * 0.3, cy, math.max(2, r * 0.12), color);
         case 2: // Hexagon (frost)
@@ -789,7 +915,12 @@ class _CreaturePartPainter extends CustomPainter {
           _drawEye(canvas, cx - r * 0.3, cy, math.max(2, r * 0.12), color);
           _drawEye(canvas, cx + r * 0.3, cy, math.max(2, r * 0.12), color);
         default: // Diamond (shadow)
-          final path = Path()..moveTo(cx, 2)..lineTo(w - 2, cy)..lineTo(cx, h - 2)..lineTo(2, cy)..close();
+          final path = Path()
+            ..moveTo(cx, 2)
+            ..lineTo(w - 2, cy)
+            ..lineTo(cx, h - 2)
+            ..lineTo(2, cy)
+            ..close();
           canvas.drawPath(path, fillPaint);
           canvas.drawPath(path, edgePaint);
           _drawEye(canvas, cx - r * 0.25, cy, math.max(2, r * 0.12), color);
@@ -799,26 +930,46 @@ class _CreaturePartPainter extends CustomPainter {
       // BODIES
       switch (variant % 4) {
         case 0: // Rectangle (armored)
-          final rect = Rect.fromCenter(center: Offset(cx, cy), width: w * 0.7, height: h * 0.8);
+          final rect = Rect.fromCenter(
+              center: Offset(cx, cy), width: w * 0.7, height: h * 0.8);
           canvas.drawRect(rect, fillPaint);
           canvas.drawRect(rect, edgePaint);
-          final lp = Paint()..color = color.withValues(alpha: 0.5)..style = PaintingStyle.stroke..strokeWidth = 1;
-          canvas.drawLine(Offset(cx - w * 0.3, cy - h * 0.12), Offset(cx + w * 0.3, cy - h * 0.12), lp);
-          canvas.drawLine(Offset(cx - w * 0.3, cy + h * 0.12), Offset(cx + w * 0.3, cy + h * 0.12), lp);
+          final lp = Paint()
+            ..color = color.withValues(alpha: 0.5)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1;
+          canvas.drawLine(Offset(cx - w * 0.3, cy - h * 0.12),
+              Offset(cx + w * 0.3, cy - h * 0.12), lp);
+          canvas.drawLine(Offset(cx - w * 0.3, cy + h * 0.12),
+              Offset(cx + w * 0.3, cy + h * 0.12), lp);
         case 1: // Winged
-          final rect = Rect.fromCenter(center: Offset(cx, cy), width: w * 0.5, height: h * 0.8);
+          final rect = Rect.fromCenter(
+              center: Offset(cx, cy), width: w * 0.5, height: h * 0.8);
           canvas.drawRect(rect, fillPaint);
           canvas.drawRect(rect, edgePaint);
-          final wp = Path()..moveTo(cx - w * 0.25, cy - h * 0.1)..lineTo(2, cy - h * 0.3)..lineTo(cx - w * 0.25, cy + h * 0.1);
+          final wp = Path()
+            ..moveTo(cx - w * 0.25, cy - h * 0.1)
+            ..lineTo(2, cy - h * 0.3)
+            ..lineTo(cx - w * 0.25, cy + h * 0.1);
           canvas.drawPath(wp, edgePaint);
-          final wp2 = Path()..moveTo(cx + w * 0.25, cy - h * 0.1)..lineTo(w - 2, cy - h * 0.3)..lineTo(cx + w * 0.25, cy + h * 0.1);
+          final wp2 = Path()
+            ..moveTo(cx + w * 0.25, cy - h * 0.1)
+            ..lineTo(w - 2, cy - h * 0.3)
+            ..lineTo(cx + w * 0.25, cy + h * 0.1);
           canvas.drawPath(wp2, edgePaint);
         case 2: // Oval (aquatic)
-          canvas.drawOval(Rect.fromCenter(center: Offset(cx, cy), width: w * 0.75, height: h * 0.7), fillPaint);
-          canvas.drawOval(Rect.fromCenter(center: Offset(cx, cy), width: w * 0.75, height: h * 0.7), edgePaint);
+          canvas.drawOval(
+              Rect.fromCenter(
+                  center: Offset(cx, cy), width: w * 0.75, height: h * 0.7),
+              fillPaint);
+          canvas.drawOval(
+              Rect.fromCenter(
+                  center: Offset(cx, cy), width: w * 0.75, height: h * 0.7),
+              edgePaint);
         default: // Rounded rect (elastic)
           final rrect = RRect.fromRectAndRadius(
-            Rect.fromCenter(center: Offset(cx, cy), width: w * 0.65, height: h * 0.85),
+            Rect.fromCenter(
+                center: Offset(cx, cy), width: w * 0.65, height: h * 0.85),
             const Radius.circular(10),
           );
           canvas.drawRRect(rrect, fillPaint);
@@ -829,19 +980,27 @@ class _CreaturePartPainter extends CustomPainter {
       switch (variant % 4) {
         case 0: // Stinger
           final path = Path()
-            ..moveTo(cx - w * 0.18, 2)..lineTo(cx + w * 0.18, 2)
+            ..moveTo(cx - w * 0.18, 2)
+            ..lineTo(cx + w * 0.18, 2)
             ..quadraticBezierTo(cx + w * 0.12, cy, cx, h - 2)
             ..quadraticBezierTo(cx - w * 0.12, cy, cx - w * 0.18, 2);
           canvas.drawPath(path, fillPaint);
           canvas.drawPath(path, edgePaint);
         case 1: // Feathered
-          final bp = Path()..moveTo(cx, 2)..quadraticBezierTo(cx + w * 0.3, cy, cx, h - 2);
+          final bp = Path()
+            ..moveTo(cx, 2)
+            ..quadraticBezierTo(cx + w * 0.3, cy, cx, h - 2);
           canvas.drawPath(bp, edgePaint);
-          final fp = Paint()..color = color.withValues(alpha: 0.6)..style = PaintingStyle.stroke..strokeWidth = 1;
+          final fp = Paint()
+            ..color = color.withValues(alpha: 0.6)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1;
           for (int j = 1; j <= 3; j++) {
             final fY = h * j / 4;
-            canvas.drawLine(Offset(cx, fY), Offset(cx - w * 0.25, fY - h * 0.06), fp);
-            canvas.drawLine(Offset(cx, fY), Offset(cx + w * 0.25, fY - h * 0.06), fp);
+            canvas.drawLine(
+                Offset(cx, fY), Offset(cx - w * 0.25, fY - h * 0.06), fp);
+            canvas.drawLine(
+                Offset(cx, fY), Offset(cx + w * 0.25, fY - h * 0.06), fp);
           }
         case 2: // Spiked
           final path = Path()..moveTo(cx, 2);
@@ -854,11 +1013,17 @@ class _CreaturePartPainter extends CustomPainter {
           canvas.drawPath(path, fillPaint);
           canvas.drawPath(path, edgePaint);
         default: // Luminous
-          final path = Path()..moveTo(cx - w * 0.12, 2)..quadraticBezierTo(cx + w * 0.25, cy, cx, h - 8);
+          final path = Path()
+            ..moveTo(cx - w * 0.12, 2)
+            ..quadraticBezierTo(cx + w * 0.25, cy, cx, h - 8);
           canvas.drawPath(path, edgePaint);
           canvas.drawCircle(Offset(cx, h - 6), 3, Paint()..color = color);
-          canvas.drawCircle(Offset(cx, h - 6), 5,
-            Paint()..color = color.withValues(alpha: 0.3)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3));
+          canvas.drawCircle(
+              Offset(cx, h - 6),
+              5,
+              Paint()
+                ..color = color.withValues(alpha: 0.3)
+                ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3));
       }
     }
   }

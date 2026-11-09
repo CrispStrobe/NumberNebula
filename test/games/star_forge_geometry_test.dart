@@ -36,7 +36,8 @@ void main() {
           // Tips are nodes 0..points-1 and must land on even positions, so
           // the outline steps out, in, out, in -- which is what makes it read
           // as a star rather than two unrelated rings.
-          expect(pos.isEven, node < points, reason: 'points=$points node=$node');
+          expect(pos.isEven, node < points,
+              reason: 'points=$points node=$node');
         }
       }
     });
@@ -68,7 +69,8 @@ void main() {
             StarForgeGeometry.angleAt(2 * arm + 1.5, points),
         ];
         for (int i = 0; i + 1 < angles.length; i++) {
-          expect(angles[i + 1] - angles[i], closeTo(2 * math.pi / points, 1e-12),
+          expect(
+              angles[i + 1] - angles[i], closeTo(2 * math.pi / points, 1e-12),
               reason: 'points=$points');
         }
       }

@@ -127,7 +127,8 @@ void main() {
   });
 
   group('generateMultipleChoiceOptions()', () {
-    test('contains correct answer, no duplicates, count respected, '
+    test(
+        'contains correct answer, no duplicates, count respected, '
         'all positive (many iterations across operations)', () {
       final problems = <MathProblem>[
         MathProblem.addition(13, 9),

@@ -11,24 +11,24 @@ class SpaceTheme {
   static const Color alienGreen = Color(0xFF06FFA5);
   static const Color moonSilver = Color(0xFFC0C0C0);
   static const Color cosmicPink = Color(0xFFFF69B4);
-  
+
   // Gradients
   static const LinearGradient spaceGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [spaceBlue, deepSpace, nebulaPurple],
   );
-  
+
   static const LinearGradient starGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [starYellow, planetOrange],
   );
-  
+
   static const RadialGradient planetGradient = RadialGradient(
     colors: [planetOrange, rocketRed],
   );
-  
+
   // Text styles
   static const TextStyle headlineStyle = TextStyle(
     fontFamily: 'SpaceGrotesk',
@@ -43,27 +43,27 @@ class SpaceTheme {
       ),
     ],
   );
-  
+
   static const TextStyle titleStyle = TextStyle(
     fontFamily: 'SpaceGrotesk',
     fontSize: 24,
     fontWeight: FontWeight.w600,
     color: Colors.white,
   );
-  
+
   static const TextStyle bodyStyle = TextStyle(
     fontFamily: 'SpaceGrotesk',
     fontSize: 16,
     color: Colors.white70,
   );
-  
+
   static const TextStyle buttonStyle = TextStyle(
     fontFamily: 'SpaceGrotesk',
     fontSize: 18,
     fontWeight: FontWeight.bold,
     color: Colors.white,
   );
-  
+
   // Button themes
   static ButtonStyle primaryButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: planetOrange,
@@ -80,7 +80,7 @@ class SpaceTheme {
     elevation: 8,
     shadowColor: Colors.black54,
   );
-  
+
   static ButtonStyle secondaryButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: alienGreen,
     foregroundColor: spaceBlue,
@@ -90,7 +90,7 @@ class SpaceTheme {
     ),
     elevation: 6,
   );
-  
+
   // Card theme
   static const BoxDecoration cardDecoration = BoxDecoration(
     gradient: LinearGradient(
@@ -110,13 +110,13 @@ class SpaceTheme {
       ),
     ],
   );
-  
+
   // Game UI colors
   static const Color correctAnswer = alienGreen;
   static const Color wrongAnswer = rocketRed;
   static const Color warning = starYellow;
   static const Color info = cosmicPink;
-  
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
@@ -137,12 +137,12 @@ class SpaceTheme {
         titleTextStyle: titleStyle,
         iconTheme: IconThemeData(color: Colors.white),
       ),
-      
+
       // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: primaryButtonStyle,
       ),
-      
+
       // Text Button Theme
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -153,7 +153,7 @@ class SpaceTheme {
           ),
         ),
       ),
-      
+
       // Card Theme - Fixed
       cardTheme: const CardThemeData(
         elevation: 8,
@@ -162,7 +162,7 @@ class SpaceTheme {
           borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
       ),
-      
+
       // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -176,7 +176,7 @@ class SpaceTheme {
       ),
     );
   }
-  
+
   static ThemeData get darkTheme {
     return lightTheme.copyWith(
       colorScheme: ColorScheme.fromSeed(
@@ -185,20 +185,20 @@ class SpaceTheme {
       ),
     );
   }
-  
+
   // Animation durations
   static const Duration fastAnimation = Duration(milliseconds: 200);
   static const Duration normalAnimation = Duration(milliseconds: 400);
   static const Duration slowAnimation = Duration(milliseconds: 800);
-  
+
   // Screen breakpoints for iPad optimization
   static const double tabletBreakpoint = 768;
   static const double ipadBreakpoint = 1024;
-  
+
   static bool isTablet(BuildContext context) {
     return MediaQuery.of(context).size.width >= tabletBreakpoint;
   }
-  
+
   static bool isIPad(BuildContext context) {
     return MediaQuery.of(context).size.width >= ipadBreakpoint;
   }

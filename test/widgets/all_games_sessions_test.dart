@@ -113,7 +113,8 @@ void main() {
             readyClock.stop();
             if (key == 'star_loader_game' && grade == 6 && level == 10) {
               expect(before!['_optimalMoves'], greaterThanOrEqualTo(24),
-                  reason: 'A search timeout must not weaken the existing push target');
+                  reason:
+                      'A search timeout must not weaken the existing push target');
             }
             for (final german in [false, true]) {
               final hint = findBoardHint(key, before!, german: german);

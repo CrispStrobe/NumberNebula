@@ -12,26 +12,30 @@ class PuzzleImageService {
 
   Future<void> init() async {
     if (kDebugMode) debugPrint("[PuzzleImageService] Initializing...");
-    
+
     try {
       // AssetManifest.json is no longer generated; the binary manifest is
       // what Flutter itself reads, and rootBundle caches it.
       final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
-      final puzzleRegex = RegExp(r'assets/images/puzzle\d+\.(png|jpg|jpeg|webp)$', caseSensitive: false);
+      final puzzleRegex = RegExp(
+          r'assets/images/puzzle\d+\.(png|jpg|jpeg|webp)$',
+          caseSensitive: false);
 
-      _puzzleImagePaths = manifest
-          .listAssets()
-          .where(puzzleRegex.hasMatch)
-          .toList();
+      _puzzleImagePaths =
+          manifest.listAssets().where(puzzleRegex.hasMatch).toList();
 
-      if (kDebugMode) debugPrint("[PuzzleImageService] Found ${_puzzleImagePaths.length} puzzle images after filtering.");
+      if (kDebugMode)
+        debugPrint(
+            "[PuzzleImageService] Found ${_puzzleImagePaths.length} puzzle images after filtering.");
     } catch (e) {
       debugPrint("[PuzzleImageService] Error reading asset manifest: $e");
     }
 
     // ALWAYS check if we found images, and use fallback if not (regardless of exceptions above)
     if (_puzzleImagePaths.isEmpty) {
-      if (kDebugMode) debugPrint("[PuzzleImageService] WARNING: No puzzle images found in manifest. Using hardcoded fallback.");
+      if (kDebugMode)
+        debugPrint(
+            "[PuzzleImageService] WARNING: No puzzle images found in manifest. Using hardcoded fallback.");
       _puzzleImagePaths = [
         'assets/images/puzzle01.webp',
         'assets/images/puzzle02.webp',
@@ -42,20 +46,25 @@ class PuzzleImageService {
         'assets/images/puzzle07.webp',
       ];
     }
-    
+
     _puzzleImagePaths.sort();
-    if (kDebugMode) debugPrint("[PuzzleImageService] Sorted image paths: $_puzzleImagePaths");
+    if (kDebugMode)
+      debugPrint("[PuzzleImageService] Sorted image paths: $_puzzleImagePaths");
   }
 
   String? getImageForLevel(int level) {
     if (_puzzleImagePaths.isEmpty) {
-      if (kDebugMode) debugPrint("[PuzzleImageService] No images available to serve for level $level.");
+      if (kDebugMode)
+        debugPrint(
+            "[PuzzleImageService] No images available to serve for level $level.");
       return null;
     }
-    
+
     final index = (level - 1) % _puzzleImagePaths.length;
     final imagePath = _puzzleImagePaths[index];
-    if (kDebugMode) debugPrint("[PuzzleImageService] Serving image '$imagePath' for level $level.");
+    if (kDebugMode)
+      debugPrint(
+          "[PuzzleImageService] Serving image '$imagePath' for level $level.");
     return imagePath;
   }
 }

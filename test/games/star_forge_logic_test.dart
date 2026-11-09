@@ -6,7 +6,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:space_math_academy/features/games/services/star_forge_logic.dart';
 
-
 // A known valid 4-line star (a simplified "star" for testing).
 // 4 nodes on a 2-point star is not standard but works for testing the
 // validateSolution logic directly.
@@ -89,7 +88,8 @@ void main() {
 
           // Every line hits the stated constant.
           for (final line in puzzle.lines) {
-            final sum = line.fold<int>(0, (a, idx) => a + puzzle.solution[idx]!);
+            final sum =
+                line.fold<int>(0, (a, idx) => a + puzzle.solution[idx]!);
             expect(sum, puzzle.magicConstant,
                 reason: 'line $line sums to $sum, not ${puzzle.magicConstant}');
           }
@@ -111,13 +111,14 @@ void main() {
           // The player is handed exactly the values still missing.
           expect(puzzle.numberPool.toSet(),
               puzzle.emptyNodes.map((n) => puzzle.solution[n]!).toSet());
-          expect(puzzle.clues.length + puzzle.emptyNodes.length,
-              puzzle.nodeCount);
+          expect(
+              puzzle.clues.length + puzzle.emptyNodes.length, puzzle.nodeCount);
         }
       }
     });
 
-    test('returns promptly instead of hanging on the loading spinner', () async {
+    test('returns promptly instead of hanging on the loading spinner',
+        () async {
       final generator = StarForgeGenerator();
       final watch = Stopwatch()..start();
       for (int i = 0; i < 30; i++) {
@@ -133,11 +134,11 @@ void main() {
       final seen = <String>{};
       for (int i = 0; i < 40; i++) {
         final puzzle = await generator.generate(points: 5, clueCount: 5);
-        seen.add([
-          for (int n = 0; n < puzzle.nodeCount; n++) puzzle.solution[n]
-        ].join(','));
+        seen.add([for (int n = 0; n < puzzle.nodeCount; n++) puzzle.solution[n]]
+            .join(','));
       }
-      expect(seen.length, greaterThan(20), reason: 'saw ${seen.length} layouts');
+      expect(seen.length, greaterThan(20),
+          reason: 'saw ${seen.length} layouts');
     });
   });
 
@@ -179,8 +180,16 @@ void main() {
       //        Check line 4: 4+7+10+1=22 OK!
       // Values used: 1,3,10,8,5,6,9,2,4,7 -- all unique, all in 1-10!
       final solution = <int, int>{
-        0: 1, 1: 3, 2: 5, 3: 9, 4: 4,
-        5: 10, 6: 8, 7: 6, 8: 2, 9: 7,
+        0: 1,
+        1: 3,
+        2: 5,
+        3: 9,
+        4: 4,
+        5: 10,
+        6: 8,
+        7: 6,
+        8: 2,
+        9: 7,
       };
 
       puzzle = StarForgePuzzle(
@@ -197,14 +206,26 @@ void main() {
 
     test('correct solution is accepted', () {
       final userSolution = <int, int>{
-        3: 9, 4: 4, 5: 10, 6: 8, 7: 6, 8: 2, 9: 7,
+        3: 9,
+        4: 4,
+        5: 10,
+        6: 8,
+        7: 6,
+        8: 2,
+        9: 7,
       };
       expect(puzzle.validateSolution(userSolution), isTrue);
     });
 
     test('corrupted single value is rejected', () {
       final userSolution = <int, int>{
-        3: 9, 4: 4, 5: 10, 6: 8, 7: 6, 8: 2, 9: 7,
+        3: 9,
+        4: 4,
+        5: 10,
+        6: 8,
+        7: 6,
+        8: 2,
+        9: 7,
       };
       userSolution[3] = 10; // was 9, now duplicate and wrong sum
       expect(puzzle.validateSolution(userSolution), isFalse);
@@ -216,7 +237,13 @@ void main() {
 
     test('duplicate values are rejected', () {
       final userSolution = <int, int>{
-        3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1,
+        3: 1,
+        4: 1,
+        5: 1,
+        6: 1,
+        7: 1,
+        8: 1,
+        9: 1,
       };
       expect(puzzle.validateSolution(userSolution), isFalse);
     });
@@ -224,7 +251,13 @@ void main() {
     test('wrong line sum is rejected', () {
       // All unique values but rearranged so line sums differ
       final userSolution = <int, int>{
-        3: 4, 4: 9, 5: 10, 6: 8, 7: 6, 8: 2, 9: 7,
+        3: 4,
+        4: 9,
+        5: 10,
+        6: 8,
+        7: 6,
+        8: 2,
+        9: 7,
       };
       // Line 3: 4+2+7+9=22 still OK
       // Line 4: 9+7+10+1=27 != 22 FAIL
@@ -237,7 +270,8 @@ void main() {
       final puzzle = StarForgePuzzle(
         points: 6,
         nodeCount: 12,
-        lines: List.generate(6, (i) => [i, 6 + i, 6 + (i + 1) % 6, (i + 1) % 6]),
+        lines:
+            List.generate(6, (i) => [i, 6 + i, 6 + (i + 1) % 6, (i + 1) % 6]),
         magicConstant: 26,
         solution: {for (int i = 0; i < 12; i++) i: i + 1},
         clues: {},
@@ -254,7 +288,9 @@ void main() {
     test('each line has 4 nodes for a standard star', () {
       for (final points in [5, 6, 7]) {
         final lines = List.generate(
-            points, (i) => [i, points + i, points + (i + 1) % points, (i + 1) % points]);
+            points,
+            (i) =>
+                [i, points + i, points + (i + 1) % points, (i + 1) % points]);
         for (final line in lines) {
           expect(line.length, 4);
         }

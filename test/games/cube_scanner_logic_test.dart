@@ -136,8 +136,10 @@ void main() {
       }
       // The single fixed "what is on the bottom" question is what made this
       // game repetitive; all three hidden faces must come up.
-      expect(asked,
-          containsAll(<CubeFace>[CubeFace.bottom, CubeFace.back, CubeFace.left]));
+      expect(
+          asked,
+          containsAll(
+              <CubeFace>[CubeFace.bottom, CubeFace.back, CubeFace.left]));
     });
 
     test('grade 2 mixes hidden sums with rolls', () {
@@ -159,8 +161,7 @@ void main() {
         final puzzle =
             CubeScannerGenerator(seed: seed).generate(grade: 2, level: 4);
         if (puzzle.question.kind != CubeQuestionKind.hiddenFaceSum) continue;
-        expect(puzzle.correctAnswer,
-            21 - puzzle.visibleFaces[0].visibleSum);
+        expect(puzzle.correctAnswer, 21 - puzzle.visibleFaces[0].visibleSum);
       }
     });
 
@@ -334,8 +335,7 @@ void main() {
         final die = Die.random(math.Random(seed));
         seen.add(die.faces.toString());
       }
-      expect(seen.length, 24,
-          reason: 'should produce all 24 die orientations');
+      expect(seen.length, 24, reason: 'should produce all 24 die orientations');
     });
   });
 

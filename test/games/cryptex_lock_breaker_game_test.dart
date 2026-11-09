@@ -100,7 +100,8 @@ void main() {
       expect(eq.getRightSideDisplay(), 'C');
     });
 
-    test('toMathProblem maps operator to the right MathOperation and answer', () {
+    test('toMathProblem maps operator to the right MathOperation and answer',
+        () {
       final solution = [4, 5, 6];
       final eq = CryptexEquation(
         leftOperandIndices: [0, 1],
@@ -137,7 +138,8 @@ void main() {
   });
 
   group('CryptexPuzzle.generate invariants (many seeds)', () {
-    test('every generated puzzle is well-formed and solved by its solution', () {
+    test('every generated puzzle is well-formed and solved by its solution',
+        () {
       // Cover the full complexity ladder used inside generate().
       const cases = <List<int>>[
         [1, 0], // complexity 1.0  -> 3 dials, +/-

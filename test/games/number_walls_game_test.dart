@@ -120,7 +120,8 @@ void main() {
               final parent = puzzle.fullSolution[rowStart + col];
               final left = puzzle.fullSolution[nextStart + col];
               final right = puzzle.fullSolution[nextStart + col + 1];
-              expect(_tripleHolds(parent, left, right, puzzle.operation), isTrue,
+              expect(
+                  _tripleHolds(parent, left, right, puzzle.operation), isTrue,
                   reason: 'fullSolution violates ${puzzle.operation.name} at '
                       'row $row col $col: parent=$parent left=$left right=$right');
             }
@@ -229,8 +230,8 @@ void main() {
           final rowCells = [
             for (int col = 0; col <= row; col++) positions[start + col]
           ];
-          final avgX =
-              rowCells.map((p) => p.dx).reduce((a, b) => a + b) / rowCells.length;
+          final avgX = rowCells.map((p) => p.dx).reduce((a, b) => a + b) /
+              rowCells.length;
           expect(avgX, closeTo(size / 2, 0.001),
               reason: 'row $row should be centered horizontally');
         }
@@ -252,7 +253,8 @@ void main() {
       // Addition: apex (row 0) is at the top (smaller y). Subtraction inverts
       // so the apex sits at the bottom (larger y).
       expect(addApex.dy, lessThan(subApex.dy),
-          reason: 'subtraction layout places the single-cell tip at the bottom');
+          reason:
+              'subtraction layout places the single-cell tip at the bottom');
     });
   });
 }

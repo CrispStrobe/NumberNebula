@@ -32,7 +32,10 @@ class SolarPanelGame extends StatefulWidget {
 }
 
 class _SolarPanelGameState extends State<SolarPanelGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<SolarPanelGame>, PuzzleSessionMixin<SolarPanelGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<SolarPanelGame>,
+        PuzzleSessionMixin<SolarPanelGame> {
   bool _sessionReady = false;
   bool _victoryPending = false;
   @override
@@ -43,10 +46,14 @@ class _SolarPanelGameState extends State<SolarPanelGame>
         duration: const Duration(milliseconds: 2000));
   }
 
-  @override String get sessionGameKey => 'solarpanel_game';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
+  @override
+  String get sessionGameKey => 'solarpanel_game';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
     if (!_sessionReady || _isGenerating) return null;
     return {
       'currentPuzzle': (currentPuzzle?.toJson()),
@@ -55,16 +62,25 @@ class _SolarPanelGameState extends State<SolarPanelGame>
       '_wrongChecks': _wrongChecks
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
     _cancelVictory();
     _warpController.reset();
     _panelExpandController.reset();
-    currentPuzzle = (state["currentPuzzle"] == null ? null : SolarPanelPuzzle.fromJson(Map<String, dynamic>.from(state["currentPuzzle"] as Map)));
-    userAnswers = (state["userAnswers"] as List).map((v0) => (v0 == null ? null : v0 as int)).toList();
+    currentPuzzle = (state["currentPuzzle"] == null
+        ? null
+        : SolarPanelPuzzle.fromJson(
+            Map<String, dynamic>.from(state["currentPuzzle"] as Map)));
+    userAnswers = (state["userAnswers"] as List)
+        .map((v0) => (v0 == null ? null : v0 as int))
+        .toList();
     numberPool = (state["numberPool"] as List).map((v0) => v0 as int).toList();
     _wrongChecks = state["_wrongChecks"] as int;
-    _isGenerating = false; _showPanelExpansion = false;
+    _isGenerating = false;
+    _showPanelExpansion = false;
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
@@ -83,7 +99,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   SolarPanelPuzzle? currentPuzzle;
   List<int?> userAnswers = [];
   List<int> numberPool = [];
-  
+
   bool _isGenerating = true;
 
   /// Wrong panel layouts submitted before the correct one.
@@ -101,34 +117,31 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   void initState() {
     super.initState();
     initGameAnimations();
-    if (kDebugMode) debugPrint("☀️ SolarPanelGame.initState() - Grade ${widget.grade}, Level ${widget.level}");
-    
-    
-    _dropController = AnimationController(
-      duration: const Duration(milliseconds: 500), vsync: this
-    );
-    _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
-    
-    _warpController = AnimationController(
-      duration: const Duration(milliseconds: 1500), vsync: this
-    );
+    if (kDebugMode)
+      debugPrint(
+          "☀️ SolarPanelGame.initState() - Grade ${widget.grade}, Level ${widget.level}");
 
-    
+    _dropController = AnimationController(
+        duration: const Duration(milliseconds: 500), vsync: this);
+    _dropAnimation =
+        CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
+
+    _warpController = AnimationController(
+        duration: const Duration(milliseconds: 1500), vsync: this);
+
     _panelExpandController = AnimationController(
-      duration: const Duration(milliseconds: 2000), vsync: this
-    );
+        duration: const Duration(milliseconds: 2000), vsync: this);
     _panelExpandAnimation = CurvedAnimation(
-      parent: _panelExpandController, 
-      curve: Curves.easeOutBack
-    );
-    
+        parent: _panelExpandController, curve: Curves.easeOutBack);
+
     _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 1000), vsync: this
-    );
-    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0)
-        .animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOut));
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
+        duration: const Duration(milliseconds: 1000), vsync: this);
+    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+        CurvedAnimation(parent: _fadeController, curve: Curves.easeOut));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _restoreOrGenerate();
+    });
     _startFadeTimer();
   }
 
@@ -160,8 +173,9 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   Future<void> _generatePuzzle() async {
     _cancelVictory();
     beginPuzzleSession();
-    if (kDebugMode) debugPrint("☀️ _generatePuzzle() - Starting puzzle generation");
-    
+    if (kDebugMode)
+      debugPrint("☀️ _generatePuzzle() - Starting puzzle generation");
+
     setState(() {
       _isGenerating = true;
       _wrongChecks = 0;
@@ -184,15 +198,17 @@ class _SolarPanelGameState extends State<SolarPanelGame>
       };
 
       final puzzle = await compute(SolarPanelPuzzle.generate, puzzleArgs);
-      
+
       if (mounted) {
         setState(() {
           currentPuzzle = puzzle;
-          userAnswers = List.generate(currentPuzzle!.hiddenCells.length, (_) => null);
+          userAnswers =
+              List.generate(currentPuzzle!.hiddenCells.length, (_) => null);
           numberPool = List.from(currentPuzzle!.numberPool);
           _isGenerating = false;
         });
-        if (kDebugMode) debugPrint("☀️ Puzzle generated: ${currentPuzzle!.baseNumbers}");
+        if (kDebugMode)
+          debugPrint("☀️ Puzzle generated: ${currentPuzzle!.baseNumbers}");
         _startFadeTimer();
       }
     } catch (e, stackTrace) {
@@ -200,7 +216,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
       debugPrint("❌ StackTrace: $stackTrace");
     }
   }
-  
+
   void _placeNumber(int number, int hiddenCellIndex) {
     if (_victoryPending) return;
     final answerIndex = currentPuzzle!.getAnswerIndexForCell(hiddenCellIndex);
@@ -214,7 +230,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
       _lastPlacedCellIndex = hiddenCellIndex;
       _dropController.forward(from: 0.0);
     });
-    
+
     _checkIfComplete();
   }
 
@@ -234,9 +250,9 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     if (_victoryPending) return;
     if (userAnswers.every((answer) => answer != null)) {
       final isValid = currentPuzzle!.validateSolution(userAnswers.cast<int>());
-      
+
       final List<MathProblem> attemptedProblems = _getSolvedProblems();
-      
+
       if (isValid) {
         _victoryPending = true;
         int baseScore = 120 * widget.grade;
@@ -246,24 +262,24 @@ class _SolarPanelGameState extends State<SolarPanelGame>
         finishPuzzleSession();
 
         context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'solarpanel_game',
-      difficulty: widget.level,
-      score: totalScore,
-      mathProblems: attemptedProblems,
-      performance: Perf.fromMistakes(_wrongChecks),
-    ));
-        
+              skillLevel: widget.grade,
+              gameType: 'solarpanel_game',
+              difficulty: widget.level,
+              score: totalScore,
+              mathProblems: attemptedProblems,
+              performance: Perf.fromMistakes(_wrongChecks),
+            ));
+
         _handleSuccess(totalScore);
       } else {
         _wrongChecks++;
         finishPuzzleSession();
         context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'solarpanel_game',
-      difficulty: widget.level,
-      mathProblems: attemptedProblems,
-    ));
+              skillLevel: widget.grade,
+              gameType: 'solarpanel_game',
+              difficulty: widget.level,
+              mathProblems: attemptedProblems,
+            ));
 
         _handleIncorrect();
       }
@@ -274,21 +290,21 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     if (kDebugMode) debugPrint("☀️ Gathering all solved problems...");
     final puzzle = currentPuzzle!;
     final List<MathProblem> problemsToLog = [];
-    
+
     final solution = puzzle.fullSolution;
     final a = solution[3];
     final b = solution[4];
     final c = solution[5];
-    
+
     // Two multiplication problems: A×B and B×C
     problemsToLog.add(MathProblem.multiplication(a, b));
     problemsToLog.add(MathProblem.multiplication(b, c));
-    
+
     // One addition problem: (A×B) + (B×C)
     final leftPanel = a * b;
     final rightPanel = b * c;
     problemsToLog.add(MathProblem.addition(leftPanel, rightPanel));
-    
+
     return problemsToLog;
   }
 
@@ -333,7 +349,8 @@ class _SolarPanelGameState extends State<SolarPanelGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (currentPuzzle == null || _isGenerating) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -353,13 +370,16 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                     child: LayoutBuilder(
                       builder: (context, constraints) {
                         bool isWide = constraints.maxWidth > 600;
-                        return isWide ? _buildWideLayout() : _buildCompactTallLayout();
+                        return isWide
+                            ? _buildWideLayout()
+                            : _buildCompactTallLayout();
                       },
                     ),
                   ),
                 ],
               ),
-              if (_shouldShowHint || _fadeController.status == AnimationStatus.reverse)
+              if (_shouldShowHint ||
+                  _fadeController.status == AnimationStatus.reverse)
                 _buildFloatingHint(),
             ],
           ),
@@ -379,12 +399,16 @@ class _SolarPanelGameState extends State<SolarPanelGame>
             opacity: _shouldShowHint ? 1.0 : _fadeAnimation.value,
             child: Container(
               constraints: BoxConstraints(
-                maxWidth: math.min(MediaQuery.of(context).size.width * 0.6, 280),
+                maxWidth:
+                    math.min(MediaQuery.of(context).size.width * 0.6, 280),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange.withValues(alpha: 0.8)],
+                  colors: [
+                    SpaceTheme.starYellow,
+                    SpaceTheme.planetOrange.withValues(alpha: 0.8)
+                  ],
                 ),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: SpaceTheme.starYellow, width: 2),
@@ -410,11 +434,8 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                             color: Colors.white.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
-                            Icons.wb_sunny, 
-                            color: Colors.white, 
-                            size: 16
-                          ),
+                          child: const Icon(Icons.wb_sunny,
+                              color: Colors.white, size: 16),
                         ),
                       );
                     },
@@ -428,7 +449,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                         Text(
                           S.of(context)!.solarPanelTitle,
                           style: SpaceTheme.titleStyle.copyWith(
-                            color: Colors.white, 
+                            color: Colors.white,
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
@@ -436,7 +457,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                         Text(
                           S.of(context)!.solarPanelHint,
                           style: SpaceTheme.bodyStyle.copyWith(
-                            color: Colors.white70, 
+                            color: Colors.white70,
                             fontSize: 10,
                           ),
                           maxLines: 2,
@@ -447,7 +468,8 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                   ),
                   if (kTweakProblems)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: Colors.orange.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(6),
@@ -500,9 +522,11 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.emoji_events, size: 16, color: SpaceTheme.starYellow),
+                    const Icon(Icons.emoji_events,
+                        size: 16, color: SpaceTheme.starYellow),
                     const SizedBox(width: 4),
-                    Text('${widget.level}', style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                    Text('${widget.level}',
+                        style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
                   ],
                 ),
               ),
@@ -519,9 +543,11 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                     return Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.star, size: 16, color: SpaceTheme.alienGreen),
+                        const Icon(Icons.star,
+                            size: 16, color: SpaceTheme.alienGreen),
                         const SizedBox(width: 4),
-                        Text('${gameProvider.score}', style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                        Text('${gameProvider.score}',
+                            style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
                       ],
                     );
                   },
@@ -539,13 +565,12 @@ class _SolarPanelGameState extends State<SolarPanelGame>
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 1.5),
+        border: Border.all(
+            color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 1.5),
       ),
       child: Center(
-        child: Text(
-          number.toString(), 
-          style: SpaceTheme.headlineStyle.copyWith(fontSize: 14)
-        ),
+        child: Text(number.toString(),
+            style: SpaceTheme.headlineStyle.copyWith(fontSize: 14)),
       ),
     );
   }
@@ -587,7 +612,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = math.min(constraints.maxWidth, constraints.maxHeight);
-        
+
         return Center(
           child: DragTarget<int>(
             key: _dragTargetKey,
@@ -599,7 +624,8 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                   children: [
                     Positioned.fill(
                       child: AnimatedBuilder(
-                        animation: Listenable.merge([glowController, _warpController]),
+                        animation:
+                            Listenable.merge([glowController, _warpController]),
                         builder: (context, child) {
                           return CustomPaint(
                             painter: SolarPanelBackgroundPainter(
@@ -641,14 +667,16 @@ class _SolarPanelGameState extends State<SolarPanelGame>
             },
             onAcceptWithDetails: (details) {
               setState(() => _isDraggingOver = false);
-              
-              final RenderBox? renderBox = _dragTargetKey.currentContext?.findRenderObject() as RenderBox?;
+
+              final RenderBox? renderBox = _dragTargetKey.currentContext
+                  ?.findRenderObject() as RenderBox?;
               if (renderBox == null) return;
-              
+
               final localDropPosition = renderBox.globalToLocal(details.offset);
               final droppedNumber = details.data;
 
-              int? closestCellIndex = _findClosestEmptyCell(localDropPosition, size);
+              int? closestCellIndex =
+                  _findClosestEmptyCell(localDropPosition, size);
 
               if (closestCellIndex != null) {
                 _placeNumber(droppedNumber, closestCellIndex);
@@ -670,11 +698,11 @@ class _SolarPanelGameState extends State<SolarPanelGame>
 
   List<Widget> _buildOperationSymbols(double containerSize) {
     if (currentPuzzle == null) return [];
-    
+
     final gameProvider = context.read<GameProvider>();
     List<Widget> symbols = [];
     final cellPositions = currentPuzzle!.getCellPositions(containerSize);
-    
+
     // multiplication symbol between A (index 3) and B (index 4) - bottom row
     final aPos = cellPositions[3];
     final bPos = cellPositions[4];
@@ -682,26 +710,26 @@ class _SolarPanelGameState extends State<SolarPanelGame>
       (aPos.dx + bPos.dx) / 2,
       aPos.dy, // Same height as bottom row
     );
-    
+
     symbols.add(_buildOperationIcon(
       leftMultPos,
       gameProvider.multiplicationSymbol,
       SpaceTheme.cosmicPink,
     ));
-    
+
     // multiplication symbol between B (index 4) and C (index 5) - bottom row
     final cPos = cellPositions[5];
     final rightMultPos = Offset(
       (bPos.dx + cPos.dx) / 2,
       bPos.dy, // Same height as bottom row
     );
-    
+
     symbols.add(_buildOperationIcon(
       rightMultPos,
       gameProvider.multiplicationSymbol,
       SpaceTheme.cosmicPink,
     ));
-    
+
     // + symbol between left panel (index 1) and right panel (index 2) - middle row
     final leftPanelPos = cellPositions[1];
     final rightPanelPos = cellPositions[2];
@@ -709,13 +737,13 @@ class _SolarPanelGameState extends State<SolarPanelGame>
       (leftPanelPos.dx + rightPanelPos.dx) / 2,
       leftPanelPos.dy, // Same height as middle row
     );
-    
+
     symbols.add(_buildOperationIcon(
       addPos,
       '+',
       SpaceTheme.alienGreen,
     ));
-    
+
     return symbols;
   }
 
@@ -729,11 +757,11 @@ class _SolarPanelGameState extends State<SolarPanelGame>
           return Transform.scale(
             scale: pulseAnimation.value * 0.9,
             child: Container(
-              width: 32, height: 32,
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [color, color.withValues(alpha: 0.7)]
-                ),
+                    colors: [color, color.withValues(alpha: 0.7)]),
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
                 boxShadow: [
@@ -760,7 +788,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
       ),
     );
   }
-    
+
   int? _findClosestEmptyCell(Offset dropPosition, double containerSize) {
     if (currentPuzzle == null) return null;
 
@@ -770,10 +798,12 @@ class _SolarPanelGameState extends State<SolarPanelGame>
 
     double minDistance = double.infinity;
     int? closestEmptyCellIndex;
-    
+
     for (int cellIndex in currentPuzzle!.hiddenCells) {
       final answerIndex = currentPuzzle!.getAnswerIndexForCell(cellIndex);
-      final isEmpty = answerIndex != -1 && answerIndex < userAnswers.length && userAnswers[answerIndex] == null;
+      final isEmpty = answerIndex != -1 &&
+          answerIndex < userAnswers.length &&
+          userAnswers[answerIndex] == null;
       if (isEmpty) {
         final cellCenter = cellPositions[cellIndex];
         final distance = (dropPosition - cellCenter).distance;
@@ -792,15 +822,15 @@ class _SolarPanelGameState extends State<SolarPanelGame>
 
   List<Widget> _buildPanelCells(double containerSize) {
     if (currentPuzzle == null) return [];
-    
+
     List<Widget> cells = [];
     final cellPositions = currentPuzzle!.getCellPositions(containerSize);
     final cellSize = containerSize * 0.15;
-    
+
     for (int i = 0; i < 6; i++) {
       int? value;
       bool isHidden = currentPuzzle!.hiddenCells.contains(i);
-      
+
       if (isHidden) {
         final answerIndex = currentPuzzle!.getAnswerIndexForCell(i);
         if (answerIndex != -1 && answerIndex < userAnswers.length) {
@@ -810,10 +840,11 @@ class _SolarPanelGameState extends State<SolarPanelGame>
         value = currentPuzzle!.visibleValues[i];
       }
 
-      Widget cell = isHidden 
-          ? _buildDroppableCell(value, currentPuzzle!.getAnswerIndexForCell(i), cellSize)
+      Widget cell = isHidden
+          ? _buildDroppableCell(
+              value, currentPuzzle!.getAnswerIndexForCell(i), cellSize)
           : _buildFixedCell(value: value!, size: cellSize);
-      
+
       if (i == _lastPlacedCellIndex) {
         cell = ScaleTransition(scale: _dropAnimation, child: cell);
       }
@@ -824,7 +855,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
         child: cell,
       ));
     }
-    
+
     return cells;
   }
 
@@ -855,15 +886,22 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     );
   }
 
-  Widget _buildPanelCell({ required int? value, required bool isSelected, required bool isHidden, double size = 70 }) {
+  Widget _buildPanelCell(
+      {required int? value,
+      required bool isSelected,
+      required bool isHidden,
+      double size = 70}) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      width: size, height: size,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         gradient: _getCellGradient(isHidden, isSelected),
         border: Border.all(
-          color: isSelected ? SpaceTheme.starYellow : SpaceTheme.starYellow.withValues(alpha: 0.5),
+          color: isSelected
+              ? SpaceTheme.starYellow
+              : SpaceTheme.starYellow.withValues(alpha: 0.5),
           width: isSelected ? 3 : 2,
         ),
         boxShadow: _getCellShadow(isSelected),
@@ -873,7 +911,8 @@ class _SolarPanelGameState extends State<SolarPanelGame>
           isHidden ? (value?.toString() ?? '') : value.toString(),
           style: SpaceTheme.headlineStyle.copyWith(
             fontSize: size * 0.35,
-            color: isHidden && value == null ? Colors.transparent : Colors.white,
+            color:
+                isHidden && value == null ? Colors.transparent : Colors.white,
           ),
           textAlign: TextAlign.center,
         ),
@@ -885,23 +924,20 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          S.of(context)!.solarPanelNumbers, 
-          style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)
-        ),
+        Text(S.of(context)!.solarPanelNumbers,
+            style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
         const SizedBox(height: 6),
         Flexible(
           child: Container(
             padding: const EdgeInsets.all(6),
             decoration: SpaceTheme.cardDecoration.copyWith(
-              border: Border.all(color: SpaceTheme.nebulaPurple, width: 2)
-            ),
+                border: Border.all(color: SpaceTheme.nebulaPurple, width: 2)),
             child: GridView.builder(
               shrinkWrap: true,
               physics: const BouncingScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: math.max(1, math.min(5, numberPool.length)),
-                crossAxisSpacing: 6, 
+                crossAxisSpacing: 6,
                 mainAxisSpacing: 6,
                 childAspectRatio: 1.0,
               ),
@@ -914,7 +950,8 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                 return Draggable<int>(
                   data: number,
                   feedback: _buildDraggableFeedback(number),
-                  childWhenDragging: Opacity(opacity: 0.3, child: _buildCompactBrick(number)),
+                  childWhenDragging:
+                      Opacity(opacity: 0.3, child: _buildCompactBrick(number)),
                   child: Semantics(
                     label: S.of(context)!.a11yBrick(number),
                     button: true,
@@ -933,33 +970,41 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     return Material(
       color: Colors.transparent,
       child: Container(
-        width: 60, height: 60,
+        width: 60,
+        height: 60,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: SpaceTheme.starGradient,
-          boxShadow: const [BoxShadow(color: SpaceTheme.starYellow, blurRadius: 20)],
+          boxShadow: const [
+            BoxShadow(color: SpaceTheme.starYellow, blurRadius: 20)
+          ],
         ),
         child: Center(
-          child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 22))
-        ),
+            child: Text(number.toString(),
+                style: SpaceTheme.headlineStyle.copyWith(fontSize: 22))),
       ),
     );
   }
-  
+
   LinearGradient _getCellGradient(bool isHidden, bool isSelected) {
     if (!isHidden) {
-      return const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.deepSpace]);
+      return const LinearGradient(
+          colors: [SpaceTheme.starYellow, SpaceTheme.deepSpace]);
     }
     if (isSelected) {
-      return const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange]);
+      return const LinearGradient(
+          colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange]);
     }
-    return const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]);
+    return const LinearGradient(
+        colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]);
   }
 
   List<BoxShadow> _getCellShadow(bool isSelected) {
     return [
       BoxShadow(
-        color: isSelected ? SpaceTheme.starYellow : SpaceTheme.starYellow.withValues(alpha: 0.5),
+        color: isSelected
+            ? SpaceTheme.starYellow
+            : SpaceTheme.starYellow.withValues(alpha: 0.5),
         blurRadius: isSelected ? 20 : 10,
         spreadRadius: isSelected ? 3 : 1,
       ),
@@ -968,68 +1013,65 @@ class _SolarPanelGameState extends State<SolarPanelGame>
 
   Widget _buildSuccessDialog(int bonusScore) {
     return AnimatedBuilder(
-        animation: successAnimation,
-        builder: (context, child) {
+      animation: successAnimation,
+      builder: (context, child) {
         return Transform.scale(
-            scale: successAnimation.value,
-            child: Align(
+          scale: successAnimation.value,
+          child: Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
-                padding: const EdgeInsets.only(bottom: 40),
-                child: Container(
+              padding: const EdgeInsets.only(bottom: 40),
+              child: Container(
                 constraints: const BoxConstraints(maxWidth: 400),
                 padding: const EdgeInsets.all(20),
                 decoration: SpaceTheme.cardDecoration,
                 child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                    const Icon(Icons.wb_sunny, size: 48, color: SpaceTheme.starYellow),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.wb_sunny,
+                        size: 48, color: SpaceTheme.starYellow),
                     const SizedBox(height: 12),
-                    Text(
-                        S.of(context)!.solarPanelWinTitle, 
-                        style: SpaceTheme.headlineStyle.copyWith(fontSize: 20), 
-                        textAlign: TextAlign.center
-                    ),
+                    Text(S.of(context)!.solarPanelWinTitle,
+                        style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
+                        textAlign: TextAlign.center),
                     const SizedBox(height: 8),
-                    Text(
-                        S.of(context)!.solarPanelWinDesc(bonusScore), 
-                        style: SpaceTheme.bodyStyle.copyWith(fontSize: 14), 
-                        textAlign: TextAlign.center
-                    ),
+                    Text(S.of(context)!.solarPanelWinDesc(bonusScore),
+                        style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+                        textAlign: TextAlign.center),
                     const SizedBox(height: 16),
                     Wrap(
-                        alignment: WrapAlignment.spaceEvenly,
-                        spacing: 12,
-                        runSpacing: 8,
-                        children: [
+                      alignment: WrapAlignment.spaceEvenly,
+                      spacing: 12,
+                      runSpacing: 8,
+                      children: [
                         ElevatedButton(
-                            autofocus: true,
-                            onPressed: () {
+                          autofocus: true,
+                          onPressed: () {
                             Navigator.of(context).pop();
                             _generatePuzzle();
-                            },
-                            style: SpaceTheme.primaryButtonStyle,
-                            child: Text(S.of(context)!.solarPanelNext),
+                          },
+                          style: SpaceTheme.primaryButtonStyle,
+                          child: Text(S.of(context)!.solarPanelNext),
                         ),
                         ElevatedButton(
-                            onPressed: () {
+                          onPressed: () {
                             Navigator.of(context).pop();
                             Navigator.of(context).pop();
-                            },
-                            style: SpaceTheme.primaryButtonStyle,
-                            child: Text(S.of(context)!.toTheBridge),
+                          },
+                          style: SpaceTheme.primaryButtonStyle,
+                          child: Text(S.of(context)!.toTheBridge),
                         ),
-                        ],
+                      ],
                     ),
-                    ],
+                  ],
                 ),
-                ),
+              ),
             ),
-            ),
+          ),
         );
-        },
+      },
     );
-    }
+  }
 }
 
 // SolarPanelPuzzle class
@@ -1037,22 +1079,25 @@ extension SolarPanelPuzzleLayout on SolarPanelPuzzle {
   List<Offset> getCellPositions(double containerSize) {
     final positions = <Offset>[];
     final cellSpacing = containerSize / 4;
-    
+
     // Top cell (total power) - index 0
     positions.add(Offset(containerSize / 2, cellSpacing));
-    
+
     // Middle cells (left and right panels) - indices 1, 2
-    positions.add(Offset(containerSize / 2 - cellSpacing * 0.8, cellSpacing * 2));
-    positions.add(Offset(containerSize / 2 + cellSpacing * 0.8, cellSpacing * 2));
-    
+    positions
+        .add(Offset(containerSize / 2 - cellSpacing * 0.8, cellSpacing * 2));
+    positions
+        .add(Offset(containerSize / 2 + cellSpacing * 0.8, cellSpacing * 2));
+
     // Bottom cells (A, B, C) - indices 3, 4, 5
     positions.add(Offset(containerSize / 2 - cellSpacing, cellSpacing * 3));
     positions.add(Offset(containerSize / 2, cellSpacing * 3));
     positions.add(Offset(containerSize / 2 + cellSpacing, cellSpacing * 3));
-    
+
     return positions;
   }
 }
+
 // Background painter (simple glow and warp only)
 class SolarPanelBackgroundPainter extends CustomPainter {
   final double glowIntensity;
@@ -1066,27 +1111,30 @@ class SolarPanelBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    
+
     // Glow effect
     final backgroundPaint = Paint()
       ..shader = RadialGradient(
-        colors: [ 
-          SpaceTheme.starYellow.withValues(alpha: 0.1 * glowIntensity), 
-          Colors.transparent 
+        colors: [
+          SpaceTheme.starYellow.withValues(alpha: 0.1 * glowIntensity),
+          Colors.transparent
         ],
       ).createShader(Rect.fromCircle(center: center, radius: size.width * 0.6));
-    
+
     canvas.drawCircle(center, size.width * 0.6, backgroundPaint);
-    
+
     // Warp effect
     if (warpActivation > 0) {
       final warpPaint = Paint()
-        ..color = SpaceTheme.starYellow.withValues(alpha: 0.4 * (1 - warpActivation))
+        ..color =
+            SpaceTheme.starYellow.withValues(alpha: 0.4 * (1 - warpActivation))
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3.0 + (warpActivation * 10)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 5 + warpActivation * 10);
-      
-      canvas.drawCircle(center, size.width * 0.1 + (size.width/2 * warpActivation), warpPaint);
+        ..maskFilter =
+            MaskFilter.blur(BlurStyle.normal, 5 + warpActivation * 10);
+
+      canvas.drawCircle(center,
+          size.width * 0.1 + (size.width / 2 * warpActivation), warpPaint);
     }
   }
 
@@ -1111,25 +1159,29 @@ class PanelExpansionPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (expansion <= 0 || solution == null || solution!.length != 6) return;
-    
+
     final a = solution![3];
     final b = solution![4]; // height
     final c = solution![5];
-    
+
     final cellSpacing = containerSize / 4;
-    final leftPanelCenter = Offset(containerSize / 2 - cellSpacing * 0.8, cellSpacing * 2);
-    final rightPanelCenter = Offset(containerSize / 2 + cellSpacing * 0.8, cellSpacing * 2);
-    
+    final leftPanelCenter =
+        Offset(containerSize / 2 - cellSpacing * 0.8, cellSpacing * 2);
+    final rightPanelCenter =
+        Offset(containerSize / 2 + cellSpacing * 0.8, cellSpacing * 2);
+
     // Left panel: width = A, height = B
-    final leftWidth = (a * cellSpacing * 0.2 * expansion).clamp(0.0, containerSize * 0.45);
-    final leftHeight = (b * cellSpacing * 0.2 * expansion).clamp(0.0, containerSize * 0.45);
-    
+    final leftWidth =
+        (a * cellSpacing * 0.2 * expansion).clamp(0.0, containerSize * 0.45);
+    final leftHeight =
+        (b * cellSpacing * 0.2 * expansion).clamp(0.0, containerSize * 0.45);
+
     final leftPanelRect = Rect.fromCenter(
       center: leftPanelCenter,
       width: leftWidth,
       height: leftHeight,
     );
-    
+
     final leftPanelPaint = Paint()
       ..shader = LinearGradient(
         colors: [
@@ -1138,49 +1190,43 @@ class PanelExpansionPainter extends CustomPainter {
         ],
       ).createShader(leftPanelRect)
       ..style = PaintingStyle.fill;
-    
+
     canvas.drawRRect(
       RRect.fromRectAndRadius(leftPanelRect, const Radius.circular(12)),
       leftPanelPaint,
     );
-    
+
     // Border for left panel
     final leftBorderPaint = Paint()
       ..color = SpaceTheme.starYellow.withValues(alpha: 0.9 * expansion)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
-    
+
     canvas.drawRRect(
       RRect.fromRectAndRadius(leftPanelRect, const Radius.circular(12)),
       leftBorderPaint,
     );
-    
+
     // Dimension labels for left panel
     if (expansion > 0.5) {
-      _drawDimensionLabel(
-        canvas, 
-        '$a', 
-        Offset(leftPanelCenter.dx, leftPanelRect.bottom + 15),
-        expansion
-      );
-      _drawDimensionLabel(
-        canvas, 
-        '$b', 
-        Offset(leftPanelRect.left - 15, leftPanelCenter.dy),
-        expansion
-      );
+      _drawDimensionLabel(canvas, '$a',
+          Offset(leftPanelCenter.dx, leftPanelRect.bottom + 15), expansion);
+      _drawDimensionLabel(canvas, '$b',
+          Offset(leftPanelRect.left - 15, leftPanelCenter.dy), expansion);
     }
-    
+
     // Right panel: width = C, height = B
-    final rightWidth = (c * cellSpacing * 0.2 * expansion).clamp(0.0, containerSize * 0.45);
-    final rightHeight = (b * cellSpacing * 0.2 * expansion).clamp(0.0, containerSize * 0.45);
-    
+    final rightWidth =
+        (c * cellSpacing * 0.2 * expansion).clamp(0.0, containerSize * 0.45);
+    final rightHeight =
+        (b * cellSpacing * 0.2 * expansion).clamp(0.0, containerSize * 0.45);
+
     final rightPanelRect = Rect.fromCenter(
       center: rightPanelCenter,
       width: rightWidth,
       height: rightHeight,
     );
-    
+
     final rightPanelPaint = Paint()
       ..shader = LinearGradient(
         colors: [
@@ -1189,53 +1235,46 @@ class PanelExpansionPainter extends CustomPainter {
         ],
       ).createShader(rightPanelRect)
       ..style = PaintingStyle.fill;
-    
+
     canvas.drawRRect(
       RRect.fromRectAndRadius(rightPanelRect, const Radius.circular(12)),
       rightPanelPaint,
     );
-    
+
     // Border for right panel
     final rightBorderPaint = Paint()
       ..color = SpaceTheme.starYellow.withValues(alpha: 0.9 * expansion)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
-    
+
     canvas.drawRRect(
       RRect.fromRectAndRadius(rightPanelRect, const Radius.circular(12)),
       rightBorderPaint,
     );
-    
+
     // Dimension labels for right panel
     if (expansion > 0.5) {
-      _drawDimensionLabel(
-        canvas, 
-        '$c', 
-        Offset(rightPanelCenter.dx, rightPanelRect.bottom + 15),
-        expansion
-      );
-      _drawDimensionLabel(
-        canvas, 
-        '$b', 
-        Offset(rightPanelRect.right + 15, rightPanelCenter.dy),
-        expansion
-      );
+      _drawDimensionLabel(canvas, '$c',
+          Offset(rightPanelCenter.dx, rightPanelRect.bottom + 15), expansion);
+      _drawDimensionLabel(canvas, '$b',
+          Offset(rightPanelRect.right + 15, rightPanelCenter.dy), expansion);
     }
-    
+
     // Energy rays from panels
     if (expansion > 0.7) {
       final rayPaint = Paint()
-        ..color = SpaceTheme.starYellow.withValues(alpha: 0.4 * (expansion - 0.7) * 3.33)
+        ..color = SpaceTheme.starYellow
+            .withValues(alpha: 0.4 * (expansion - 0.7) * 3.33)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
-      
+
       for (int i = 0; i < 6; i++) {
         final angle = (i * math.pi * 2 / 6) + (expansion * math.pi * 2);
         final endX = leftPanelCenter.dx + math.cos(angle) * 40 * expansion;
         final endY = leftPanelCenter.dy + math.sin(angle) * 40 * expansion;
         canvas.drawLine(leftPanelCenter, Offset(endX, endY), rayPaint);
-        
+
         final endX2 = rightPanelCenter.dx + math.cos(angle) * 40 * expansion;
         final endY2 = rightPanelCenter.dy + math.sin(angle) * 40 * expansion;
         canvas.drawLine(rightPanelCenter, Offset(endX2, endY2), rayPaint);
@@ -1243,33 +1282,35 @@ class PanelExpansionPainter extends CustomPainter {
     }
   }
 
-  void _drawDimensionLabel(Canvas canvas, String text, Offset position, double expansion) {
+  void _drawDimensionLabel(
+      Canvas canvas, String text, Offset position, double expansion) {
     // Clamp expansion to prevent opacity > 1.0
     final clampedExpansion = expansion.clamp(0.0, 1.0);
-    
+
     final textPainter = TextPainter(
-        text: TextSpan(
+      text: TextSpan(
         text: text,
         style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.95 * clampedExpansion),
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            shadows: [
+          color: Colors.white.withValues(alpha: 0.95 * clampedExpansion),
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          shadows: [
             Shadow(
-                color: SpaceTheme.starYellow.withValues(alpha: 0.8 * clampedExpansion),
-                blurRadius: 8,
+              color: SpaceTheme.starYellow
+                  .withValues(alpha: 0.8 * clampedExpansion),
+              blurRadius: 8,
             ),
-            ],
+          ],
         ),
-        ),
-        textDirection: TextDirection.ltr,
+      ),
+      textDirection: TextDirection.ltr,
     );
     textPainter.layout();
     textPainter.paint(
-        canvas, 
-        Offset(position.dx - textPainter.width / 2, position.dy - textPainter.height / 2)
-    );
-    }
+        canvas,
+        Offset(position.dx - textPainter.width / 2,
+            position.dy - textPainter.height / 2));
+  }
 
   @override
   bool shouldRepaint(PanelExpansionPainter oldDelegate) =>

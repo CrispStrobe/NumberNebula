@@ -9,7 +9,8 @@ import 'package:space_math_academy/core/services/cognitive_profile_service.dart'
 import 'package:space_math_academy/core/services/debug_provider.dart';
 import 'package:space_math_academy/core/services/puzzle_session_store.dart';
 import 'package:space_math_academy/features/games/providers/game_provider.dart';
-import 'package:space_math_academy/features/games/screens/star_forge_game.dart' as star_forge;
+import 'package:space_math_academy/features/games/screens/star_forge_game.dart'
+    as star_forge;
 import 'package:space_math_academy/features/games/services/star_forge_logic.dart';
 import 'package:space_math_academy/generated/l10n.dart';
 
@@ -45,8 +46,9 @@ void main() {
     final puzzle = state.puzzle as StarForgePuzzle;
     final nodes = puzzle.emptyNodes.toList()..sort();
     final number = puzzle.solution[nodes.first]!;
-    final source =
-        find.byWidgetPredicate((w) => w is Draggable<star_forge.StarForgeDrag> && (w.data as star_forge.StarForgeDrag).number == number);
+    final source = find.byWidgetPredicate((w) =>
+        w is Draggable<star_forge.StarForgeDrag> &&
+        (w.data as star_forge.StarForgeDrag).number == number);
     final target = find.byType(DragTarget<star_forge.StarForgeDrag>).first;
     await tester.dragFrom(tester.getCenter(source),
         tester.getCenter(target) - tester.getCenter(source));
@@ -69,8 +71,9 @@ void main() {
     expect(state.capturePuzzleSession(), before);
     expect(gp.score, 0);
     final lastNumber = puzzle.solution[nodes.last]!;
-    final lastSource = find
-        .byWidgetPredicate((w) => w is Draggable<star_forge.StarForgeDrag> && (w.data as star_forge.StarForgeDrag).number == lastNumber);
+    final lastSource = find.byWidgetPredicate((w) =>
+        w is Draggable<star_forge.StarForgeDrag> &&
+        (w.data as star_forge.StarForgeDrag).number == lastNumber);
     final lastTarget = find.byType(DragTarget<star_forge.StarForgeDrag>).first;
     await tester.dragFrom(tester.getCenter(lastSource),
         tester.getCenter(lastTarget) - tester.getCenter(lastSource));

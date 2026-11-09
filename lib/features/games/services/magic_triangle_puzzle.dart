@@ -9,31 +9,32 @@ import 'generator_diagnostics.dart';
 class MagicTrianglePuzzle {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-    'circlesPerSide': circlesPerSide,
-    'warpFrequency': warpFrequency,
-    'hiddenIndices': hiddenIndices.map((v0) => v0).toList(),
-    'visibleValues': visibleValues.entries
-        .map((v0) => [v0.key, v0.value])
-        .toList(),
-    'allNumbers': allNumbers.map((v0) => v0).toList(),
-    'numberPool': numberPool.map((v0) => v0).toList(),
-  };
+        'circlesPerSide': circlesPerSide,
+        'warpFrequency': warpFrequency,
+        'hiddenIndices': hiddenIndices.map((v0) => v0).toList(),
+        'visibleValues':
+            visibleValues.entries.map((v0) => [v0.key, v0.value]).toList(),
+        'allNumbers': allNumbers.map((v0) => v0).toList(),
+        'numberPool': numberPool.map((v0) => v0).toList(),
+      };
   factory MagicTrianglePuzzle.fromJson(
     Map<String, dynamic> json,
-  ) => MagicTrianglePuzzle(
-    circlesPerSide: json['circlesPerSide'] as int,
-    warpFrequency: json['warpFrequency'] as int,
-    hiddenIndices: (json['hiddenIndices'] as List)
-        .map((v0) => v0 as int)
-        .toSet(),
-    visibleValues: Map<int, int>.fromEntries(
-      (json['visibleValues'] as List).map(
-        (v0) => MapEntry(v0[0] as int, v0[1] as int),
-      ),
-    ),
-    allNumbers: (json['allNumbers'] as List).map((v0) => v0 as int).toList(),
-    numberPool: (json['numberPool'] as List).map((v0) => v0 as int).toList(),
-  );
+  ) =>
+      MagicTrianglePuzzle(
+        circlesPerSide: json['circlesPerSide'] as int,
+        warpFrequency: json['warpFrequency'] as int,
+        hiddenIndices:
+            (json['hiddenIndices'] as List).map((v0) => v0 as int).toSet(),
+        visibleValues: Map<int, int>.fromEntries(
+          (json['visibleValues'] as List).map(
+            (v0) => MapEntry(v0[0] as int, v0[1] as int),
+          ),
+        ),
+        allNumbers:
+            (json['allNumbers'] as List).map((v0) => v0 as int).toList(),
+        numberPool:
+            (json['numberPool'] as List).map((v0) => v0 as int).toList(),
+      );
 
   final int circlesPerSide;
   final int totalCircles;
@@ -155,17 +156,14 @@ class MagicTrianglePuzzle {
     }
     final allIndices = List.generate(totalCircles, (i) => i)
       ..shuffle(generatorRandom());
-    var hiddenIndices = allIndices
-        .sublist(0, totalCircles - visibleCount)
-        .toSet();
+    var hiddenIndices =
+        allIndices.sublist(0, totalCircles - visibleCount).toSet();
     if (guided && profile.requireDeductionChain) {
       // Keep the first levels solvable by repeated one-blank side subtraction.
       // Do not introduce a hidden system of simultaneous equations here.
-      for (
-        var attempt = 0;
-        attempt < 32 && !_hasDeductionChain(hiddenIndices, circlesPerSide);
-        attempt++
-      ) {
+      for (var attempt = 0;
+          attempt < 32 && !_hasDeductionChain(hiddenIndices, circlesPerSide);
+          attempt++) {
         allIndices.shuffle(generatorRandom());
         hiddenIndices = allIndices.take(profile.hiddenCount).toSet();
       }
@@ -188,9 +186,8 @@ class MagicTrianglePuzzle {
     }
     if (kDebugMode) traceGenerator("[Wormhole] Visible values: $visibleValues");
 
-    final hiddenNumbers = allNumbers
-        .where((n) => !visibleValues.values.contains(n))
-        .toList();
+    final hiddenNumbers =
+        allNumbers.where((n) => !visibleValues.values.contains(n)).toList();
     traceGenerator("[Wormhole] Hidden numbers: $hiddenNumbers");
 
     final decoyCount = guided
@@ -375,12 +372,10 @@ class MagicTrianglePuzzle {
     final random = generatorRandom();
     final difficulty = grade + (level / 5.0);
 
-    final minCorrect = correctNumbers.isNotEmpty
-        ? correctNumbers.reduce(math.min)
-        : 1;
-    final maxCorrect = correctNumbers.isNotEmpty
-        ? correctNumbers.reduce(math.max)
-        : 10;
+    final minCorrect =
+        correctNumbers.isNotEmpty ? correctNumbers.reduce(math.min) : 1;
+    final maxCorrect =
+        correctNumbers.isNotEmpty ? correctNumbers.reduce(math.max) : 10;
     final range = maxCorrect - minCorrect;
 
     int attempts = 0;

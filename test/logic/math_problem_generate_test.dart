@@ -26,7 +26,9 @@ import 'package:space_math_academy/features/games/providers/game_provider.dart';
 class _NoReviewSri extends SriService {
   @override
   List<String> getProblemsForReview(
-          {int limit = 5, Set<String>? excludeIds, bool resetSessionFirst = false}) =>
+          {int limit = 5,
+          Set<String>? excludeIds,
+          bool resetSessionFirst = false}) =>
       const [];
   @override
   bool isProblemMastered(String problemId) => false;
@@ -51,7 +53,8 @@ void main() {
     );
   });
 
-  test('custom subtraction with a degenerate min==max range does not crash', () {
+  test('custom subtraction with a degenerate min==max range does not crash',
+      () {
     gp.setUseCustomSettings(true);
     gp.setCustomOperations({'subtraction'});
     gp.setCustomRange(min: 5, max: 5); // degenerate — was the crash trigger
@@ -67,7 +70,8 @@ void main() {
     }
   });
 
-  test('custom subtraction with a normal range still produces valid problems', () {
+  test('custom subtraction with a normal range still produces valid problems',
+      () {
     gp.setUseCustomSettings(true);
     gp.setCustomOperations({'subtraction'});
     gp.setCustomRange(min: 1, max: 10);

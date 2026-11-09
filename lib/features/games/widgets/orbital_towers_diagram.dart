@@ -126,7 +126,8 @@ class TowerSightlineDiagram extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 4),
-        Icon(icon, color: color == Colors.white24 ? Colors.white38 : color, size: 14),
+        Icon(icon,
+            color: color == Colors.white24 ? Colors.white38 : color, size: 14),
       ],
     );
   }

@@ -208,7 +208,8 @@ void main() {
         }
       });
 
-      test('grade $grade level $level: fullSolution validates, corruption fails',
+      test(
+          'grade $grade level $level: fullSolution validates, corruption fails',
           () async {
         final puzzle = await _generate(grade, level);
 

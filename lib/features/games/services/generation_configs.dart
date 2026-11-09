@@ -49,9 +49,8 @@ class NebulaMatrixGenerationConfig {
     // More clues at low levels, fewer at high levels
     final base = (totalCells * 0.6).round();
     final reduction = (level / 4).floor();
-    final advanced = algorithmPath == AlgorithmPath.legacy
-        ? 0
-        : (grade - 4).clamp(0, 2);
+    final advanced =
+        algorithmPath == AlgorithmPath.legacy ? 0 : (grade - 4).clamp(0, 2);
     return (base - reduction - advanced).clamp(size, totalCells - 1);
   }
 }
@@ -72,9 +71,8 @@ class OrbitalTowersGenerationConfig {
     final maxClues = size * 4;
     final base = (maxClues * 0.75).round();
     final reduction = (level / 4).floor();
-    final advanced = algorithmPath == AlgorithmPath.legacy
-        ? 0
-        : (grade - 4).clamp(0, 2);
+    final advanced =
+        algorithmPath == AlgorithmPath.legacy ? 0 : (grade - 4).clamp(0, 2);
     return (base - reduction - advanced).clamp(size, maxClues);
   }
 

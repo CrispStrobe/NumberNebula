@@ -103,7 +103,8 @@ class Perf {
   ///
   /// Anything at or under par is perfect; overruns decay gently and never
   /// drop below [floor] so a slow-but-correct solve stays respectable.
-  static double fromTime(int secondsUsed, int parSeconds, {double floor = 0.5}) {
+  static double fromTime(int secondsUsed, int parSeconds,
+      {double floor = 0.5}) {
     if (parSeconds <= 0) return perfect;
     if (secondsUsed <= parSeconds) return perfect;
     final over = (secondsUsed - parSeconds) / parSeconds;

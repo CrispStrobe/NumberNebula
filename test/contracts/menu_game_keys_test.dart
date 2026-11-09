@@ -16,8 +16,7 @@ void main() {
     final menuFile = File('lib/features/games/screens/game_menu_screen.dart')
         .readAsStringSync();
     final regex = RegExp(r"gameKey:\s*'([^']+)'");
-    final menuKeys =
-        regex.allMatches(menuFile).map((m) => m.group(1)!).toSet();
+    final menuKeys = regex.allMatches(menuFile).map((m) => m.group(1)!).toSet();
 
     expect(menuKeys, isNotEmpty,
         reason: 'No gameKey entries found — regex or file path drifted?');

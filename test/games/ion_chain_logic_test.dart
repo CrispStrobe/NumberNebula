@@ -41,8 +41,11 @@ void main() {
 
     test('a full, rule-abiding ring is completable', () {
       final puzzle = IonChainPuzzle.generate(
-        chainLength: 6, ionTypeCount: 3, ruleCount: 1,
-        blanksToRemove: 3, seed: 7);
+          chainLength: 6,
+          ionTypeCount: 3,
+          ruleCount: 1,
+          blanksToRemove: 3,
+          seed: 7);
 
       final blanks = [
         for (int i = 0; i < puzzle.chainLength; i++)
@@ -64,8 +67,10 @@ void main() {
       ];
       // Only a red is left, and both neighbours of the gap are red.
       final chain = <IonType?>[IonType.red, null, IonType.red, IonType.blue];
-      expect(IonChainPuzzle.isCompletable(chain, [IonType.red], rules), isFalse);
-      expect(IonChainPuzzle.isCompletable(chain, [IonType.green], rules), isTrue);
+      expect(
+          IonChainPuzzle.isCompletable(chain, [IonType.red], rules), isFalse);
+      expect(
+          IonChainPuzzle.isCompletable(chain, [IonType.green], rules), isTrue);
     });
 
     test('tray size must match the number of blanks', () {
@@ -90,8 +95,10 @@ void main() {
           final p = params(grade, level);
           for (int i = 0; i < 6; i++) {
             final puzzle = IonChainPuzzle.generate(
-              chainLength: p[0], ionTypeCount: p[1],
-              ruleCount: p[2], blanksToRemove: p[3]);
+                chainLength: p[0],
+                ionTypeCount: p[1],
+                ruleCount: p[2],
+                blanksToRemove: p[3]);
 
             final blanks = [
               for (int j = 0; j < puzzle.chainLength; j++)
@@ -100,7 +107,8 @@ void main() {
 
             for (int trial = 0; trial < 10; trial++) {
               final chain = List<IonType?>.from(puzzle.chain);
-              final tray = List<IonType>.from(puzzle.availableIons)..shuffle(rng);
+              final tray = List<IonType>.from(puzzle.availableIons)
+                ..shuffle(rng);
               final open = List<int>.from(blanks)..shuffle(rng);
 
               while (open.isNotEmpty) {
@@ -113,9 +121,11 @@ void main() {
                   }
                 }
                 expect(options, isNotEmpty,
-                    reason: 'grade $grade level $level: no bead fits slot $slot, '
+                    reason:
+                        'grade $grade level $level: no bead fits slot $slot, '
                         'the player is stranded with the ring unfinished');
-                chain[slot] = tray.removeAt(options[rng.nextInt(options.length)]);
+                chain[slot] =
+                    tray.removeAt(options[rng.nextInt(options.length)]);
               }
 
               expect(IonChainPuzzle.validateChain(chain, puzzle.rules), isTrue,
@@ -131,8 +141,10 @@ void main() {
         final p = params(grade, 6);
         for (int i = 0; i < 10; i++) {
           final puzzle = IonChainPuzzle.generate(
-            chainLength: p[0], ionTypeCount: p[1],
-            ruleCount: p[2], blanksToRemove: p[3]);
+              chainLength: p[0],
+              ionTypeCount: p[1],
+              ruleCount: p[2],
+              blanksToRemove: p[3]);
 
           final chain = List<IonType?>.from(puzzle.chain);
           var tray = List<IonType>.from(puzzle.availableIons);
@@ -158,14 +170,13 @@ void main() {
       // several times over.
       for (int i = 0; i < 200; i++) {
         final puzzle = IonChainPuzzle.generate(
-          chainLength: 8, ionTypeCount: 4, ruleCount: 3, blanksToRemove: 4);
+            chainLength: 8, ionTypeCount: 4, ruleCount: 3, blanksToRemove: 4);
 
         // A rule is identified by what it forbids, not by its wording -- the
         // wording now lives in the screen so that it can be localized, and a
         // rule shown twice would be a duplicate in either language.
-        final shown = puzzle.rules
-            .map((r) => '${r.kind}:${r.a}:${r.b}')
-            .toList();
+        final shown =
+            puzzle.rules.map((r) => '${r.kind}:${r.a}:${r.b}').toList();
         expect(shown.toSet().length, shown.length,
             reason: 'duplicate rule shown: $shown');
       }
@@ -250,7 +261,8 @@ void main() {
       final ruleCount = tc['ruleCount']!;
       final blanks = tc['blanks']!;
 
-      test('length=$chainLength types=$ionTypeCount: solution satisfies all rules',
+      test(
+          'length=$chainLength types=$ionTypeCount: solution satisfies all rules',
           () {
         for (int seed = 0; seed < 5; seed++) {
           final puzzle = IonChainPuzzle.generate(
@@ -293,7 +305,8 @@ void main() {
         }
       });
 
-      test('length=$chainLength types=$ionTypeCount: available ions match removed ions',
+      test(
+          'length=$chainLength types=$ionTypeCount: available ions match removed ions',
           () {
         for (int seed = 0; seed < 3; seed++) {
           final puzzle = IonChainPuzzle.generate(
@@ -320,7 +333,8 @@ void main() {
         }
       });
 
-      test('length=$chainLength types=$ionTypeCount: ion types are within specified count',
+      test(
+          'length=$chainLength types=$ionTypeCount: ion types are within specified count',
           () {
         final puzzle = IonChainPuzzle.generate(
           chainLength: chainLength,
@@ -381,7 +395,8 @@ void main() {
     ];
 
     for (final (length, types, ruleCount, blanks) in bands) {
-      test('length $length, $types types, $ruleCount rules, $blanks blanks', () {
+      test('length $length, $types types, $ruleCount rules, $blanks blanks',
+          () {
         for (var seed = 0; seed < 200; seed++) {
           final p = IonChainPuzzle.generate(
             chainLength: length,
@@ -391,10 +406,14 @@ void main() {
             seed: seed,
           );
           final named = {
-            for (final r in p.rules) ...[if (r.a != null) r.a!, if (r.b != null) r.b!],
+            for (final r in p.rules) ...[
+              if (r.a != null) r.a!,
+              if (r.b != null) r.b!
+            ],
           };
           expect(p.solution.toSet().containsAll(named), isTrue,
-              reason: 'seed $seed: a rule names a shape that is not on the ring');
+              reason:
+                  'seed $seed: a rule names a shape that is not on the ring');
           expect(
               IonChainPuzzle.rulesMatter(
                   p.chain, p.solution, p.availableIons, p.rules),
@@ -414,11 +433,8 @@ void main() {
       );
       const solution = [IonType.red, IonType.blue, IonType.green, IonType.blue];
       expect(
-          IonChainPuzzle.rulesMatter(
-              [IonType.red, null, IonType.green, null],
-              solution,
-              [IonType.blue, IonType.blue],
-              [rule]),
+          IonChainPuzzle.rulesMatter([IonType.red, null, IonType.green, null],
+              solution, [IonType.blue, IonType.blue], [rule]),
           isFalse);
     });
   });

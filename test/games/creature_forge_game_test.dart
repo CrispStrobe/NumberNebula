@@ -50,8 +50,7 @@ class _CreatureForgePuzzle {
       forbiddenCombos = random.nextInt(5) + 3; // 3-7
     }
 
-    final correctAnswer =
-        headCount * bodyCount * tailCount - forbiddenCombos;
+    final correctAnswer = headCount * bodyCount * tailCount - forbiddenCombos;
 
     return _CreatureForgePuzzle(
       headCount: headCount,

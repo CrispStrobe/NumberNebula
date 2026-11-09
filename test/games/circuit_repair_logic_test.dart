@@ -184,13 +184,15 @@ void main() {
           final gen = CircuitRepairGenerator(seed: seed);
           final puzzle = gen.generate(grade: grade, level: level);
 
-          expect(CircuitRepairPuzzle.isValidTime(puzzle.displayedDigits), isFalse,
+          expect(
+              CircuitRepairPuzzle.isValidTime(puzzle.displayedDigits), isFalse,
               reason:
                   'displayed time ${puzzle.displayedTimeString} must be invalid (seed=$seed)');
         }
       });
 
-      test('grade=$grade level=$level: swapping back restores correct time', () {
+      test('grade=$grade level=$level: swapping back restores correct time',
+          () {
         for (int seed = 0; seed < 10; seed++) {
           final gen = CircuitRepairGenerator(seed: seed);
           final puzzle = gen.generate(grade: grade, level: level);
@@ -198,8 +200,7 @@ void main() {
           final restored = CircuitRepairPuzzle.applySwap(
               puzzle.displayedDigits, puzzle.swapPosA, puzzle.swapPosB);
           expect(restored, puzzle.correctDigits,
-              reason:
-                  'swapping back must restore correct digits (seed=$seed)');
+              reason: 'swapping back must restore correct digits (seed=$seed)');
         }
       });
 
@@ -255,8 +256,7 @@ void main() {
 
         final hours = puzzle.correctDigits[0] * 10 + puzzle.correctDigits[1];
         expect(hours, inInclusiveRange(10, 12),
-            reason:
-                'grade 1 hours should be 10-12, got $hours (seed=$seed)');
+            reason: 'grade 1 hours should be 10-12, got $hours (seed=$seed)');
       }
     });
 

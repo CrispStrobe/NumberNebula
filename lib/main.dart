@@ -48,7 +48,8 @@ import 'package:flutter/foundation.dart';
 // dependencies above their consumers.
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final ProgressService progressService = ProgressService();
-final CognitiveProfileService cognitiveProfileService = CognitiveProfileService();
+final CognitiveProfileService cognitiveProfileService =
+    CognitiveProfileService();
 final SriService sriService = SriService();
 
 final GameProvider gameProvider = GameProvider(
@@ -97,7 +98,7 @@ Future<void> _applyOrientationPolicy() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Orientation policy: the games are laid out landscape-first, which fits an
   // iPhone but wastes an iPad's screen — and iPads have room to work in portrait
   // too. So lock landscape on phones only; let tablets rotate freely.
@@ -140,8 +141,10 @@ void main() async {
 
 Future<void> _loadAccessibilitySettings() async {
   final prefs = await ProfilePreferences.getInstance();
-  gameProvider.setHapticEnabled(prefs.getBool('haptic_enabled') ?? gameProvider.hapticEnabled);
-  gameProvider.setReduceMotion(prefs.getBool('reduce_motion') ?? gameProvider.reduceMotion);
+  gameProvider.setHapticEnabled(
+      prefs.getBool('haptic_enabled') ?? gameProvider.hapticEnabled);
+  gameProvider.setReduceMotion(
+      prefs.getBool('reduce_motion') ?? gameProvider.reduceMotion);
 }
 
 class SpaceMathApp extends StatefulWidget {
@@ -151,11 +154,12 @@ class SpaceMathApp extends StatefulWidget {
   State<SpaceMathApp> createState() => _SpaceMathAppState();
 }
 
-class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver {
+class _SpaceMathAppState extends State<SpaceMathApp>
+    with WidgetsBindingObserver {
   Locale? _locale;
   bool _isInitialized = false;
   String? _initializationError;
-  
+
   @override
   void initState() {
     super.initState();
@@ -163,11 +167,12 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
     // Re-apply the orientation policy once the view metrics are populated: at
     // main() time (before the first frame) the physical size can still be zero,
     // which would misdetect an iPad as a phone and lock it to landscape.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _applyOrientationPolicy());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _applyOrientationPolicy());
     playerProfileService.onSwitch = _switchPlayer;
     _initializeApp();
   }
-  
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -178,11 +183,12 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
       _saveAppState();
     }
   }
-  
+
   Future<void> _initializeApp() async {
     try {
       await _loadLanguagePreference();
@@ -190,7 +196,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
       await _loadAccessibilitySettings();
       await sriService.loadSriData();
       await cognitiveProfileService.loadProfile();
-      await gridlockPuzzleTracker.loadPlayedPuzzles(); 
+      await gridlockPuzzleTracker.loadPlayedPuzzles();
       setState(() => _isInitialized = true);
     } catch (e, s) {
       if (kDebugMode) debugPrint('Initialization Error: $e\n$s');
@@ -200,14 +206,14 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
       });
     }
   }
-  
+
   Future<void> _switchPlayer(String id) async {
     await _saveAppState();
     if (!mounted) return;
     setState(() => _isInitialized = false);
     ProfilePreferences.activeId = id;
     await progressService.loadProgress(gameProvider);
-      await _loadAccessibilitySettings();
+    await _loadAccessibilitySettings();
     await sriService.loadSriData();
     await cognitiveProfileService.loadProfile();
     await gridlockPuzzleTracker.loadPlayedPuzzles();
@@ -222,22 +228,25 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
     try {
       final prefs = await SharedPreferences.getInstance();
       final languageCode = prefs.getString('language');
-      
-      if (languageCode != null && S.supportedLocales.any((locale) => locale.languageCode == languageCode)) {
+
+      if (languageCode != null &&
+          S.supportedLocales
+              .any((locale) => locale.languageCode == languageCode)) {
         setState(() => _locale = Locale(languageCode));
       } else {
         final systemLocale = WidgetsBinding.instance.platformDispatcher.locale;
-        if (S.supportedLocales.any((l) => l.languageCode == systemLocale.languageCode)) {
-           setState(() => _locale = systemLocale);
+        if (S.supportedLocales
+            .any((l) => l.languageCode == systemLocale.languageCode)) {
+          setState(() => _locale = systemLocale);
         } else {
-           setState(() => _locale = const Locale('en'));
+          setState(() => _locale = const Locale('en'));
         }
       }
     } catch (e) {
       setState(() => _locale = const Locale('en'));
     }
   }
-  
+
   Future<void> _saveAppState() async {
     await PuzzleSessionStore.instance.flush();
     // Start all player writes before the first await so they capture the
@@ -256,7 +265,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
       if (kDebugMode) debugPrint('Error saving language state: $e');
     }
   }
-  
+
   Future<void> _restoreAppState() async {
     // Restore logic if needed
   }
@@ -271,7 +280,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
         theme: SpaceTheme.lightTheme,
       );
     }
-    
+
     if (_initializationError != null) {
       return MaterialApp(
         home: SpaceErrorScreen(
@@ -292,7 +301,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
     return MaterialApp(
       key: ValueKey('app_${ProfilePreferences.activeId}'),
       title: 'NumberNebula',
-      navigatorKey: navigatorKey, 
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       locale: _locale,
       localizationsDelegates: S.localizationsDelegates,
@@ -311,7 +320,8 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
               final currentContext = navigatorKey.currentContext;
               if (currentContext != null) {
                 Navigator.of(currentContext).pushReplacementNamed(
-                  ModalRoute.of(currentContext)?.settings.name ?? AppRoutes.home,
+                  ModalRoute.of(currentContext)?.settings.name ??
+                      AppRoutes.home,
                 );
               }
             },
@@ -320,18 +330,20 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
         // Global keyboard shortcut: Escape goes back / closes the current
         // screen or dialog (a11y — lets keyboard/switch users navigate back
         // without reaching for the on-screen back button).
-        final reduced = context.select<GameProvider, bool>((gp) => gp.reduceMotion);
+        final reduced =
+            context.select<GameProvider, bool>((gp) => gp.reduceMotion);
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-              disableAnimations: MediaQuery.of(context).disableAnimations || reduced),
-          child: CallbackShortcuts(
-          bindings: <ShortcutActivator, VoidCallback>{
-            const SingleActivator(LogicalKeyboardKey.escape): () {
-              navigatorKey.currentState?.maybePop();
-            },
-          },
-          child: child ?? const SizedBox.shrink(),
-        ));
+            data: MediaQuery.of(context).copyWith(
+                disableAnimations:
+                    MediaQuery.of(context).disableAnimations || reduced),
+            child: CallbackShortcuts(
+              bindings: <ShortcutActivator, VoidCallback>{
+                const SingleActivator(LogicalKeyboardKey.escape): () {
+                  navigatorKey.currentState?.maybePop();
+                },
+              },
+              child: child ?? const SizedBox.shrink(),
+            ));
       },
     );
   }
@@ -357,9 +369,11 @@ class AppRoutes {
   static const String arithmancerDuel = '/games/arithmancer-duel';
   static const String arithmaticSquare = '/games/arithmatic-square';
   static const String arithmancerCrosswords = '/games/arithmancer-crosswords';
-  static const String asteroidFieldNavigator = '/games/asteroid-field-navigator';
+  static const String asteroidFieldNavigator =
+      '/games/asteroid-field-navigator';
   static const String cargoBayArranger = '/games/cargo-bay-arranger';
-  static const String quantumMoleculeBuilder = '/games/quantum-molecule-builder';
+  static const String quantumMoleculeBuilder =
+      '/games/quantum-molecule-builder';
   static const String spaceStationGridlock = '/games/space-station-gridlock';
   static const String starLoader = '/games/star-loader';
   static const String robotPath = '/games/robot-path';
@@ -370,7 +384,7 @@ class AppRoutes {
   static const String achievements = '/achievements';
   static const String loading = '/loading';
   static const String error = '/error';
-  
+
   /// Game routes, each resolved to its gameKey in game_registry.dart.
   static const Map<String, String> _gameRouteKeys = {
     magicTriangles: 'magic_triangles',
@@ -408,63 +422,41 @@ class AppRoutes {
     }
 
     switch (settings.name) {
-        case splash:
-          return _createRoute(const SplashScreen());
-          
-        case home:
-          return _createRoute(const HomeScreen());
-          
-        case gameMenu:
-          return _createRoute(const GameMenuScreen());
-          
-          
-          
-          
-          
+      case splash:
+        return _createRoute(const SplashScreen());
 
+      case home:
+        return _createRoute(const HomeScreen());
 
-      
+      case gameMenu:
+        return _createRoute(const GameMenuScreen());
 
+      case AppRoutes.settings:
+        return _createRoute(const SettingsScreen());
 
-
-        
-
-
-
-        
-        
-
-
-        
-
-
-            
-        case AppRoutes.settings:
-          return _createRoute(const SettingsScreen());
-      
-        case AppRoutes.achievements:
+      case AppRoutes.achievements:
         return _createRoute(const AchievementsScreen());
-      
-        case loading:
-          final message = args?['message'] as String?;
-          return _createRoute(SpaceLoadingScreen(message: message));
-          
-        case error:
-          final title = args?['title'] as String? ?? 'Error';
-          final message = args?['message'] as String? ?? 'Something went wrong';
-          return _createRoute(SpaceErrorScreen(title: title, message: message));
-          
-        default:
-          return _createRoute(
-              SpaceErrorScreen(
-              title: 'Route Not Found',
-              message: 'The requested page could not be found.',
-              onBack: () {},
-              ),
-          );
+
+      case loading:
+        final message = args?['message'] as String?;
+        return _createRoute(SpaceLoadingScreen(message: message));
+
+      case error:
+        final title = args?['title'] as String? ?? 'Error';
+        final message = args?['message'] as String? ?? 'Something went wrong';
+        return _createRoute(SpaceErrorScreen(title: title, message: message));
+
+      default:
+        return _createRoute(
+          SpaceErrorScreen(
+            title: 'Route Not Found',
+            message: 'The requested page could not be found.',
+            onBack: () {},
+          ),
+        );
     }
-    }
-  
+  }
+
   static PageRoute _createRoute(Widget page) {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => page,
@@ -496,7 +488,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   late AnimationController _logoController;
   late AnimationController _textController;
   late AnimationController _progressController;
@@ -505,23 +498,27 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late Animation<double> _textOpacity;
   late Animation<double> _progressAnimation;
 
-  String _loadingMessage = 'Initializing...'; // Start with a non-localized default
+  String _loadingMessage =
+      'Initializing...'; // Start with a non-localized default
   double _progress = 0.0;
-  
+
   @override
   void initState() {
     super.initState();
-    
-    _logoController = AnimationController(duration: const Duration(milliseconds: 2000), vsync: this);
-    _textController = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
-    _progressController = AnimationController(duration: const Duration(milliseconds: 3000), vsync: this);
 
-    _logoScale = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _logoController, curve: Curves.elasticOut));
-    _textOpacity = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _textController, curve: Curves.easeIn));
-    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _progressController, curve: Curves.easeInOut));
+    _logoController = AnimationController(
+        duration: const Duration(milliseconds: 2000), vsync: this);
+    _textController = AnimationController(
+        duration: const Duration(milliseconds: 1000), vsync: this);
+    _progressController = AnimationController(
+        duration: const Duration(milliseconds: 3000), vsync: this);
+
+    _logoScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _logoController, curve: Curves.elasticOut));
+    _textOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _textController, curve: Curves.easeIn));
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _progressController, curve: Curves.easeInOut));
   }
 
   // FIX: Access context-dependent resources here, not in initState.
@@ -532,7 +529,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     // We pass the S instance to the initialization logic.
     _initializeApp(S.of(context)!);
   }
-  
+
   @override
   void dispose() {
     _logoController.dispose();
@@ -540,7 +537,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _progressController.dispose();
     super.dispose();
   }
-  
+
   // FIX: This method now accepts the 'S' instance so it doesn't need context.
   Future<void> _initializeApp(S s) async {
     _logoController.forward();
@@ -554,19 +551,19 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         final progressService = context.read<ProgressService>();
         final gameProvider = context.read<GameProvider>();
         await progressService.loadProgress(gameProvider);
-      await _loadAccessibilitySettings();
+        await _loadAccessibilitySettings();
       }
     } catch (e) {
       if (kDebugMode) debugPrint('Error loading progress: $e');
     }
-    
+
     _textController.forward();
     await _updateProgress(0.6, s.preparingSpaceStation);
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     await _updateProgress(0.8, s.calibratingNav);
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     await _updateProgress(1.0, s.readyForLaunch);
     await Future.delayed(const Duration(milliseconds: 800));
 
@@ -590,7 +587,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 800 || screenSize.height < 500;
-    
+
     return Scaffold(
       body: Container(
         width: double.infinity, // FIX: Ensure full width
@@ -600,7 +597,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           child: SingleChildScrollView(
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                minHeight: screenSize.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                minHeight: screenSize.height -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -618,17 +617,16 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: SpaceTheme.starYellow.withValues(alpha: 0.5),
+                                color: SpaceTheme.starYellow
+                                    .withValues(alpha: 0.5),
                                 blurRadius: isSmallScreen ? 20 : 30,
                                 spreadRadius: isSmallScreen ? 5 : 10,
                               ),
                             ],
                           ),
-                          child: Icon(
-                            Icons.rocket_launch, 
-                            color: Colors.white, 
-                            size: isSmallScreen ? 50 : 80
-                          ),
+                          child: Icon(Icons.rocket_launch,
+                              color: Colors.white,
+                              size: isSmallScreen ? 50 : 80),
                         ),
                       );
                     },
@@ -643,14 +641,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                           children: [
                             Text(
                               S.of(context)!.appTitle,
-                              style: SpaceTheme.headlineStyle.copyWith(
-                                fontSize: isSmallScreen ? 24 : 36
-                              ),
+                              style: SpaceTheme.headlineStyle
+                                  .copyWith(fontSize: isSmallScreen ? 24 : 36),
                               textAlign: TextAlign.center,
                             ),
                             SizedBox(height: isSmallScreen ? 8 : 16),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
                               child: Text(
                                 S.of(context)!.splashScreenSubtitle,
                                 style: SpaceTheme.bodyStyle.copyWith(
@@ -681,7 +679,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                   return LinearProgressIndicator(
                                     value: _progressAnimation.value,
                                     backgroundColor: SpaceTheme.deepSpace,
-                                    valueColor: const AlwaysStoppedAnimation<Color>(
+                                    valueColor:
+                                        const AlwaysStoppedAnimation<Color>(
                                       SpaceTheme.starYellow,
                                     ),
                                   );
@@ -690,12 +689,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             ),
                             SizedBox(height: isSmallScreen ? 12 : 16),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
                               child: Text(
                                 _loadingMessage,
                                 style: SpaceTheme.bodyStyle.copyWith(
-                                  fontSize: isSmallScreen ? 12 : 14
-                                ),
+                                    fontSize: isSmallScreen ? 12 : 14),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -721,19 +720,18 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
   }
-  
 }
 
 class SpaceLoadingScreen extends StatelessWidget {
   final String? message;
-  
+
   const SpaceLoadingScreen({super.key, this.message});
 
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 800 || screenSize.height < 500;
-    
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: SpaceTheme.spaceGradient),
@@ -747,7 +745,8 @@ class SpaceLoadingScreen extends StatelessWidget {
                   width: isSmallScreen ? 40 : 60,
                   height: isSmallScreen ? 40 : 60,
                   child: const CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(SpaceTheme.starYellow),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(SpaceTheme.starYellow),
                   ),
                 ),
                 SizedBox(height: isSmallScreen ? 16 : 24),
@@ -777,7 +776,7 @@ class SpaceErrorScreen extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
   final VoidCallback? onBack;
-  
+
   const SpaceErrorScreen({
     super.key,
     required this.title,
@@ -790,7 +789,7 @@ class SpaceErrorScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 800 || screenSize.height < 500;
-    
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: SpaceTheme.spaceGradient),
@@ -798,7 +797,9 @@ class SpaceErrorScreen extends StatelessWidget {
           child: SingleChildScrollView(
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                minHeight: screenSize.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                minHeight: screenSize.height -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom,
               ),
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -845,10 +846,12 @@ class SpaceErrorScreen extends StatelessWidget {
                               ),
                               child: Text(
                                 'Go Back',
-                                style: TextStyle(fontSize: isSmallScreen ? 12 : 14),
+                                style: TextStyle(
+                                    fontSize: isSmallScreen ? 12 : 14),
                               ),
                             ),
-                            if (onRetry != null) SizedBox(width: isSmallScreen ? 12 : 16),
+                            if (onRetry != null)
+                              SizedBox(width: isSmallScreen ? 12 : 16),
                           ],
                           if (onRetry != null)
                             ElevatedButton(

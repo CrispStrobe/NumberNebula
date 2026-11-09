@@ -20,7 +20,8 @@ import 'package:space_math_academy/features/games/services/relic_assembly_logic.
 
 void main() {
   group('star_forge generates only solvable magic stars', () {
-    test('every line sums to the magic constant, across all point counts', () async {
+    test('every line sums to the magic constant, across all point counts',
+        () async {
       final gen = StarForgeGenerator();
       var generated = 0;
       for (final points in [5, 6, 7]) {
@@ -63,9 +64,11 @@ void main() {
             }
 
             // And the solution must pass the game's own checker.
-            expect(p.validateSolution({
-              for (final node in p.emptyNodes) node: p.solution[node]!,
-            }), isTrue);
+            expect(
+                p.validateSolution({
+                  for (final node in p.emptyNodes) node: p.solution[node]!,
+                }),
+                isTrue);
           }
         }
       }
@@ -80,8 +83,14 @@ void main() {
     // real defect, that this test first reported.
     List<int> paramsFor(int grade, int level) {
       if (grade <= 1) return [5, 3, 1, 2];
-      if (grade <= 2) return [6 + (level > 5 ? 1 : 0), 3, 1 + (level > 5 ? 1 : 0), 3];
-      return [7 + (level > 5 ? 2 : 0), 4, 2 + (level > 8 ? 1 : 0), 3 + (level > 5 ? 1 : 0)];
+      if (grade <= 2)
+        return [6 + (level > 5 ? 1 : 0), 3, 1 + (level > 5 ? 1 : 0), 3];
+      return [
+        7 + (level > 5 ? 2 : 0),
+        4,
+        2 + (level > 8 ? 1 : 0),
+        3 + (level > 5 ? 1 : 0)
+      ];
     }
 
     test('the start state is completable at every grade and level', () {
@@ -91,8 +100,11 @@ void main() {
           final q = paramsFor(grade, level);
           for (int seed = 0; seed < 50; seed++) {
             final p = IonChainPuzzle.generate(
-              chainLength: q[0], ionTypeCount: q[1],
-              ruleCount: q[2], blanksToRemove: q[3], seed: seed,
+              chainLength: q[0],
+              ionTypeCount: q[1],
+              ruleCount: q[2],
+              blanksToRemove: q[3],
+              seed: seed,
             );
             generated++;
             final where = 'grade=$grade level=$level seed=$seed';
@@ -108,7 +120,8 @@ void main() {
             // A solution that breaks its own rules is the shipped-unsolvable
             // case: no placement the player makes can ever be accepted.
             expect(IonChainPuzzle.validateChain(p.solution, p.rules), isTrue,
-                reason: "the generator's own solution fails its rules -- $where");
+                reason:
+                    "the generator's own solution fails its rules -- $where");
 
             // The same rule listed twice reads as two constraints.
             final shown =
@@ -120,7 +133,8 @@ void main() {
             for (int i = 0; i < p.chain.length; i++) {
               if (p.chain[i] != null) {
                 expect(p.chain[i], p.solution[i],
-                    reason: 'prefilled slot $i contradicts the solution -- $where');
+                    reason:
+                        'prefilled slot $i contradicts the solution -- $where');
               }
             }
           }
@@ -129,7 +143,9 @@ void main() {
       expect(generated, greaterThanOrEqualTo(2000));
     });
 
-    test('a rule set the ion types cannot satisfy is weakened, not shipped broken', () {
+    test(
+        'a rule set the ion types cannot satisfy is weakened, not shipped broken',
+        () {
       // Two ion types cannot satisfy "no two the same adjacent" AND "A must
       // not neighbor B" at once: the first forces A,B,A,B..., the second
       // forbids it. The generator used to fall through to that alternation
@@ -139,8 +155,11 @@ void main() {
         for (int rules = 1; rules <= 3; rules++) {
           for (int seed = 0; seed < 20; seed++) {
             final p = IonChainPuzzle.generate(
-              chainLength: length, ionTypeCount: 2,
-              ruleCount: rules, blanksToRemove: 2, seed: seed,
+              chainLength: length,
+              ionTypeCount: 2,
+              ruleCount: rules,
+              blanksToRemove: 2,
+              seed: seed,
             );
             final where = 'len=$length rules=$rules seed=$seed';
             expect(IonChainPuzzle.validateChain(p.solution, p.rules), isTrue,
@@ -159,12 +178,19 @@ void main() {
       // Without this, a soak failure cannot be reproduced from its seed.
       for (int seed = 0; seed < 20; seed++) {
         final a = IonChainPuzzle.generate(
-            chainLength: 7, ionTypeCount: 3, ruleCount: 2,
-            blanksToRemove: 3, seed: seed);
+            chainLength: 7,
+            ionTypeCount: 3,
+            ruleCount: 2,
+            blanksToRemove: 3,
+            seed: seed);
         final b = IonChainPuzzle.generate(
-            chainLength: 7, ionTypeCount: 3, ruleCount: 2,
-            blanksToRemove: 3, seed: seed);
-        expect(a.solution, b.solution, reason: 'seed $seed is not reproducible');
+            chainLength: 7,
+            ionTypeCount: 3,
+            ruleCount: 2,
+            blanksToRemove: 3,
+            seed: seed);
+        expect(a.solution, b.solution,
+            reason: 'seed $seed is not reproducible');
         expect(a.chain, b.chain, reason: 'seed $seed is not reproducible');
       }
     });
@@ -186,7 +212,8 @@ void main() {
               expect(p.solutionTiles.length, rows * cols,
                   reason: 'wrong tile count — $where');
               expect(p.playerTiles.length, rows * cols,
-                  reason: 'player tile count differs from the solution — $where');
+                  reason:
+                      'player tile count differs from the solution — $where');
 
               // The player's tiles are the solution's, shuffled and turned,
               // so the identity placement is NOT the answer -- assuming it was
@@ -206,7 +233,8 @@ void main() {
                   if (used[j]) continue;
                   for (int rot = 0; rot < 4 && !found; rot++) {
                     final cand = p.playerTiles[j].copyWith(rotation: rot);
-                    if (List.generate(4, cand.getEdge).toString() == want.toString()) {
+                    if (List.generate(4, cand.getEdge).toString() ==
+                        want.toString()) {
                       placement[pos] = j;
                       rotations[j] = rot;
                       used[j] = true;

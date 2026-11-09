@@ -276,9 +276,9 @@ mixin PuzzleSessionMixin<T extends StatefulWidget> on State<T> {
       PuzzleSessionStore.instance
           .saveEncoded(sessionGameKey, sessionGrade, sessionLevel, encoded)
           .catchError((Object e) {
-            _lastSaved = null;
-            if (kDebugMode) debugPrint('Could not save puzzle: $e');
-          }),
+        _lastSaved = null;
+        if (kDebugMode) debugPrint('Could not save puzzle: $e');
+      }),
     );
   }
 

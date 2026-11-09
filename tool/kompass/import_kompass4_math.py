@@ -89,7 +89,9 @@ def convert_part(part, rubric):
                   else float(a.replace(",", ".")) for a in part["answers"]]
         values = [int(v) if v == int(v) else v for v in values]
         out.update(kind="number", unit=part.get("unit") or part.get("label", ""),
-                   answer={"type": "number", "value": values[0], "accepted": values[1:]})
+                   answer={"type": "number", "value": values[0], "accepted": values[1:],
+                           # kompass4 rubrics accept unambiguous cent amounts for euro answers.
+                           **({"acceptCents": True} if part.get("unit") == "€" else {})})
     elif kind == "text":
         out.update(kind="text", answer={"type": "text", "values": part["answers"],
                                         "caseSensitive": part.get("caseSensitive", False),

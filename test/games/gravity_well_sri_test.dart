@@ -168,8 +168,7 @@ void main() {
           final balanced = (unknownWeight + leftKnown == rightKnown) ||
               (unknownWeight + rightKnown == leftKnown);
           expect(balanced, isTrue,
-              reason:
-                  'Equation should balance: unknown=$unknownWeight, '
+              reason: 'Equation should balance: unknown=$unknownWeight, '
                   'leftKnown=$leftKnown, rightKnown=$rightKnown');
         }
       }

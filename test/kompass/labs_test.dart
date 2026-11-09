@@ -382,6 +382,27 @@ void main() {
         [1, 90, 0, 0]);
   });
 
+  testWidgets('a draft saved before recipe 2 replays its original round',
+      (tester) async {
+    final legacy = generateKompassLabRound('number_dock', 1, _seed, recipe: 1);
+    expect(legacy.type, 'regroup');
+    expect(legacy.promptDe, contains('${legacy.config['target']}'));
+    final snapshot =
+        _snapshot('number_dock', 1, response: legacy.createResponse())
+          ..['schemaVersion'] = 1;
+    await tester.pumpWidget(const SizedBox.shrink());
+    final prefs = await ProfilePreferences.getInstance();
+    await prefs.setString('kompass_lab_v1_number_dock', jsonEncode(snapshot));
+    await tester.pumpWidget(_app('number_dock'));
+    await tester.pumpAndSettle();
+    final state = _state(tester).exportState();
+    expect(state['recipe'], 1);
+    expect(state['response'], legacy.createResponse());
+    expect(find.byKey(const ValueKey('lab_field_number')), findsNothing);
+    expect(
+        generateKompassLabRound('number_dock', 1, _seed).type, 'regroupWrite');
+  });
+
   testWidgets(
       'real retries keep the first attempt; completion and solved restore are single-shot',
       (tester) async {
