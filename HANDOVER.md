@@ -24,6 +24,11 @@ builders, 4,068 standalone Dart mathematical checks and the frozen legacy audit
 (53 rounds, 281 scoring results). New Flutter widget and browser regressions are
 authored; exact-head remote analysis, native tests, calibration and browser jobs
 remain required. Do not substitute earlier foundation results for this source.
+The initial expanded remote run at `40b98f7` passed 60,400 generation cases,
+864 capture/replay cases and both web builds. It exposed 14 strict-analysis
+findings and six browser failures; the follow-up repairs add statement blocks,
+document standalone audit imports, and correct browser input/score assertions.
+See the expansion record and PR checks for results on the repaired head.
 See [the expansion record](docs/kompass4-reasoning-expansion.md) for contracts and
 validation details. This branch has not been merged or published.
 

@@ -113,14 +113,43 @@ learning gain. Source checkpoints also do not back up device-local learner data.
 | Journey and area mathematics, actual pure Dart generators/scorers | 695 checks across 40 seeds passed. |
 | Chance mathematics, actual pure Dart generators/scorers | 2,412 checks across 64 seeds passed. |
 | Original recipe compatibility | 53 frozen baseline rounds across all 13 original types passed, including 281 raw/restored scoring results. |
-| New Flutter controls, compact layouts, persistence, compatibility review and assistance | Regression tests authored; execution on the expanded source is pending remote CI. |
-| New browser input, correction, reload and first-response assistance | Regression tests authored; WASM/JavaScript execution is pending remote CI. |
-| Full analysis, complete native suite, calibration, web build and browser checks | Required on the exact final pushed head before merge; pending results must not be reported as passes. |
+| New Flutter controls, compact layouts, persistence, compatibility review and assistance | Included in the focused CI gate; consult the exact-head PR result. |
+| New browser input, correction, reload and first-response assistance | Included in both browser engines; initial execution and repairs are recorded below. |
+| Full analysis, complete native suite, calibration, web build and browser checks | Required on the exact final pushed head before merge; consult the current PR result. |
 
 The standalone Dart checks execute mathematical code directly; they are not a
 Flutter widget run. The foundation's earlier 126 focused Flutter passes apply to
 its own source, not this extension. Exact-head workflow status belongs in
 [PR #70 checks](https://github.com/CrispStrobe/NumberNebula/pull/70/checks).
+
+### Initial remote execution and repairs
+
+For PR head `40b98f7` (tested merge `b34cb006a59fda9d9f6516c3c8629484f5ef4146`),
+[pure generation](https://github.com/CrispStrobe/NumberNebula/actions/runs/42632511243)
+passed 60,400 cases across all 48 games with zero reported generation failures.
+The [web workflow](https://github.com/CrispStrobe/NumberNebula/actions/runs/42632511088)
+successfully built WASM and JavaScript and captured/replayed 864 game cases.
+Those successful jobs do not make the overall web workflow a pass: its browser
+job reported 69 passed, six failed and one skipped case.
+
+The six browser failures were three KOMPASS scenarios in both engines. The
+saved-score assertions incorrectly expected a total field in JSON; the serializer
+stores scored parts, so the tests now sum their points. Traces also showed input
+being filled before Flutter attached its text-editing client, and restored text
+visible on screen while an unfocused accessibility proxy reported an empty DOM
+value. Numeric tests now activate the actual editing client, verify every edit
+in the saved draft, and focus restored fields before inspecting their DOM values.
+The first-response, assistance and correction assertions remain intact.
+
+[Strict analysis](https://github.com/CrispStrobe/NumberNebula/actions/runs/42632511063)
+stopped before widget execution on eight missing statement blocks and six
+relative-import lint findings in the standalone audits. The blocks were added;
+the audit entry points document a narrow relative-import exception so they remain
+runnable offline without package initialization. Analyzer settings and required
+CI gates are unchanged. The four standalone audits pass after these repairs.
+
+These results belong to the named earlier head. Follow-up repairs require a new
+exact-head CI and browser result; they are not validated by the earlier build.
 
 The legacy fixture was captured from exact baseline `8971225`. It covers early
 and later indices, fixed seeds, both languages, full round configuration,
