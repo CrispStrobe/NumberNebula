@@ -48,7 +48,7 @@ Future<void> _open(WidgetTester tester, String id, int index,
     FutureOr<void> Function(Map<String, dynamic>)? onCompleted}) async {
   await tester.pumpWidget(const SizedBox.shrink());
   await tester.pumpAndSettle();
-  final prefs = await SharedPreferences.getInstance();
+  final prefs = await ProfilePreferences.getInstance();
   await prefs.setString('kompass_lab_v1_$id',
       jsonEncode(_snapshot(id, index, response: response)));
   await tester.pumpWidget(
@@ -78,9 +78,12 @@ KompassLabScreenState _state(WidgetTester tester) =>
     tester.state<KompassLabScreenState>(find.byType(KompassLabScreen));
 
 void main() {
+  var profileNumber = 0;
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    ProfilePreferences.activeId = 'default';
+    // Each widget test has its own fake-async lifetime. Its final dispose save
+    // must not become a queue dependency for a later test's different player.
+    ProfilePreferences.activeId = 'lab-${profileNumber++}';
   });
   tearDown(() => ProfilePreferences.activeId = 'default');
 
@@ -289,6 +292,95 @@ void main() {
   });
 
   testWidgets(
+      'late completion from a closed lab cannot replace a resumed next round',
+      (tester) async {
+    final firstDelivery = Completer<void>();
+    final durable = <String>{};
+    var deliveries = 0;
+    Future<void> record(Map<String, dynamic> result) async {
+      deliveries++;
+      if (deliveries == 1) await firstDelivery.future;
+      durable.add(result['roundId'] as String);
+    }
+
+    final target = generateKompassLabRound('number_dock', 0, _seed)
+        .config['target'] as int;
+    final digits = [
+      target ~/ 1000,
+      target % 1000 ~/ 100,
+      target % 100 ~/ 10,
+      target % 10
+    ];
+    await _open(tester, 'number_dock', 0,
+        response: {'counts': digits}, onCompleted: record);
+    await _tap(tester, 'lab_check');
+    expect(deliveries, 1);
+    expect(durable, isEmpty);
+    final finishedRound = _state(tester).exportState()['roundId'];
+
+    // The completed round is durable, but its first callback is still waiting.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(_app('number_dock', onCompleted: record));
+    await tester.pumpAndSettle();
+    await _tap(tester, 'lab_retry_record');
+    expect(deliveries, 2);
+    expect(durable, {finishedRound});
+    await _tap(tester, 'lab_next');
+    await _tap(tester, 'lab_place_0_plus');
+    await _tap(tester, 'lab_hint');
+    final nextRound = _state(tester).exportState();
+    expect(nextRound['index'], 1);
+    expect(nextRound['roundId'], isNot(finishedRound));
+
+    firstDelivery.complete();
+    await tester.pumpAndSettle();
+    expect(durable, {finishedRound});
+    final prefs = await ProfilePreferences.getInstance();
+    final saved =
+        jsonDecode(prefs.getString('kompass_lab_v1_number_dock')!) as Map;
+    expect(saved['roundId'], nextRound['roundId']);
+    expect(saved['response'], nextRound['response']);
+    expect(saved['hintsUsed'], 1);
+    expect(saved['firstResponse'], isEmpty);
+    expect(saved['attempts'], 0);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(_app('number_dock', onCompleted: record));
+    await tester.pumpAndSettle();
+    final restored = _state(tester).exportState();
+    expect(restored['roundId'], nextRound['roundId']);
+    expect(restored['response'], nextRound['response']);
+    expect(restored['hintsUsed'], 1);
+    expect(restored['attempts'], 0);
+    expect(deliveries, 2);
+  });
+
+  testWidgets('retained controls cannot edit a disposed lab after reopening',
+      (tester) async {
+    await _open(tester, 'number_dock', 0);
+    final staleInput = tester
+        .widget<IconButton>(find.byKey(const ValueKey('lab_place_0_plus')))
+        .onPressed!;
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(_app('number_dock'));
+    await tester.pumpAndSettle();
+    await _tap(tester, 'lab_place_1_plus');
+    final current = _state(tester).exportState();
+
+    staleInput();
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(_state(tester).exportState()['response'], current['response']);
+    final prefs = await ProfilePreferences.getInstance();
+    final saved =
+        jsonDecode(prefs.getString('kompass_lab_v1_number_dock')!) as Map;
+    expect(saved['response'], current['response']);
+  });
+
+  testWidgets(
       'time lab handles crossing an hour through hour and minute controls',
       (tester) async {
     final events = <Map<String, dynamic>>[];
@@ -388,6 +480,7 @@ void main() {
   testWidgets(
       'active time freezes in background and captured writes stay with the player',
       (tester) async {
+    final originalProfile = ProfilePreferences.activeId;
     await _open(tester, 'number_dock', 0);
     await _tap(tester, 'lab_place_0_plus');
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
@@ -407,7 +500,8 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('player_second_kompass_lab_v1_number_dock'), isNull);
     final saved =
-        jsonDecode(prefs.getString('kompass_lab_v1_number_dock')!) as Map;
+        jsonDecode(prefs.getString(
+            'player_${originalProfile}_kompass_lab_v1_number_dock')!) as Map;
     expect((saved['response'] as Map)['counts'], [1, 0, 0, 0]);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
   });

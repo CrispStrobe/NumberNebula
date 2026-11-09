@@ -29,8 +29,12 @@ class KompassLabScreen extends StatefulWidget {
 
 class KompassLabScreenState extends State<KompassLabScreen>
     with WidgetsBindingObserver {
+  // Reads and writes share a queue across routes. Reopening a lab must observe
+  // the previous route's final snapshot before it can edit the same player data.
+  static final Map<(String, String), Future<void>> _storageOperations = {};
+  static final Map<(String, String), Object> _storageOwners = {};
+  final Object _storageOwner = Object();
   ProfilePreferences? _preferences;
-  Future<void> _writes = Future<void>.value();
   final Stopwatch _clock = Stopwatch();
   int _storedMillis = 0, _seed = 0, _index = 0, _hintsUsed = 0, _attempts = 0;
   int? _firstPoints;
@@ -45,9 +49,17 @@ class KompassLabScreenState extends State<KompassLabScreen>
   String get _storageKey => 'kompass_lab_v1_${widget.labId}';
   String get _roundId => '$_sessionId:$_index';
   int get _activeMillis => _storedMillis + _clock.elapsedMilliseconds;
+  bool get _ownsStorage {
+    final prefs = _preferences;
+    return prefs != null &&
+        identical(_storageOwners[(prefs.profileId, _storageKey)], _storageOwner);
+  }
+
   bool get _editable =>
+      mounted &&
       _loaded &&
       !_completed &&
+      _ownsStorage &&
       _preferences?.profileId == ProfilePreferences.activeId;
   bool get _german => widget.german;
   String _t(String de, String en) => _german ? de : en;
@@ -80,6 +92,7 @@ class KompassLabScreenState extends State<KompassLabScreen>
         !_completed &&
         _foreground &&
         _visible &&
+        _ownsStorage &&
         _preferences?.profileId == ProfilePreferences.activeId) {
       _clock.start();
     } else {
@@ -95,8 +108,19 @@ class KompassLabScreenState extends State<KompassLabScreen>
     // getInstance captures the active profile before its first await.
     final captured = ProfilePreferences.getInstance();
     final prefs = await captured;
-    if (!mounted) return;
-    _preferences = prefs;
+    await _enqueueStorage<void>((prefs.profileId, _storageKey), () {
+      if (!mounted) return;
+      _preferences = prefs;
+      _storageOwners[(prefs.profileId, _storageKey)] = _storageOwner;
+      _restore(prefs);
+    });
+    if (!mounted || !_ownsStorage) return;
+    setState(() => _loaded = true);
+    _syncClock();
+    await _save();
+  }
+
+  void _restore(ProfilePreferences prefs) {
     final now = DateTime.now().microsecondsSinceEpoch;
     _seed = now % 2147483647;
     _sessionId = '${widget.labId}:$now';
@@ -137,9 +161,19 @@ class KompassLabScreenState extends State<KompassLabScreen>
     _round = generateKompassLabRound(widget.labId, _index, _seed);
     _response = _round!.normalizeResponse(_response);
     if (_attempts > 0) _feedback = _round!.check(_response);
-    setState(() => _loaded = true);
-    _syncClock();
-    await _save();
+  }
+
+  static Future<T> _enqueueStorage<T>(
+    (String, String) scope,
+    FutureOr<T> Function() action,
+  ) {
+    final previous = _storageOperations[scope] ?? Future<void>.value();
+    final operation = previous.then((_) => action());
+    _storageOperations[scope] = operation.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace __) {},
+    );
+    return operation;
   }
 
   /// JSON-compatible snapshot for support, export and deterministic replay.
@@ -164,18 +198,24 @@ class KompassLabScreenState extends State<KompassLabScreen>
 
   Future<void> _save() {
     final prefs = _preferences;
-    if (!_loaded || prefs == null || _round == null) {
+    if (!_loaded || prefs == null || _round == null || !_ownsStorage) {
       return Future<void>.value();
     }
     final payload = jsonEncode(exportState());
     final key = _storageKey;
-    _writes = _writes.then((_) async {
+    final scope = (prefs.profileId, key);
+    return _enqueueStorage<void>(scope, () async {
+      // A completion callback may return after a new route resumed this lab.
+      // It still may finish its idempotent course record, but cannot replace
+      // the new route's draft, round index or immutable first response.
+      if (!identical(_storageOwners[scope], _storageOwner)) return;
       final saved = await prefs.setString(key, payload);
-      if (mounted && _saveFailed == saved) setState(() => _saveFailed = !saved);
+      if (mounted && _ownsStorage && _saveFailed == saved) {
+        setState(() => _saveFailed = !saved);
+      }
     }).catchError((Object _, StackTrace __) {
-      if (mounted) setState(() => _saveFailed = true);
+      if (mounted && _ownsStorage) setState(() => _saveFailed = true);
     });
-    return _writes;
   }
 
   void _edit(String field, Object value) {
@@ -214,7 +254,9 @@ class KompassLabScreenState extends State<KompassLabScreen>
   }
 
   Future<void> _deliverCompletion() async {
-    if (!_completed ||
+    if (!mounted ||
+        !_ownsStorage ||
+        !_completed ||
         _reported ||
         _recording ||
         _preferences?.profileId != ProfilePreferences.activeId) {
@@ -227,7 +269,9 @@ class KompassLabScreenState extends State<KompassLabScreen>
     // Persist a completed, pending round before awaiting the course store.
     // A failed store write remains retryable after leaving and reopening.
     await _save();
-    if (!mounted || _preferences?.profileId != ProfilePreferences.activeId) {
+    if (!mounted ||
+        !_ownsStorage ||
+        _preferences?.profileId != ProfilePreferences.activeId) {
       _recording = false;
       return;
     }
@@ -250,6 +294,7 @@ class KompassLabScreenState extends State<KompassLabScreen>
     };
     try {
       await widget.onCompleted?.call(Map<String, dynamic>.unmodifiable(result));
+      if (!_ownsStorage) return;
       _reported = true;
       await _save();
     } catch (_) {
@@ -263,7 +308,9 @@ class KompassLabScreenState extends State<KompassLabScreen>
   }
 
   void _next() {
-    if (!_loaded ||
+    if (!mounted ||
+        !_ownsStorage ||
+        !_loaded ||
         !_completed ||
         !_reported ||
         _recording ||
