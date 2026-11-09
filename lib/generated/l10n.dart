@@ -8086,6 +8086,48 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Keep essential gameplay movement; reduce decorative motion and flashes.'**
   String get reduceMotionDesc;
+
+  /// No description provided for @kompassGridInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the missing cells. Filled cells are given. Tab and Enter work too.'**
+  String get kompassGridInstructions;
+
+  /// No description provided for @kompassBuildingPlanTopView.
+  ///
+  /// In en, this message translates to:
+  /// **'Building plan · top view'**
+  String get kompassBuildingPlanTopView;
+
+  /// No description provided for @kompassFigureBack.
+  ///
+  /// In en, this message translates to:
+  /// **'back'**
+  String get kompassFigureBack;
+
+  /// No description provided for @kompassFigureFront.
+  ///
+  /// In en, this message translates to:
+  /// **'front'**
+  String get kompassFigureFront;
+
+  /// No description provided for @kompassFigureUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Figure unavailable.'**
+  String get kompassFigureUnavailable;
+
+  /// No description provided for @kompassDescribeFigure.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe this figure'**
+  String get kompassDescribeFigure;
+
+  /// No description provided for @kompassRehearsalStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get kompassRehearsalStart;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

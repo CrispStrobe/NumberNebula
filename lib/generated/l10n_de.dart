@@ -4791,4 +4791,26 @@ class SDe extends S {
   @override
   String get reduceMotionDesc =>
       'Spielbewegungen bleiben erhalten; dekorative Bewegungen und Blitze werden reduziert.';
+
+  @override
+  String get kompassGridInstructions =>
+      'Tippe die fehlenden Felder an. Gefüllte Felder sind vorgegeben. Mit Tab und Eingabe geht es auch.';
+
+  @override
+  String get kompassBuildingPlanTopView => 'Bauplan · Ansicht von oben';
+
+  @override
+  String get kompassFigureBack => 'hinten';
+
+  @override
+  String get kompassFigureFront => 'vorne';
+
+  @override
+  String get kompassFigureUnavailable => 'Abbildung nicht verfügbar.';
+
+  @override
+  String get kompassDescribeFigure => 'Abbildung beschreiben';
+
+  @override
+  String get kompassRehearsalStart => 'Start';
 }

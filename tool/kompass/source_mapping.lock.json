@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/CrispStrobe/kompass4",
+  "exportCommit": "f57ddddb17db338e7f7f94b3463d62b6c8091ce3",
+  "exportPath": "data/numbernebula_math_mapping_v1.json",
+  "sha256": "709e5e805ce8e392f54c6b85ce5ef84c54810dd76861ccbfc8e42324dc6552ea",
+  "matrixCommit": "9a0b25a6b0706b7c7944836e00f163bcbfd46676",
+  "matrixSha256": "ebb11af8ce6cc8b06aec9a4ad738186090884f57ad8a78406412b2323709e2f5"
+}

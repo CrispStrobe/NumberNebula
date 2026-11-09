@@ -1,7 +1,83 @@
 # NumberNebula: current state and agent handover
 
-Updated 2026-11-05. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
+Updated 2026-11-09. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
+
+## Active KOMPASS integration: PR #71 (2026-11-09)
+
+Continue on [`integrate/kompass4-all`](https://github.com/CrispStrobe/NumberNebula/tree/integrate/kompass4-all),
+in [draft PR #71](https://github.com/CrispStrobe/NumberNebula/pull/71). It combines
+the foundation and harder labs from #69, the reasoning expansion from #70, and
+the six original kompass4 practice papers. PRs #69 and #70 are earlier component
+branches; do not treat their older heads as the active integrated application.
+
+App **1.6.3+69** contains the main **144-task / 298-part bilingual bank** plus
+**120 original German paper tasks / 249 parts / 240 points**, grouped into six
+20-task papers. The combined loader version is **2.1.0+k4.1.0.0**. The original
+papers use their own selection and preserve `contentUse: original`; they do not
+enter the main practice/check/rehearsal pools or become verified independent
+course evidence. Their digital answer mappings remain drafts pending teacher
+review. The eight labs retain saved recipe-1 rounds and use the harder recipe 2
+for new rounds. The 48 free-play games retain their existing rules.
+
+At integrated head `2546d4245e2594662340d1c02a4473bac480ca3c`,
+[CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/42671817079)
+passed strict analysis, **187 focused KOMPASS cases** and the **2,247-case full
+native suite**, with no reported skips/failures in the successful attempt.
+The focused tests are included in the full count. CI was attempt 2;
+[pure calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/42671816877)
+was attempt 3 and passed **60,400 generation cases across 48 games**. The
+[web workflow](https://github.com/CrispStrobe/NumberNebula/actions/runs/42671817293)
+built WASM/JavaScript and completed capture/replay; live browser tests were still
+queued when checked. Later commits need their own required checks.
+
+The follow-up enforces declared manual-credit steps in original-paper rubrics,
+including the review controls and scorer. Existing saved reviews remain intact
+until explicitly changed; correcting one part preserves another part's prior
+review. Course rubrics without declared steps keep their existing behavior.
+CI now checks reproducibility of the original-paper import and its figure set.
+The follow-up browser regression verifies that the independent-check answer
+actually reaches the saved draft and immutable first response. Earlier fixes
+for saved score parts, text editing and restored fields are already integrated.
+Use PR #71 checks for the latest head. This integration has not been merged or
+published.
+
+## Earlier KOMPASS reasoning expansion (2026-11-09)
+
+The owner requested more suitable minigames and content after reviewing the
+latest kompass4 mathematics bank. The integrated expansion is checkpointed on
+[`codex/kompass4-reasoning-expansion-20261109`](https://github.com/CrispStrobe/NumberNebula/tree/codex/kompass4-reasoning-expansion-20261109),
+in [draft PR #70](https://github.com/CrispStrobe/NumberNebula/pull/70), based on
+the pathway's `8971225`. It includes PR #69's unmerged foundation and targets
+main so the existing validation workflows run.
+
+App **1.6.0+66**, content **2.1.0**: eight labs / 22 activity types, 144 bilingual
+tasks / 298 scored parts, 72 practice / 36 check / 36 rehearsal tasks. The four
+added labs cover reasoning and complete combinations, journeys, area/perimeter
+construction and chance counterexamples. All 128 older tasks are unchanged;
+the original lab recipes and 48 free-play games remain stable. Compatibility
+gates allow historical sessions/reviews only for explicitly verified tasks.
+
+The expansion passes 83 Python content/print/compatibility cases, reproducible
+builders, 4,068 standalone Dart mathematical checks and the frozen legacy audit
+(53 rounds, 281 scoring results). New Flutter widget and browser regressions are
+authored; exact-head remote analysis, native tests, calibration and browser jobs
+remain required. Do not substitute earlier foundation results for this source.
+See [the expansion record](docs/kompass4-reasoning-expansion.md) for contracts and
+validation details. This branch has not been merged or published.
+
+## KOMPASS foundation branch (2026-11-08)
+
+The owner requested the complete optional KOMPASS 4 mathematics pathway, including
+new minigames, with incremental remote checkpoints. Work is on
+[`codex/kompass4-learning-path`](https://github.com/CrispStrobe/NumberNebula/tree/codex/kompass4-learning-path),
+version **1.6.1+67** (resumed 2026-11-09). The implementation covers all 32 project competency IDs,
+128 original bilingual tasks, four interactive labs, independent checks, a
+resumable 45-minute rehearsal, local learning evidence and printable booklets.
+See [implementation and validation](docs/kompass4-implementation.md),
+[complete coverage](docs/kompass4-coverage.md), and the branch's PR checks for the
+exact integrated source. Main and store publication remain at the verified
+versions described below until this branch is reviewed and merged.
 
 ## Current state (2026-10-28)
 

@@ -1,0 +1,557 @@
+/// Versioned, immutable mathematics content. This file has no Flutter imports.
+const kompassDomains = ['numbers', 'geometry', 'measurement', 'data'];
+
+/// Accepts localized maps as well as plain strings in optional authoring fields.
+String kompassText(dynamic value, bool german) {
+  if (value is String) return value;
+  if (value is Map) {
+    final preferred = value[german ? 'de' : 'en'];
+    final fallback = value[german ? 'en' : 'de'];
+    return (preferred ?? fallback ?? '').toString();
+  }
+  return '';
+}
+
+/// Snapshots JSON data so later UI edits cannot change saved first answers.
+dynamic kompassFreezeJson(dynamic value) {
+  if (value is Map) {
+    return Map<String, dynamic>.unmodifiable(value.map(
+        (key, child) => MapEntry(key.toString(), kompassFreezeJson(child))));
+  }
+  if (value is List) {
+    return List<dynamic>.unmodifiable(value.map(kompassFreezeJson));
+  }
+  if (value == null || value is String || value is bool || value is num) {
+    if (value is num && !value.isFinite) {
+      throw const FormatException('Non-finite JSON number.');
+    }
+    return value;
+  }
+  throw FormatException('Unsupported JSON value: ${value.runtimeType}.');
+}
+
+Map<String, dynamic> kompassMap(dynamic value, [String field = 'object']) {
+  if (value is! Map) throw FormatException('Expected an object for $field.');
+  return Map<String, dynamic>.from(value);
+}
+
+Map<String, dynamic> _localized(dynamic value, String field) {
+  final map = kompassMap(value, field);
+  if (map['de'] is! String || map['en'] is! String) {
+    throw FormatException('$field requires German and English text.');
+  }
+  return kompassFreezeJson(map) as Map<String, dynamic>;
+}
+
+String _requiredString(Map<String, dynamic> map, String field) {
+  final value = map[field];
+  if (value is! String || value.trim().isEmpty) {
+    throw FormatException('Missing $field.');
+  }
+  return value;
+}
+
+List<String> _strings(dynamic value, String field) {
+  if (value is! List || value.any((v) => v is! String)) {
+    throw FormatException('$field must be a list of strings.');
+  }
+  return List<String>.unmodifiable(value.cast<String>());
+}
+
+Map<String, dynamic>? _figure(dynamic value) {
+  if (value == null) return null;
+  final map = kompassMap(value, 'figure');
+  _requiredString(map, 'kind');
+  kompassMap(map['data'], 'figure.data');
+  _localized(map['alt'], 'figure.alt');
+  return kompassFreezeJson(map) as Map<String, dynamic>;
+}
+
+class KompassCompetency {
+  final String id;
+  final String domain;
+  final Map<String, dynamic> title;
+  final Map<String, dynamic> goal;
+  final String evidence;
+  final String curriculumUrl;
+  final List<String> gameKeys;
+  final Map<String, dynamic> _json;
+
+  KompassCompetency._(this.id, this.domain, this.title, this.goal,
+      this.evidence, this.curriculumUrl, this.gameKeys, this._json);
+
+  factory KompassCompetency.fromJson(Map<String, dynamic> json) {
+    final domain = _requiredString(json, 'domain');
+    if (!kompassDomains.contains(domain)) {
+      throw FormatException('Unknown competency domain: $domain.');
+    }
+    final evidence = _requiredString(json, 'evidence');
+    if (!['published2025', 'curriculum'].contains(evidence)) {
+      throw FormatException('Unknown evidence type: $evidence.');
+    }
+    return KompassCompetency._(
+      _requiredString(json, 'id'),
+      domain,
+      _localized(json['title'], 'title'),
+      _localized(json['goal'], 'goal'),
+      evidence,
+      _requiredString(json, 'curriculumUrl'),
+      _strings(json['gameKeys'] ?? [], 'gameKeys'),
+      kompassFreezeJson(json) as Map<String, dynamic>,
+    );
+  }
+
+  Map<String, dynamic> toJson() => _json;
+}
+
+class KompassPart {
+  final String id;
+  final String kind;
+  final Map<String, dynamic> prompt;
+  final List<String> competencyIds;
+  final double maxPoints;
+  final Map<String, dynamic> answer;
+  final String unit;
+  final List<Map<String, dynamic>> options;
+  final Map<String, dynamic>? figure;
+  final List<Map<String, dynamic>> rubric;
+  final String? carryFrom;
+  final double? carryOffset;
+  final List<Map<String, dynamic>> errors;
+  final Map<String, dynamic> _json;
+
+  KompassPart._({
+    required this.id,
+    required this.kind,
+    required this.prompt,
+    required this.competencyIds,
+    required this.maxPoints,
+    required this.answer,
+    required this.unit,
+    required this.options,
+    required this.figure,
+    required this.rubric,
+    required this.carryFrom,
+    required this.carryOffset,
+    required this.errors,
+    required Map<String, dynamic> json,
+  }) : _json = json;
+
+  bool get isManual => answer['type'] == 'manual';
+
+  /// Manual parts, and typed answers whose other wordings go to rubric review.
+  bool get mayNeedReview =>
+      isManual ||
+      (answer['type'] == 'text' && answer['reviewOnMismatch'] == true);
+
+  /// Explicit rubric steps take precedence over the course's half-point UI.
+  List<double> get reviewPointOptions {
+    final declared = answer['creditSteps'];
+    if (declared is List) {
+      final points = declared.map((value) => (value as num).toDouble()).toList()
+        ..sort();
+      return List.unmodifiable(points);
+    }
+    return List.unmodifiable([
+      for (double points = 0; points <= maxPoints; points += .5) points,
+    ]);
+  }
+
+  /// Parts without explicit steps retain their existing finite-range contract.
+  bool acceptsManualPoints(double points) {
+    if (!points.isFinite || points < 0 || points > maxPoints) return false;
+    final declared = answer['creditSteps'];
+    return declared is! List ||
+        declared.any((value) => (value as num).toDouble() == points);
+  }
+
+  factory KompassPart.fromJson(Map<String, dynamic> json) {
+    final kind = _requiredString(json, 'kind');
+    if (!['number', 'choice', 'multiChoice', 'text', 'cells', 'order']
+        .contains(kind)) {
+      throw FormatException('Unknown response kind: $kind.');
+    }
+    final answer = kompassMap(json['answer'], 'answer');
+    final type = answer['type'];
+    if (!['number', 'choice', 'set', 'sequence', 'manual', 'text']
+        .contains(type)) {
+      throw FormatException('Unknown answer type: $type.');
+    }
+    if (type == 'number' &&
+        (answer['value'] is! num || !(answer['value'] as num).isFinite)) {
+      throw const FormatException('Numeric answers require a finite value.');
+    }
+    if (type == 'choice' && answer['value'] is! String) {
+      throw const FormatException('Choice answers require an option ID.');
+    }
+    if (type == 'set' || type == 'sequence') {
+      _strings(answer['values'], 'answer.values');
+    }
+    if (type == 'manual') _localized(answer['criteria'], 'answer.criteria');
+    if (type == 'text') {
+      final values = _strings(answer['values'], 'answer.values');
+      if (values.isEmpty || values.any((v) => v.trim().isEmpty)) {
+        throw const FormatException('Text answers need accepted values.');
+      }
+      if (answer['reviewOnMismatch'] == true) {
+        _localized(answer['criteria'], 'answer.criteria');
+      }
+    }
+    if (answer['tolerance'] != null &&
+        (answer['tolerance'] is! num ||
+            !(answer['tolerance'] as num).isFinite ||
+            (answer['tolerance'] as num) < 0)) {
+      throw const FormatException('Tolerance must be finite and nonnegative.');
+    }
+    final points = json['maxPoints'];
+    if (points is! num || !points.isFinite || points <= 0) {
+      throw const FormatException('Every part needs positive finite points.');
+    }
+    if (answer.containsKey('creditSteps')) {
+      final steps = answer['creditSteps'];
+      if (steps is! List ||
+          steps.isEmpty ||
+          steps.any((step) =>
+              step is! num || !step.isFinite || step < 0 || step > points)) {
+        throw const FormatException(
+            'Review steps must be finite values within the part maximum.');
+      }
+      final values = steps.map((step) => (step as num).toDouble()).toSet();
+      if (values.length != steps.length ||
+          !values.contains(0) ||
+          !values.contains(points.toDouble())) {
+        throw const FormatException(
+            'Review steps must be distinct and include zero and full points.');
+      }
+    }
+    final skills = _strings(json['competencyIds'], 'competencyIds');
+    if (skills.isEmpty || skills.toSet().length != skills.length) {
+      throw const FormatException('Each part needs distinct competency IDs.');
+    }
+    final options = <Map<String, dynamic>>[];
+    final optionIds = <String>{};
+    for (final item in json['options'] as List? ?? const []) {
+      final option = kompassMap(item, 'option');
+      final id = _requiredString(option, 'id');
+      if (!optionIds.add(id)) {
+        throw FormatException('Duplicate option ID: $id.');
+      }
+      _localized(option['label'], 'option.label');
+      options.add(kompassFreezeJson(option) as Map<String, dynamic>);
+    }
+    if (kind == 'choice' &&
+        (options.isEmpty || !optionIds.contains(answer['value']))) {
+      throw const FormatException(
+          'Choice answer must name a displayed option.');
+    }
+    final carryFrom = json['carryFrom'] as String?;
+    final offset = json['carryOffset'];
+    if (carryFrom != null &&
+        (type != 'number' || offset is! num || !offset.isFinite)) {
+      throw const FormatException(
+          'Carry rules need a numeric answer and offset.');
+    }
+    final errors = <Map<String, dynamic>>[];
+    for (final item in json['errors'] as List? ?? const []) {
+      final error = kompassMap(item, 'error');
+      _requiredString(error, 'code');
+      _localized(error['feedback'], 'error.feedback');
+      errors.add(kompassFreezeJson(error) as Map<String, dynamic>);
+    }
+    return KompassPart._(
+      id: _requiredString(json, 'id'),
+      kind: kind,
+      prompt: _localized(json['prompt'], 'part.prompt'),
+      competencyIds: skills,
+      maxPoints: points.toDouble(),
+      answer: kompassFreezeJson(answer) as Map<String, dynamic>,
+      unit: json['unit'] as String? ?? '',
+      options: List.unmodifiable(options),
+      figure: _figure(json['figure']),
+      rubric: List.unmodifiable([
+        for (final row in json['rubric'] as List? ?? const [])
+          _localized(row, 'rubric'),
+      ]),
+      carryFrom: carryFrom,
+      carryOffset: (offset as num?)?.toDouble(),
+      errors: List.unmodifiable(errors),
+      json: kompassFreezeJson(json) as Map<String, dynamic>,
+    );
+  }
+
+  Map<String, dynamic> toJson() => _json;
+}
+
+class KompassTask {
+  final String id;
+  final String familyId;
+  final String domain;
+  final Map<String, dynamic> title;
+  final Map<String, dynamic> prompt;
+  final int level;
+  final String use;
+  final List<KompassPart> parts;
+  final List<Map<String, dynamic>> hints;
+  final Map<String, dynamic> solution;
+  final Map<String, dynamic> source;
+  final Map<String, dynamic>? figure;
+  final int estimatedSeconds;
+  final Map<String, dynamic> _json;
+
+  KompassTask._({
+    required this.id,
+    required this.familyId,
+    required this.domain,
+    required this.title,
+    required this.prompt,
+    required this.level,
+    required this.use,
+    required this.parts,
+    required this.hints,
+    required this.solution,
+    required this.source,
+    required this.figure,
+    required this.estimatedSeconds,
+    required Map<String, dynamic> json,
+  }) : _json = json;
+
+  double get maxPoints =>
+      parts.fold<double>(0, (total, part) => total + part.maxPoints);
+
+  /// The original paper (e.g. `mathe3`) of a task with use `original`.
+  String? get paperId => _json['paperId'] as String?;
+  Map<String, dynamic>? get solutionFigure => _json['solutionFigure'] == null
+      ? null
+      : kompassMap(_json['solutionFigure'], 'solutionFigure');
+  List<String> get competencyIds =>
+      List.unmodifiable(parts.expand((p) => p.competencyIds).toSet());
+  bool get hasManualParts => parts.any((part) => part.isManual);
+
+  factory KompassTask.fromJson(Map<String, dynamic> json) {
+    final domain = _requiredString(json, 'domain');
+    final use = _requiredString(json, 'use');
+    final level = json['level'];
+    if (!kompassDomains.contains(domain)) {
+      throw FormatException('Unknown task domain: $domain.');
+    }
+    if (!['practice', 'check', 'rehearsal', 'original'].contains(use)) {
+      throw FormatException('Unknown task use: $use.');
+    }
+    if (level is! int || level < 1 || level > 3) {
+      throw const FormatException('Task level must be 1, 2 or 3.');
+    }
+    if (json['parts'] is! List || (json['parts'] as List).isEmpty) {
+      throw const FormatException('A task needs at least one response part.');
+    }
+    final parts = [
+      for (final p in json['parts'] as List)
+        KompassPart.fromJson(kompassMap(p, 'part')),
+    ];
+    final previousParts = <String, KompassPart>{};
+    for (final part in parts) {
+      if (previousParts.containsKey(part.id)) {
+        throw FormatException('Duplicate part ID: ${part.id}.');
+      }
+      if (part.carryFrom != null &&
+          previousParts[part.carryFrom]?.answer['type'] != 'number') {
+        throw const FormatException(
+            'Carry source must be an earlier numeric part.');
+      }
+      previousParts[part.id] = part;
+    }
+    final seconds = json['estimatedSeconds'] ?? 120;
+    if (seconds is! num || !seconds.isFinite || seconds <= 0) {
+      throw const FormatException('Estimated duration must be positive.');
+    }
+    return KompassTask._(
+      id: _requiredString(json, 'id'),
+      familyId: _requiredString(json, 'familyId'),
+      domain: domain,
+      title: _localized(json['title'], 'title'),
+      prompt: _localized(json['prompt'], 'prompt'),
+      level: level,
+      use: use,
+      parts: List.unmodifiable(parts),
+      hints: List.unmodifiable([
+        for (final h in json['hints'] as List? ?? const [])
+          _localized(h, 'hint'),
+      ]),
+      solution: _localized(json['solution'], 'solution'),
+      source: kompassFreezeJson(kompassMap(json['source'], 'source'))
+          as Map<String, dynamic>,
+      figure: _figure(json['figure']),
+      estimatedSeconds: seconds.round(),
+      json: kompassFreezeJson(json) as Map<String, dynamic>,
+    );
+  }
+
+  Map<String, dynamic> toJson() => _json;
+}
+
+class KompassPack {
+  final int schemaVersion;
+  final String id;
+  final String version;
+  final Map<String, dynamic> source;
+  final List<KompassCompetency> competencies;
+  final List<KompassTask> tasks;
+
+  /// Complete original practice papers (kompass4 tests), in print order.
+  final List<KompassPaper> papers;
+  final Map<String, KompassTask> _taskIndex;
+  final Map<String, KompassCompetency> _competencyIndex;
+  final Map<String, Set<String>> _compatibleTaskIds;
+
+  KompassPack._(
+      this.schemaVersion,
+      this.id,
+      this.version,
+      this.source,
+      this.competencies,
+      this.tasks,
+      this.papers,
+      this._taskIndex,
+      this._competencyIndex,
+      this._compatibleTaskIds);
+
+  factory KompassPack.fromJson(Map<String, dynamic> json) {
+    if (json['schemaVersion'] != 2) {
+      throw const FormatException('Unsupported KOMPASS content schema.');
+    }
+    final competencies = [
+      for (final c in json['competencies'] as List)
+        KompassCompetency.fromJson(kompassMap(c)),
+    ];
+    final tasks = [
+      for (final t in json['tasks'] as List)
+        KompassTask.fromJson(kompassMap(t)),
+    ];
+    if (competencies.isEmpty || tasks.isEmpty) {
+      throw const FormatException('A content pack cannot be empty.');
+    }
+    final competencyIndex = {for (final c in competencies) c.id: c};
+    final taskIndex = {for (final t in tasks) t.id: t};
+    if (competencyIndex.length != competencies.length ||
+        taskIndex.length != tasks.length) {
+      throw const FormatException('Content IDs must be unique.');
+    }
+    final familyUses = <String, String>{};
+    for (final task in tasks) {
+      if (task.competencyIds.any((id) => !competencyIndex.containsKey(id))) {
+        throw FormatException('Unknown competency in ${task.id}.');
+      }
+      final previous = familyUses[task.familyId];
+      if (previous != null && previous != task.use) {
+        throw FormatException(
+            'Family ${task.familyId} crosses practice/check sets.');
+      }
+      familyUses[task.familyId] = task.use;
+    }
+    final version = json['version']?.toString();
+    if (version == null || version.isEmpty) {
+      throw const FormatException('A pack requires a version.');
+    }
+    final compatible = <String, Set<String>>{};
+    for (final entry in kompassMap(
+            json['compatibleTaskIds'] ?? const {}, 'compatibleTaskIds')
+        .entries) {
+      final ids = _strings(entry.value, 'compatibleTaskIds.${entry.key}');
+      if (entry.key.isEmpty ||
+          entry.key == version ||
+          ids.toSet().length != ids.length ||
+          ids.any((id) => !taskIndex.containsKey(id))) {
+        throw const FormatException('Invalid historical task compatibility.');
+      }
+      compatible[entry.key] = Set.unmodifiable(ids);
+    }
+    final papers = [
+      for (final p in json['papers'] as List? ?? const [])
+        KompassPaper.fromJson(kompassMap(p, 'paper')),
+    ];
+    for (final paper in papers) {
+      for (final id in paper.taskIds) {
+        if (taskIndex[id]?.paperId != paper.id) {
+          throw FormatException('Paper ${paper.id} lists unknown task $id.');
+        }
+      }
+    }
+    return KompassPack._(
+      2,
+      _requiredString(json, 'id'),
+      version,
+      kompassFreezeJson(kompassMap(json['source'], 'source'))
+          as Map<String, dynamic>,
+      List.unmodifiable(competencies),
+      List.unmodifiable(tasks),
+      List.unmodifiable(papers),
+      Map.unmodifiable(taskIndex),
+      Map.unmodifiable(competencyIndex),
+      Map.unmodifiable(compatible),
+    );
+  }
+
+  KompassTask? taskById(String id) => _taskIndex[id];
+  KompassCompetency? competencyById(String id) => _competencyIndex[id];
+
+  /// The build verifies whole task objects against an immutable prior pack.
+  /// Unknown or changed task versions never inherit a current answer key.
+  bool isTaskCompatible(String taskId, String? savedPackVersion) =>
+      _taskIndex.containsKey(taskId) &&
+      (savedPackVersion == version ||
+          (_compatibleTaskIds[savedPackVersion]?.contains(taskId) ?? false));
+
+  bool isSessionCompatible(String? savedPackVersion, Iterable<String> taskIds) {
+    final ids = taskIds.toList();
+    return ids.isNotEmpty &&
+        ids.toSet().length == ids.length &&
+        ids.every((id) => isTaskCompatible(id, savedPackVersion));
+  }
+}
+
+/// A complete original practice paper. Its tasks keep their print order.
+class KompassPaper {
+  final String id;
+  final String title;
+  final List<String> taskIds;
+  final int totalPoints;
+  final int totalSeconds;
+  final String printUrl;
+  final String solutionsUrl;
+  final List<String> instructions;
+  final Map<String, dynamic> _json;
+
+  KompassPaper._(
+      this.id,
+      this.title,
+      this.taskIds,
+      this.totalPoints,
+      this.totalSeconds,
+      this.printUrl,
+      this.solutionsUrl,
+      this.instructions,
+      this._json);
+
+  factory KompassPaper.fromJson(Map<String, dynamic> json) {
+    final ids = _strings(json['taskIds'], 'paper.taskIds');
+    if (ids.isEmpty || ids.toSet().length != ids.length) {
+      throw const FormatException('A paper needs distinct tasks.');
+    }
+    final points = json['totalPoints'], seconds = json['totalSeconds'];
+    if (points is! int || points <= 0 || seconds is! int || seconds <= 0) {
+      throw const FormatException('A paper needs points and a duration.');
+    }
+    return KompassPaper._(
+      _requiredString(json, 'id'),
+      _requiredString(json, 'title'),
+      ids,
+      points,
+      seconds,
+      _requiredString(json, 'printUrl'),
+      _requiredString(json, 'solutionsUrl'),
+      _strings(json['instructions'] ?? const [], 'paper.instructions'),
+      kompassFreezeJson(json) as Map<String, dynamic>,
+    );
+  }
+
+  Map<String, dynamic> toJson() => _json;
+}

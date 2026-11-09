@@ -1,0 +1,993 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>NumberNebula · Übungssammlung</title><style>
+@page { size: A4; margin: 16mm 17mm 17mm; }
+* { box-sizing: border-box; }
+body { max-width: 820px; margin: 0 auto; padding: 24px; color: #17242e; background: white;
+       font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.4; }
+h1 { font-size: 29px; line-height: 1.15; margin: 10px 0; }
+h2 { font-size: 19px; margin: 0 0 8px; line-height: 1.3; }
+h3 { font-size: 16px; margin: 12px 0 6px; }
+p { margin: 6px 0 10px; }
+.eyebrow { text-transform: uppercase; letter-spacing: .1em; font-size: 11px; font-weight: bold; color: #45616c; }
+.intro { border: 1px solid #c3cdd3; border-left: 4px solid #416c69; padding: 14px 16px; margin: 18px 0; }
+.warning { font-size: 13px; color: #364b57; }
+.name { margin: 22px 0; }
+.toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; padding: 12px 0; margin-bottom: 14px; }
+button, select { font: inherit; background: #eef2f4; border: 1px solid #9dadb8; border-radius: 6px; padding: 8px 12px; }
+.domain-title { font-size: 24px; margin: 30px 0 14px; border-bottom: 2px solid #416c69; padding-bottom: 6px; }
+.task { margin: 0 0 22px; padding: 15px 0 16px; border-bottom: 1px solid #c7d0d7; break-inside: avoid; page-break-inside: avoid; }
+.task h2 span { font-size: 11px; font-weight: normal; color: #546572; margin-left: 8px; white-space: nowrap; }
+.part { margin-top: 12px; }
+.part-prompt { font-weight: 600; }
+.points { font-size: 11px; font-weight: normal; color: #526472; }
+.response { display: flex; align-items: baseline; gap: 9px; margin: 16px 0 5px; }
+.number-line { display: inline-block; width: 160px; border-bottom: 1px solid #4b5b65; height: 20px; }
+.writing-line { height: 27px; border-bottom: 1px solid #9caab4; }
+.choices { list-style: none; margin: 5px 0; padding: 0; }
+.choices li { display: flex; gap: 8px; margin: 6px 0; align-items: baseline; }
+.box { display: inline-block; border: 1px solid #4b5b65; width: 13px; height: 13px; flex: 0 0 13px; }
+.order-box { width: 24px; height: 20px; }
+.diagram { display: block; width: 100%; height: auto; max-width: 100%; max-height: 185px; margin: 10px auto; }
+.data-table, .score-table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+th, td { border: 1px solid #7d909d; padding: 7px 9px; text-align: left; vertical-align: top; }
+th { background: #eef2f4; font-weight: 600; }
+.solution { padding: 9px 12px; background: #f0f5f2; border-left: 3px solid #416c69; }
+.rubric { margin: 6px 0 10px; padding-left: 22px; font-size: 13px; }
+.source { font-size: 11px; color: #53646f; overflow-wrap: anywhere; }
+.review-sheet { break-before: page; page-break-before: always; }
+footer { margin-top: 24px; border-top: 1px solid #c7d0d7; padding-top: 8px; font-size: 11px; color: #53646f; }
+[hidden] { display: none !important; }
+@media print {
+  body { padding: 0; max-width: none; font-size: 10.5pt; }
+  h1 { font-size: 22pt; } h2 { font-size: 13pt; }
+  .screen-only { display: none !important; }
+  .intro { padding: 9px 12px; }
+  .task { margin-bottom: 12px; padding-top: 10px; }
+  .domain-title { break-before: page; page-break-before: always; font-size: 17pt; }
+  .diagram { max-height: 44mm; }
+  .data-table, .score-table { font-size: 9.5pt; }
+  th, td { padding: 5px 7px; }
+  a { color: inherit; text-decoration: none; }
+  .solution { background: white; }
+}
+</style></head><body>
+<div class="toolbar screen-only"><button type="button" onclick="window.print()">Drucken / als PDF speichern</button><label for="domain-filter">Bereich:</label><select id="domain-filter"><option value="all">Alle Bereiche</option><option value="numbers">Zahlen und Operationen</option><option value="geometry">Raum und Form</option><option value="measurement">Größen und Messen</option><option value="data">Daten und Zufall</option></select></div>
+<div class="eyebrow">NumberNebula · KOMPASS 4 Mathematik</div>
+<h1>Übungssammlung</h1><p>72 Aufgaben · Deutsch · 2.1.0</p>
+<div class="intro"><p>Diese eigenständigen Aufgaben gehören zum optionalen KOMPASS-4-Mathematik-Lernpfad. Sie sind kein amtlicher Test. Aus Punkten folgt keine amtliche Niveaustufe oder Schulartempfehlung.</p><p><strong>Wähle einen Bereich oder einige Aufgaben für eine ruhige Übung. Es gibt hier keine Zeitvorgabe. Halte genutzte Hilfe getrennt vom ersten eigenen Versuch fest.</strong></p><p>Material: Papier, Bleistift, Radiergummi und Lineal. Ohne Taschenrechner. Maße an Zeichnungen gelten nach Beschriftung; Bildschirmbilder nicht mit einem echten Lineal messen.</p></div>
+<p class="name">Name: ______________________________  Datum: ______________</p>
+<h2 class="domain-title" data-domain="numbers">Zahlen und Operationen</h2>
+<article class="task" data-task-id="mz01_bundle_exchange" data-domain="numbers">
+<h2>1. Bündel tauschen<span>2 Punkte</span></h2>
+<p>Auf dem Stellenwertbrett liegen 3 Hunderter, 14 Zehner und 5 Einer. Zehn Zehner können gegen einen Hunderter getauscht werden.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 279 104" role="img" aria-label="Stellenwertbrett: 3 Hunderter, 14 Zehner, 5 Einer."><title>Stellenwertbrett: 3 Hunderter, 14 Zehner, 5 Einer.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><rect x="12" y="10" width="85" height="35" fill="#eef1f4" stroke="#27333c" stroke-width="1.2"/><rect x="12" y="45" width="85" height="47" fill="white" stroke="#27333c" stroke-width="1.2"/><text x="54.5" y="34" text-anchor="middle" font-size="18" font-weight="bold">H</text><text x="54.5" y="77" text-anchor="middle" font-size="23" font-weight="normal">3</text><rect x="97" y="10" width="85" height="35" fill="#eef1f4" stroke="#27333c" stroke-width="1.2"/><rect x="97" y="45" width="85" height="47" fill="white" stroke="#27333c" stroke-width="1.2"/><text x="139.5" y="34" text-anchor="middle" font-size="18" font-weight="bold">Z</text><text x="139.5" y="77" text-anchor="middle" font-size="23" font-weight="normal">14</text><rect x="182" y="10" width="85" height="35" fill="#eef1f4" stroke="#27333c" stroke-width="1.2"/><rect x="182" y="45" width="85" height="47" fill="white" stroke="#27333c" stroke-width="1.2"/><text x="224.5" y="34" text-anchor="middle" font-size="18" font-weight="bold">E</text><text x="224.5" y="77" text-anchor="middle" font-size="23" font-weight="normal">5</text></g></svg>
+<section class="part"><p class="part-prompt">a) Welche Zahl ist das? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele einzelne Zehner bleiben nach vollständigem Bündeln übrig? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mz01_digit_card_minimum" data-domain="numbers">
+<h2>2. Vier Ziffernkarten<span>2 Punkte</span></h2>
+<p>Lege aus den Karten 0, 2, 5 und 8 die kleinste vierstellige Zahl. Jede Karte muss genau einmal vorkommen; vorn darf keine 0 stehen.</p>
+<section class="part"><p class="part-prompt">a) Ordne die Karten von links nach rechts. <span class="points">(1 P.)</span></p>
+<p class="points">Reihenfolge mit Zahlen eintragen.</p><ul class="choices">
+<li><span class="box order-box"></span><span>8</span></li>
+<li><span class="box order-box"></span><span>0</span></li>
+<li><span class="box order-box"></span><span>5</span></li>
+<li><span class="box order-box"></span><span>2</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Warum steht die 2 ganz links? <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz02_neighbour_tens" data-domain="numbers">
+<h2>3. Zwischen zwei Zehnern<span>2 Punkte</span></h2>
+<p>Die Zahl 764 liegt zwischen zwei unmittelbar benachbarten vollen Zehnern.</p>
+<section class="part"><p class="part-prompt">a) Nenne den kleineren Nachbarzehner. <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Nenne den größeren Nachbarzehner. <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mz02_four_digit_order" data-domain="numbers">
+<h2>4. Genau auf die Stellen achten<span>2 Punkte</span></h2>
+<p>Ordne die vier Zahlen von klein nach groß.</p>
+<section class="part"><p class="part-prompt">a) Beginne mit der kleinsten Zahl. <span class="points">(1 P.)</span></p>
+<p class="points">Reihenfolge mit Zahlen eintragen.</p><ul class="choices">
+<li><span class="box order-box"></span><span>5800</span></li>
+<li><span class="box order-box"></span><span>5088</span></li>
+<li><span class="box order-box"></span><span>5808</span></li>
+<li><span class="box order-box"></span><span>5080</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Warum ist 5088 kleiner als 5800? <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz03_marked_number_line" data-domain="numbers">
+<h2>5. Ein Punkt auf dem Zahlenstrahl<span>2 Punkte</span></h2>
+<p>Jeder kleine Abstand auf dem Zahlenstrahl ist gleich groß.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 506 91" role="img" aria-label="Zahlenstrahl von 100 bis 500, zehn gleich große Abschnitte; A liegt vier Abschnitte rechts von 100."><title>Zahlenstrahl von 100 bis 500, zehn gleich große Abschnitte; A liegt vier Abschnitte rechts von 100.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><line x1="28" y1="46" x2="478" y2="46" stroke="#27333c" stroke-width="1.8"/><line x1="28" y1="39" x2="28" y2="53" stroke="#27333c" stroke-width="1.4"/><line x1="73" y1="39" x2="73" y2="53" stroke="#27333c" stroke-width="1.4"/><line x1="118" y1="39" x2="118" y2="53" stroke="#27333c" stroke-width="1.4"/><line x1="163" y1="39" x2="163" y2="53" stroke="#27333c" stroke-width="1.4"/><line x1="208" y1="39" x2="208" y2="53" stroke="#27333c" stroke-width="1.4"/><line x1="253" y1="39" x2="253" y2="53" stroke="#27333c" stroke-width="1.4"/><line x1="298" y1="39" x2="298" y2="53" stroke="#27333c" stroke-width="1.4"/><line x1="343" y1="39" x2="343" y2="53" stroke="#27333c" stroke-width="1.4"/><line x1="388" y1="39" x2="388" y2="53" stroke="#27333c" stroke-width="1.4"/><line x1="433" y1="39" x2="433" y2="53" stroke="#27333c" stroke-width="1.4"/><line x1="478" y1="39" x2="478" y2="53" stroke="#27333c" stroke-width="1.4"/><text x="28" y="75" text-anchor="middle" font-size="13" font-weight="normal">100</text><text x="478" y="75" text-anchor="middle" font-size="13" font-weight="normal">500</text><circle cx="208" cy="46" r="3.6"/><text x="208" y="24" text-anchor="middle" font-size="16" font-weight="bold">A</text></g></svg>
+<section class="part"><p class="part-prompt">a) Welche Zahl liegt bei A? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie groß ist der Abstand von A zu 340? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mz03_midpoint_balance" data-domain="numbers">
+<h2>6. Gleich weit entfernt<span>2 Punkte</span></h2>
+<p>Gesucht ist eine Zahl, die genau in der Mitte zwischen 430 und 590 liegt.</p>
+<section class="part"><p class="part-prompt">a) Wie heißt die Zahl in der Mitte? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Zeige, dass beide Abstände gleich sind. <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz04_inverse_wall" data-domain="numbers">
+<h2>7. In einer Mauer rückwärts rechnen<span>2 Punkte</span></h2>
+<p>Jeder Stein ist die Summe der beiden Steine darunter. Unten stehen 170, 230 und eine Lücke; darüber 400 und eine Lücke; oben 980.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 274 130" role="img" aria-label="Zahlenmauer mit den im Text angegebenen Werten und zwei Lücken."><title>Zahlenmauer mit den im Text angegebenen Werten und zwei Lücken.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><rect x="14" y="82" width="82" height="34" fill="white" stroke="#27333c" stroke-width="1.2"/><text x="55" y="105" text-anchor="middle" font-size="16" font-weight="normal">170</text><rect x="96" y="82" width="82" height="34" fill="white" stroke="#27333c" stroke-width="1.2"/><text x="137" y="105" text-anchor="middle" font-size="16" font-weight="normal">230</text><rect x="178" y="82" width="82" height="34" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="55" y="48" width="82" height="34" fill="white" stroke="#27333c" stroke-width="1.2"/><text x="96" y="71" text-anchor="middle" font-size="16" font-weight="normal">400</text><rect x="137" y="48" width="82" height="34" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="96" y="14" width="82" height="34" fill="white" stroke="#27333c" stroke-width="1.2"/><text x="137" y="37" text-anchor="middle" font-size="16" font-weight="normal">980</text></g></svg>
+<section class="part"><p class="part-prompt">a) Welche Zahl gehört in den rechten mittleren Stein? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Welche Zahl gehört unten rechts hin? Nutze dein Ergebnis aus dem mittleren Stein. <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mz04_four_digit_columns" data-domain="numbers">
+<h2>8. Rechnen mit vier Stellen<span>2 Punkte</span></h2>
+<p>Löse die Rechnungen mit einem geeigneten Rechenweg. Stellenweise, halbschriftliche oder schriftliche Wege sind möglich.</p>
+<section class="part"><p class="part-prompt">a) 2648 + 1357 = ? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) 6002 − 2786 = ? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mz05_tens_analogy" data-domain="numbers">
+<h2>9. Einmaleins weiterdenken<span>2 Punkte</span></h2>
+<p>Du weißt: 7 · 8 = 56. Nutze die Beziehung für die neuen Aufgaben.</p>
+<section class="part"><p class="part-prompt">a) 70 · 8 = ? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) 560 : 7 = ? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mz05_split_product" data-domain="numbers">
+<h2>10. Eine Malaufgabe zerlegen<span>2 Punkte</span></h2>
+<p>Eine rechteckige Anordnung hat 24 Plätze pro Reihe und 6 Reihen. Teile jede Reihe in 20 und 4 Plätze.</p>
+<section class="part"><p class="part-prompt">a) Welche Rechnung beschreibt dieselbe Gesamtzahl? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>20 · 6 + 4 · 6</span></li>
+<li><span class="box"></span><span>20 · 6 + 4</span></li>
+<li><span class="box"></span><span>24 + 6</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Plätze gibt es insgesamt? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mz06_equal_trays_model" data-domain="numbers">
+<h2>11. Was beschreibt die Rechnung?<span>2 Punkte</span></h2>
+<p>Auf jedem von 5 Tabletts stehen 6 Becher.</p>
+<section class="part"><p class="part-prompt">a) Welche Rechnung beschreibt die Gesamtzahl der Becher? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>5 + 6</span></li>
+<li><span class="box"></span><span>5 · 6</span></li>
+<li><span class="box"></span><span>6 − 5</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Was bedeuten die 5 und die 6 in dieser Geschichte? <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz06_write_sharing_story" data-domain="numbers">
+<h2>12. Eine Verteilgeschichte erfinden<span>2 Punkte</span></h2>
+<p>Erfinde eine kurze Geschichte zur Rechnung 28 : 4 = 7. Die 28 Dinge sollen gleichmäßig auf 4 Gruppen verteilt werden.</p>
+<section class="part"><p class="part-prompt">a) Schreibe deine Geschichte mit einer passenden Frage und Antwort. <span class="points">(2 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz07_paired_compensation" data-domain="numbers">
+<h2>13. Zwei Änderungen gleichen sich aus<span>2 Punkte</span></h2>
+<p>Mira rechnet 398 + 47 mithilfe von 400 + 45.</p>
+<section class="part"><p class="part-prompt">a) Wie groß ist die Summe? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Warum bleibt die Summe gleich? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Ein Summand wächst um 2, der andere sinkt um 2.</span></li>
+<li><span class="box"></span><span>Beide Summanden wachsen um 2.</span></li>
+<li><span class="box"></span><span>Runden verändert Summen nie.</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mz07_subtraction_compensation" data-domain="numbers">
+<h2>14. Zu viel abgezogen<span>2 Punkte</span></h2>
+<p>Für 804 − 299 rechnet Leo zuerst 804 − 300 = 504.</p>
+<section class="part"><p class="part-prompt">a) Welcher Schritt führt zum richtigen Ergebnis? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>504 + 1</span></li>
+<li><span class="box"></span><span>504 − 1</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Erkläre den Ausgleich. <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz08_constant_step" data-domain="numbers">
+<h2>15. Eine feste Schrittweite<span>2 Punkte</span></h2>
+<p>Die Folge wächst jedes Mal um dieselbe positive ganze Zahl: 57, 64, 71, …</p>
+<section class="part"><p class="part-prompt">a) Wie groß ist die Schrittweite? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Welche Zahl kommt nach 71? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mz08_alternating_machine" data-domain="numbers">
+<h2>16. Zwei Regeln im Wechsel<span>2 Punkte</span></h2>
+<p>Eine Maschine beginnt bei 6. Sie führt abwechselnd +5 und ·2 aus, zuerst +5. So entstehen 6, 11, 22, 27, 54, …</p>
+<section class="part"><p class="part-prompt">a) Welche Zahl folgt direkt auf 54? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Welche Zahl kommt danach? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mz09_compare_operation_orders" data-domain="numbers">
+<h2>17. Welche Reihenfolge ist besser?<span>3 Punkte</span></h2>
+<p>Beginne bei 6. Benutze die Karten +4 und ·3 jeweils genau einmal. Die Karten werden nacheinander auf die aktuelle Zahl angewendet.</p>
+<section class="part"><p class="part-prompt">a) Zuerst +4, dann ·3: Welches Endergebnis entsteht? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Zuerst ·3, dann +4: Welches Endergebnis entsteht? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">c) Warum ist das erste Ergebnis größer? <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz09_maximise_wall_top" data-domain="numbers">
+<h2>18. Die Mauer möglichst hoch machen<span>3 Punkte</span></h2>
+<p>Lege 2, 5 und 9 in die drei unteren Steine einer Additionsmauer. Jede Zahl wird genau einmal benutzt. Jeder obere Stein ist die Summe seiner beiden Nachbarn darunter.</p>
+<section class="part"><p class="part-prompt">a) Welche Zahl gehört unten in die Mitte, damit die oberste Zahl am größten wird? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie groß wird die oberste Zahl dann? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">c) Begründe, warum die mittlere Zahl besonders wichtig ist. <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz10_seats_and_people" data-domain="numbers">
+<h2>19. Reichen die Plätze?<span>2 Punkte</span></h2>
+<p>Für 25 Personen stehen 6 Bänke bereit. Auf jede Bank passen genau 4 Personen.</p>
+<section class="part"><p class="part-prompt">a) Wie viele Sitzplätze gibt es? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele zusätzliche Sitzplätze werden mindestens gebraucht? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mz10_whole_pack_purchase" data-domain="numbers">
+<h2>20. Nur ganze Packungen<span>2 Punkte</span></h2>
+<p>Für 42 Bilder wird je eine Klammer gebraucht. Es sind schon 9 Klammern vorhanden. Neue Klammern werden nur in ganzen Packungen mit jeweils 8 verkauft.</p>
+<section class="part"><p class="part-prompt">a) Wie viele Klammern fehlen? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele ganze Packungen müssen mindestens gekauft werden? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mz11_hundred_rounding_check" data-domain="numbers">
+<h2>21. Mit Hundertern überschlagen<span>2 Punkte</span></h2>
+<p>Überschlage 389 + 214, indem du beide Zahlen auf den nächsten Hunderter rundest.</p>
+<section class="part"><p class="part-prompt">a) Wie lautet dieser Überschlag? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Welches der beiden Ergebnisse passt zur Größenordnung? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>603</span></li>
+<li><span class="box"></span><span>6030</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mz11_near_multiple_estimate" data-domain="numbers">
+<h2>22. Eine große Malaufgabe abschätzen<span>2 Punkte</span></h2>
+<p>Berechne einen Überschlag für 398 · 5. Runde dafür 398 auf den nächsten Hunderter; die 5 bleibt unverändert.</p>
+<section class="part"><p class="part-prompt">a) Wie groß ist der Überschlag? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Liegt das genaue Ergebnis über oder unter dem Überschlag? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Unter dem Überschlag</span></li>
+<li><span class="box"></span><span>Über dem Überschlag</span></li>
+<li><span class="box"></span><span>Genau gleich</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mz12_outfit_table" data-domain="numbers">
+<h2>23. Kombinationen geordnet zählen<span>2 Punkte</span></h2>
+<p>Es gibt zwei Jacken, blau und grün, und drei Schals, rot, gelb und weiß. Jede Jacke kann mit jedem Schal kombiniert werden.</p>
+<section class="part"><p class="part-prompt">a) Wie viele verschiedene Kombinationen gibt es? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Die Liste enthält blau–rot, blau–gelb, blau–weiß, grün–rot und grün–weiß. Was fehlt? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>grün–gelb</span></li>
+<li><span class="box"></span><span>blau–rot</span></li>
+<li><span class="box"></span><span>gelb–weiß</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mz12_two_symbol_codes" data-domain="numbers">
+<h2>24. Kurze Codes vollständig finden<span>2 Punkte</span></h2>
+<p>Ein Code hat genau zwei Stellen. An jeder Stelle darf A oder B stehen. Wiederholung ist erlaubt, und die Reihenfolge zählt.</p>
+<section class="part"><p class="part-prompt">a) Wähle alle erlaubten Codes. <span class="points">(1 P.)</span></p>
+<p class="points">Alle passenden ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>AA</span></li>
+<li><span class="box"></span><span>AB</span></li>
+<li><span class="box"></span><span>BA</span></li>
+<li><span class="box"></span><span>BB</span></li>
+<li><span class="box"></span><span>A</span></li>
+<li><span class="box"></span><span>ABA</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Warum ist diese Liste vollständig? <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz07_zz_division_doubling" data-domain="numbers">
+<h2>25. Eine bekannte Division verdoppeln<span>2 Punkte</span></h2>
+<p>48 Plättchen werden in Gruppen mit jeweils 8 Plättchen gelegt. Das sind 6 Gruppen. Nun sollen 96 Plättchen in genauso große Gruppen gelegt werden.</p>
+<section class="part"><p class="part-prompt">a) Wie viele Gruppen entstehen aus 96 Plättchen? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Welche Begründung passt? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>96 sind zweimal 48. Jede Hälfte bildet 6 Gruppen, zusammen also zweimal 6.</span></li>
+<li><span class="box"></span><span>Es müssen nun 16 Plättchen in jeder Gruppe liegen.</span></li>
+<li><span class="box"></span><span>Zur Zahl der Gruppen müssen immer 8 addiert werden.</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mz08_zz_two_direction_number_grid" data-domain="numbers">
+<h2>26. Zwei Richtungen, zwei Regeln<span>3 Punkte</span></h2>
+<p>In diesem Zahlenfeld gilt nach rechts überall derselbe Additionsschritt. Nach unten gilt ebenfalls überall derselbe Additionsschritt; er darf ein anderer sein. A und B verdecken zwei Zahlen.</p>
+<table class="data-table" aria-label="Zahlenfeld mit drei Spalten. Zeilen: 14, 20, 26; 34, 40, A; 54, B, 66."><thead><tr><th>1</th><th>2</th><th>3</th></tr></thead><tbody><tr><td>14</td><td>20</td><td>26</td></tr><tr><td>34</td><td>40</td><td>A</td></tr><tr><td>54</td><td>B</td><td>66</td></tr></tbody></table>
+<section class="part"><p class="part-prompt">a) Welche Zahl steht unter A? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Welche Zahl steht unter B? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">c) Welche beiden Schritte passen zum ganzen Zahlenfeld? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Nach rechts +6, nach unten +20</span></li>
+<li><span class="box"></span><span>Nach rechts +20, nach unten +6</span></li>
+<li><span class="box"></span><span>Nach rechts +6, nach unten +14</span></li>
+</ul>
+</section>
+</article>
+<h2 class="domain-title" data-domain="geometry">Raum und Form</h2>
+<article class="task" data-task-id="mr01_rectangle_properties" data-domain="geometry">
+<h2>27. Eigenschaften eines Rechtecks<span>2 Punkte</span></h2>
+<p>Die Zeichnung zeigt ein Rechteck mit Seitenlängen 6 cm und 3 cm. Nutze die Eigenschaften, nicht das Messen am Bildschirm.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 155" role="img" aria-label="Viereck mit vier rechten Winkeln, Seitenlängen 6 cm und 3 cm."><title>Viereck mit vier rechten Winkeln, Seitenlängen 6 cm und 3 cm.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><polygon points="20,135 250,135 250,20 20,20" fill="#eef1f4" stroke="#27333c" stroke-width="1.8"/></g></svg>
+<section class="part"><p class="part-prompt">a) Welche Aussagen stimmen? Wähle alle. <span class="points">(1 P.)</span></p>
+<p class="points">Alle passenden ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Es hat vier rechte Winkel.</span></li>
+<li><span class="box"></span><span>Gegenüberliegende Seiten sind gleich lang.</span></li>
+<li><span class="box"></span><span>Alle vier Seiten sind gleich lang.</span></li>
+<li><span class="box"></span><span>Es hat drei Ecken.</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Ecken hat es? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mr01_tilted_square" data-domain="geometry">
+<h2>28. Ein gedrehtes Quadrat<span>2 Punkte</span></h2>
+<p>Das gezeichnete Viereck hat vier gleich lange Seiten und vier rechte Winkel. Es steht schräg auf der Seite. Hier gilt: Ein Quadrat ist auch ein besonderes Rechteck.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 155 155" role="img" aria-label="Schräg dargestelltes Viereck mit vier gleich langen Seiten und vier rechten Winkeln."><title>Schräg dargestelltes Viereck mit vier gleich langen Seiten und vier rechten Winkeln.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><polygon points="20,77.5 77.5,135 135,77.5 77.5,20" fill="#eef1f4" stroke="#27333c" stroke-width="1.8"/></g></svg>
+<section class="part"><p class="part-prompt">a) Welche Namen passen? <span class="points">(1 P.)</span></p>
+<p class="points">Alle passenden ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Quadrat</span></li>
+<li><span class="box"></span><span>Rechteck</span></li>
+<li><span class="box"></span><span>Dreieck</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Ändert die Drehung die Seitenlängen oder Winkel? Erkläre kurz. <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mr02_tile_rectangle_factors" data-domain="geometry">
+<h2>29. Rechtecke aus zwölf Plättchen<span>2 Punkte</span></h2>
+<p>Lege aus genau 12 gleich großen Quadratplättchen ein lückenloses Rechteck. Plättchen dürfen nicht überlappen. Gedrehte Rechtecke zählen als dieselbe Form.</p>
+<section class="part"><p class="part-prompt">a) Welche Seitenpaare verwenden genau alle Plättchen? <span class="points">(1 P.)</span></p>
+<p class="points">Alle passenden ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>1 und 12</span></li>
+<li><span class="box"></span><span>2 und 6</span></li>
+<li><span class="box"></span><span>3 und 4</span></li>
+<li><span class="box"></span><span>2 und 5</span></li>
+<li><span class="box"></span><span>3 und 3</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele verschiedene Rechteckformen gibt es? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mr02_complete_tile_rectangle" data-domain="geometry">
+<h2>30. Lücken ergänzen<span>2 Punkte</span></h2>
+<p>Die belegten Felder sind fest. Ergänze genau zwei Quadratplättchen, damit das ganze 3-mal-4-Rechteck lückenlos gefüllt ist.</p>
+<section class="part"><p class="part-prompt">a) Wähle nur die zwei neu hinzukommenden Felder. <span class="points">(1 P.)</span></p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 162 134" role="img" aria-label="Drei Reihen und vier Spalten. In der mittleren Reihe sind das zweite und dritte Feld leer; alle anderen Felder sind belegt."><title>Drei Reihen und vier Spalten. In der mittleren Reihe sind das zweite und dritte Feld leer; alle anderen Felder sind belegt.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><rect x="25" y="25" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="25" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="25" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="109" y="25" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="53" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="53" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="109" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="81" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="81" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="81" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="109" y="81" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><text x="15" y="43.48" text-anchor="middle" font-size="10" font-weight="normal">1</text><text x="15" y="71.48" text-anchor="middle" font-size="10" font-weight="normal">2</text><text x="15" y="99.48" text-anchor="middle" font-size="10" font-weight="normal">3</text><text x="39" y="17" text-anchor="middle" font-size="10" font-weight="normal">1</text><text x="67" y="17" text-anchor="middle" font-size="10" font-weight="normal">2</text><text x="95" y="17" text-anchor="middle" font-size="10" font-weight="normal">3</text><text x="123" y="17" text-anchor="middle" font-size="10" font-weight="normal">4</text></g></svg>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Plättchen hat das fertige Rechteck? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mr03_same_unit_area_comparison" data-domain="geometry">
+<h2>31. Mit denselben Plättchen vergleichen<span>2 Punkte</span></h2>
+<p>Beide Figuren bestehen aus gleich großen Einheitsquadraten. Es gibt keine Überlappungen.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 117" role="img" aria-label="A belegt in den ersten zwei Reihen jeweils das linke Feld und in der dritten Reihe drei Felder. B belegt zwei Reihen mit je drei Feldern. Alle Quadrate sind gleich groß."><title>A belegt in den ersten zwei Reihen jeweils das linke Feld und in der dritten Reihe drei Felder. B belegt zwei Reihen mit je drei Feldern. Alle Quadrate sind gleich groß.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><text x="52.5" y="16" text-anchor="middle" font-size="15" font-weight="bold">A</text><rect x="18" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="18" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="18" y="76" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="41" y="76" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="64" y="76" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><text x="157.5" y="16" text-anchor="middle" font-size="15" font-weight="bold">B</text><rect x="123" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="146" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="169" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="123" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="146" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="169" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/></g></svg>
+<section class="part"><p class="part-prompt">a) Wie viele Einheitsquadrate bedeckt A? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Welche Figur hat den größeren Flächeninhalt? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>A</span></li>
+<li><span class="box"></span><span>B</span></li>
+<li><span class="box"></span><span>Beide gleich</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mr03_area_after_rearrangement" data-domain="geometry">
+<h2>32. Verschieben ändert die Fläche nicht<span>2 Punkte</span></h2>
+<p>Eine Figur besteht aus 7 gleichen Quadratplättchen. Ein Plättchen wird abgenommen und an einer anderen freien Randstelle angelegt. Kein Plättchen geht verloren, wird zerschnitten oder überdeckt.</p>
+<section class="part"><p class="part-prompt">a) Wie viele Flächeneinheiten bedeckt die neue Figur? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Warum muss der Flächeninhalt gleich bleiben? <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mr04_quarter_turn_grid" data-domain="geometry">
+<h2>33. Eine Vierteldrehung<span>1 Punkte</span></h2>
+<p>Drehe das gesamte 3-mal-3-Gitter um seinen Mittelpunkt eine Vierteldrehung im Uhrzeigersinn. Markiere im leeren Gitter die neue Lage der drei belegten Felder.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 134 134" role="img" aria-label="3-mal-3-Gitter: oben links sowie in der mittleren Reihe links und Mitte sind belegt."><title>3-mal-3-Gitter: oben links sowie in der mittleren Reihe links und Mitte sind belegt.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><rect x="25" y="25" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="53" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/></g></svg>
+<section class="part"><p class="part-prompt">a) Wähle die drei Felder nach der Drehung. <span class="points">(1 P.)</span></p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 134 134" role="img" aria-label="Leeres 3-mal-3-Antwortgitter."><title>Leeres 3-mal-3-Antwortgitter.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><rect x="25" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="53" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="53" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="53" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><text x="15" y="43.48" text-anchor="middle" font-size="10" font-weight="normal">1</text><text x="15" y="71.48" text-anchor="middle" font-size="10" font-weight="normal">2</text><text x="15" y="99.48" text-anchor="middle" font-size="10" font-weight="normal">3</text><text x="39" y="17" text-anchor="middle" font-size="10" font-weight="normal">1</text><text x="67" y="17" text-anchor="middle" font-size="10" font-weight="normal">2</text><text x="95" y="17" text-anchor="middle" font-size="10" font-weight="normal">3</text></g></svg>
+</section>
+</article>
+<article class="task" data-task-id="mr04_rotation_or_reflection" data-domain="geometry">
+<h2>34. Drehen oder spiegeln?<span>2 Punkte</span></h2>
+<p>Figur A darf auf der Fläche gedreht und verschoben, aber nicht umgedreht werden. Kann sie genau auf B gelegt werden? Alle Quadrate sind gleich groß.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 94" role="img" aria-label="A: oben Spalten 1 und 2, darunter Spalten 2 und 3. B: oben Spalten 2 und 3, darunter Spalten 1 und 2. Alle Quadrate sind gleich groß."><title>A: oben Spalten 1 und 2, darunter Spalten 2 und 3. B: oben Spalten 2 und 3, darunter Spalten 1 und 2. Alle Quadrate sind gleich groß.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><text x="52.5" y="16" text-anchor="middle" font-size="15" font-weight="bold">A</text><rect x="18" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="41" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="41" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="64" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><text x="157.5" y="16" text-anchor="middle" font-size="15" font-weight="bold">B</text><rect x="146" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="169" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="123" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="146" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/></g></svg>
+<section class="part"><p class="part-prompt">a) Ist das nur durch Drehen und Verschieben möglich? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Ja</span></li>
+<li><span class="box"></span><span>Nein</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Welche zusätzliche Veränderung würde helfen? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Spiegeln</span></li>
+<li><span class="box"></span><span>Vergrößern</span></li>
+<li><span class="box"></span><span>Nur weiter verschieben</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mr05_vertical_tile_reflection" data-domain="geometry">
+<h2>35. Ein Spiegelbild ergänzen<span>1 Punkte</span></h2>
+<p>Die senkrechte Spiegelachse liegt zwischen der dritten und vierten Spalte. Die belegten Felder links bleiben fest. Ergänze nur ihr Spiegelbild rechts.</p>
+<section class="part"><p class="part-prompt">a) Wähle die drei Spiegelzellen rechts. <span class="points">(1 P.)</span></p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 218 162" role="img" aria-label="Vier Reihen, sechs Spalten; Spiegelachse nach Spalte drei. Gegeben sind Reihe 1 Spalte 2 sowie Reihe 2 Spalten 2 und 3."><title>Vier Reihen, sechs Spalten; Spiegelachse nach Spalte drei. Gegeben sind Reihe 1 Spalte 2 sowie Reihe 2 Spalten 2 und 3.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><rect x="25" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="25" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="109" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="137" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="165" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="53" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="109" y="53" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="137" y="53" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="165" y="53" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="109" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="137" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="165" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="109" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="109" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="109" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="109" y="109" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="137" y="109" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="165" y="109" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><text x="15" y="43.48" text-anchor="middle" font-size="10" font-weight="normal">1</text><text x="15" y="71.48" text-anchor="middle" font-size="10" font-weight="normal">2</text><text x="15" y="99.48" text-anchor="middle" font-size="10" font-weight="normal">3</text><text x="15" y="127.48" text-anchor="middle" font-size="10" font-weight="normal">4</text><text x="39" y="17" text-anchor="middle" font-size="10" font-weight="normal">1</text><text x="67" y="17" text-anchor="middle" font-size="10" font-weight="normal">2</text><text x="95" y="17" text-anchor="middle" font-size="10" font-weight="normal">3</text><text x="123" y="17" text-anchor="middle" font-size="10" font-weight="normal">4</text><text x="151" y="17" text-anchor="middle" font-size="10" font-weight="normal">5</text><text x="179" y="17" text-anchor="middle" font-size="10" font-weight="normal">6</text><line x1="109" y1="17" x2="109" y2="145" stroke="#27333c" stroke-width="2.2" stroke-dasharray="5 4"/></g></svg>
+</section>
+</article>
+<article class="task" data-task-id="mr05_rectangle_all_axes" data-domain="geometry">
+<h2>36. Alle Spiegelachsen<span>2 Punkte</span></h2>
+<p>Betrachte ein Rechteck mit 8 cm und 4 cm Seitenlänge. Es ist kein Quadrat.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 155" role="img" aria-label="Rechteck doppelt so breit wie hoch, vier rechte Winkel."><title>Rechteck doppelt so breit wie hoch, vier rechte Winkel.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><polygon points="20,135 250,135 250,20 20,20" fill="#eef1f4" stroke="#27333c" stroke-width="1.8"/></g></svg>
+<section class="part"><p class="part-prompt">a) Welche Geraden sind Spiegelachsen? Wähle alle. <span class="points">(1 P.)</span></p>
+<p class="points">Alle passenden ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Senkrechte Mittellinie</span></li>
+<li><span class="box"></span><span>Waagerechte Mittellinie</span></li>
+<li><span class="box"></span><span>Diagonale links oben nach rechts unten</span></li>
+<li><span class="box"></span><span>Diagonale rechts oben nach links unten</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Warum ist eine Diagonale hier keine Spiegelachse? <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mr06_front_view_heights" data-domain="geometry">
+<h2>37. Von vorn auf Türme schauen<span>2 Punkte</span></h2>
+<p>Die Zahlen im Bauplan sind Turmhöhen. Die obere Zeile ist hinten, die untere vorne. Jeder Turm steht ohne Lücken vom Boden an. Schaue genau von vorn auf das Gebäude.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 184 171" role="img" aria-label="Bauplan: hinten 1 und 3, vorne 2 und 1; Blickrichtung von vorne."><title>Bauplan: hinten 1 und 3, vorne 2 und 1; Blickrichtung von vorne.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><text x="83" y="18" text-anchor="middle" font-size="12" font-weight="normal">hinten</text><rect x="45" y="30" width="38" height="38" fill="#eef1f4" stroke="#27333c" stroke-width="1.2"/><text x="64" y="55.08" text-anchor="middle" font-size="18" font-weight="bold">1</text><rect x="83" y="30" width="38" height="38" fill="#eef1f4" stroke="#27333c" stroke-width="1.2"/><text x="102" y="55.08" text-anchor="middle" font-size="18" font-weight="bold">3</text><rect x="45" y="68" width="38" height="38" fill="#eef1f4" stroke="#27333c" stroke-width="1.2"/><text x="64" y="93.08" text-anchor="middle" font-size="18" font-weight="bold">2</text><rect x="83" y="68" width="38" height="38" fill="#eef1f4" stroke="#27333c" stroke-width="1.2"/><text x="102" y="93.08" text-anchor="middle" font-size="18" font-weight="bold">1</text><text x="83" y="124" text-anchor="middle" font-size="12" font-weight="normal">vorne</text><line x1="83" y1="158" x2="83" y2="135" stroke="#27333c" stroke-width="2"/><line x1="83" y1="135" x2="78" y2="143" stroke="#27333c" stroke-width="1.4"/><line x1="83" y1="135" x2="88" y2="143" stroke="#27333c" stroke-width="1.4"/></g></svg>
+<section class="part"><p class="part-prompt">a) Wie hoch ist das Schattenbild in der linken Spalte? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie hoch ist es in der rechten Spalte? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mr06_total_versus_side_view" data-domain="geometry">
+<h2>38. Anzahl ist nicht Ansichtshöhe<span>2 Punkte</span></h2>
+<p>Drei Türme stehen in einer Reihe von links nach rechts. Sie sind 1, 2 und 3 Würfel hoch, ohne Lücken. Du blickst genau von rechts entlang der Reihe.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 222 133" role="img" aria-label="Eine Reihe von drei Türmen: links 1, Mitte 2, rechts 3; Blick von rechts."><title>Eine Reihe von drei Türmen: links 1, Mitte 2, rechts 3; Blick von rechts.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><text x="102" y="18" text-anchor="middle" font-size="12" font-weight="normal">hinten</text><rect x="45" y="30" width="38" height="38" fill="#eef1f4" stroke="#27333c" stroke-width="1.2"/><text x="64" y="55.08" text-anchor="middle" font-size="18" font-weight="bold">1</text><rect x="83" y="30" width="38" height="38" fill="#eef1f4" stroke="#27333c" stroke-width="1.2"/><text x="102" y="55.08" text-anchor="middle" font-size="18" font-weight="bold">2</text><rect x="121" y="30" width="38" height="38" fill="#eef1f4" stroke="#27333c" stroke-width="1.2"/><text x="140" y="55.08" text-anchor="middle" font-size="18" font-weight="bold">3</text><text x="102" y="86" text-anchor="middle" font-size="12" font-weight="normal">vorne</text><line x1="193" y1="49" x2="170" y2="49" stroke="#27333c" stroke-width="2"/><line x1="170" y1="49" x2="178" y2="44" stroke="#27333c" stroke-width="1.4"/><line x1="170" y1="49" x2="178" y2="54" stroke="#27333c" stroke-width="1.4"/><text x="183" y="71" text-anchor="middle" font-size="10" font-weight="normal">rechts</text></g></svg>
+<section class="part"><p class="part-prompt">a) Wie viele Würfel enthält das ganze Gebäude? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie hoch ist das Schattenbild von rechts? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mr07_cross_net_opposites" data-domain="geometry">
+<h2>39. Ein Würfelnetz gedanklich falten<span>2 Punkte</span></h2>
+<p>Falte das beschriftete Netz gedanklich zu einem Würfel. Die Buchstaben bleiben auf ihren Flächen.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 134 162" role="img" aria-label="Würfelnetz: A über C; B links, D rechts von C; unter C folgen E und F."><title>Würfelnetz: A über C; B links, D rechts von C; unter C folgen E und F.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><rect x="53" y="25" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><text x="67" y="43.48" text-anchor="middle" font-size="14" font-weight="bold">A</text><rect x="25" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><text x="39" y="71.48" text-anchor="middle" font-size="14" font-weight="bold">B</text><rect x="53" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><text x="67" y="71.48" text-anchor="middle" font-size="14" font-weight="bold">C</text><rect x="81" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><text x="95" y="71.48" text-anchor="middle" font-size="14" font-weight="bold">D</text><rect x="53" y="81" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><text x="67" y="99.48" text-anchor="middle" font-size="14" font-weight="bold">E</text><rect x="53" y="109" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><text x="67" y="127.48" text-anchor="middle" font-size="14" font-weight="bold">F</text></g></svg>
+<section class="part"><p class="part-prompt">a) Welche Fläche liegt C gegenüber? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>A</span></li>
+<li><span class="box"></span><span>B</span></li>
+<li><span class="box"></span><span>D</span></li>
+<li><span class="box"></span><span>E</span></li>
+<li><span class="box"></span><span>F</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Welche Fläche liegt B gegenüber? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>A</span></li>
+<li><span class="box"></span><span>C</span></li>
+<li><span class="box"></span><span>D</span></li>
+<li><span class="box"></span><span>E</span></li>
+<li><span class="box"></span><span>F</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mr07_complete_cross_net" data-domain="geometry">
+<h2>40. Eine Würfelfläche ergänzen<span>2 Punkte</span></h2>
+<p>Die fünf festen Quadrate bilden ein Kreuz. Wähle innerhalb des gezeigten Gitters genau ein weiteres Quadrat, sodass ein Würfelnetz aus sechs Quadraten entsteht.</p>
+<section class="part"><p class="part-prompt">a) Wähle nur das zusätzliche Quadrat. <span class="points">(1 P.)</span></p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 134 162" role="img" aria-label="Vier Reihen, drei Spalten: fest sind oben Mitte, in Reihe zwei alle drei Felder und in Reihe drei Mitte."><title>Vier Reihen, drei Spalten: fest sind oben Mitte, in Reihe zwei alle drei Felder und in Reihe drei Mitte.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><rect x="25" y="25" width="28" height="28" fill="white" stroke="#9aa5ae" stroke-width="1.2"/><rect x="53" y="25" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="25" width="28" height="28" fill="white" stroke="#9aa5ae" stroke-width="1.2"/><rect x="25" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="81" width="28" height="28" fill="white" stroke="#9aa5ae" stroke-width="1.2"/><rect x="53" y="81" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="81" width="28" height="28" fill="white" stroke="#9aa5ae" stroke-width="1.2"/><rect x="25" y="109" width="28" height="28" fill="white" stroke="#9aa5ae" stroke-width="1.2"/><rect x="53" y="109" width="28" height="28" fill="white" stroke="#9aa5ae" stroke-width="1.2"/><rect x="81" y="109" width="28" height="28" fill="white" stroke="#9aa5ae" stroke-width="1.2"/><text x="15" y="43.48" text-anchor="middle" font-size="10" font-weight="normal">1</text><text x="15" y="71.48" text-anchor="middle" font-size="10" font-weight="normal">2</text><text x="15" y="99.48" text-anchor="middle" font-size="10" font-weight="normal">3</text><text x="15" y="127.48" text-anchor="middle" font-size="10" font-weight="normal">4</text><text x="39" y="17" text-anchor="middle" font-size="10" font-weight="normal">1</text><text x="67" y="17" text-anchor="middle" font-size="10" font-weight="normal">2</text><text x="95" y="17" text-anchor="middle" font-size="10" font-weight="normal">3</text></g></svg>
+</section>
+<section class="part"><p class="part-prompt">b) Was wird aus der ergänzten Fläche beim Falten? <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mr08_area_and_boundary" data-domain="geometry">
+<h2>41. Rand und Inneres unterscheiden<span>2 Punkte</span></h2>
+<p>Ein Rechteck ist 4 cm lang und 3 cm breit. Die angegebenen Maße gelten, unabhängig von der Bildschirmgröße.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 193.333 155" role="img" aria-label="Rechteck mit Seitenlängen 4 cm und 3 cm."><title>Rechteck mit Seitenlängen 4 cm und 3 cm.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><polygon points="20,135 173.333,135 173.333,20 20,20" fill="#eef1f4" stroke="#27333c" stroke-width="1.8"/></g></svg>
+<section class="part"><p class="part-prompt">a) Wie lang ist der gesamte Rand? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>cm</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Quadratzentimeter bedecken das Innere? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>cm²</span></div>
+</section>
+</article>
+<article class="task" data-task-id="mr08_equal_area_unequal_perimeter" data-domain="geometry">
+<h2>42. Gleiche Fläche, anderer Rand<span>3 Punkte</span></h2>
+<p>Rechteck A ist 1 cm mal 12 cm groß. Rechteck B ist 3 cm mal 4 cm groß.</p>
+<section class="part"><p class="part-prompt">a) Wie groß ist der Umfang von A? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>cm</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie groß ist der Umfang von B? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>cm</span></div>
+</section>
+<section class="part"><p class="part-prompt">c) Beide haben 12 cm² Fläche. Müssen deshalb auch ihre Umfänge gleich sein? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Ja</span></li>
+<li><span class="box"></span><span>Nein</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mr08_zz_joined_and_exposed_edges" data-domain="geometry">
+<h2>43. Gemeinsame Kanten zählen nicht doppelt<span>3 Punkte</span></h2>
+<p>Drei quadratische Platten liegen ohne Überlappung in einer L-Form. Jede Plattenkante ist 2 cm lang. Ein Band soll nur am äußeren Rand entlanglaufen, nicht an den gemeinsamen Kanten zwischen Platten.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 106 106" role="img" aria-label="L-Form aus den Feldern oben links, unten links und unten rechts. Jede Feldkante ist 2 cm lang; das leere Feld gehört nicht zur Form."><title>L-Form aus den Feldern oben links, unten links und unten rechts. Jede Feldkante ist 2 cm lang; das leere Feld gehört nicht zur Form.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><rect x="25" y="25" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/></g></svg>
+<section class="part"><p class="part-prompt">a) Wie viele ganze Kanten teilen sich je zwei Platten? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie lang muss das Band für den äußeren Rand sein? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>cm</span></div>
+</section>
+<section class="part"><p class="part-prompt">c) Warum zählt die Summe der drei einzelnen Plattenumfänge zu viel? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Jede gemeinsame Kante kommt darin zweimal vor, aber gar nicht am äußeren Rand.</span></li>
+<li><span class="box"></span><span>Am äußeren Rand dürfen nur die Ecken gezählt werden.</span></li>
+<li><span class="box"></span><span>Umfang und Flächeninhalt sind immer dieselbe Zahl.</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mr02_zz_square_and_corner_piece" data-domain="geometry">
+<h2>44. Zwei verschiedene Teile ergänzen sich<span>2 Punkte</span></h2>
+<p>Ein quadratisches Brett hat 3 mal 3 gleich große Felder. Das feste quadratische Teil bedeckt oben links 2 mal 2 Felder. Das zweite Teil besteht aus fünf Feldern: drei in einer Reihe und drei in einer dazu senkrechten Reihe, wobei das Eckfeld zu beiden Reihen gehört. Es darf gedreht werden. Decke das Brett ohne Lücke und Überlappung.</p>
+<section class="part"><p class="part-prompt">a) Markiere genau die Felder, die das zweite Teil bedeckt. <span class="points">(1 P.)</span></p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 134 134" role="img" aria-label="Drei mal drei Felder; der feste quadratische Teil belegt die ersten zwei Reihen und ersten zwei Spalten."><title>Drei mal drei Felder; der feste quadratische Teil belegt die ersten zwei Reihen und ersten zwei Spalten.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><rect x="25" y="25" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="25" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="53" width="28" height="28" fill="#aebbc4" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="53" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><text x="15" y="43.48" text-anchor="middle" font-size="10" font-weight="normal">1</text><text x="15" y="71.48" text-anchor="middle" font-size="10" font-weight="normal">2</text><text x="15" y="99.48" text-anchor="middle" font-size="10" font-weight="normal">3</text><text x="39" y="17" text-anchor="middle" font-size="10" font-weight="normal">1</text><text x="67" y="17" text-anchor="middle" font-size="10" font-weight="normal">2</text><text x="95" y="17" text-anchor="middle" font-size="10" font-weight="normal">3</text></g></svg>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Felder bedecken beide Teile zusammen? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<h2 class="domain-title" data-domain="measurement">Größen und Messen</h2>
+<article class="task" data-task-id="mg01_sensible_units" data-domain="measurement">
+<h2>45. Passende Größenordnungen<span>2 Punkte</span></h2>
+<p>Wähle für die beschriebenen Alltagsgegenstände eine plausible Angabe. Es geht um ungefähre Größen, nicht um ein exaktes Messergebnis.</p>
+<section class="part"><p class="part-prompt">a) Ein normaler Bleistift ist ungefähr 14 … lang. <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Millimeter</span></li>
+<li><span class="box"></span><span>Zentimeter</span></li>
+<li><span class="box"></span><span>Kilometer</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Ein Liter Wasser hat ungefähr welche Masse? Das Gefäß wird nicht mitgezählt. <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>1 g</span></li>
+<li><span class="box"></span><span>1 kg</span></li>
+<li><span class="box"></span><span>100 kg</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mg01_mass_reference_comparison" data-domain="measurement">
+<h2>46. Massen vergleichen<span>2 Punkte</span></h2>
+<p>Eine Packung Reis hat 2 kg, eine Packung Nüsse 250 g Masse. Verwende 1 kg = 1000 g.</p>
+<section class="part"><p class="part-prompt">a) Welche Packung ist schwerer? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Reis</span></li>
+<li><span class="box"></span><span>Nüsse</span></li>
+<li><span class="box"></span><span>Beide gleich</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Gramm sind 2 kg? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>g</span></div>
+</section>
+</article>
+<article class="task" data-task-id="mg02_metres_centimetres" data-domain="measurement">
+<h2>47. Meter und Zentimeter<span>3 Punkte</span></h2>
+<p>Verwende 1 m = 100 cm.</p>
+<section class="part"><p class="part-prompt">a) 1 m 35 cm sind wie viele Zentimeter? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>cm</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) 270 cm enthalten wie viele ganze Meter? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>m</span></div>
+</section>
+<section class="part"><p class="part-prompt">c) Wie viele Zentimeter bleiben bei 270 cm nach den ganzen Metern übrig? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>cm</span></div>
+</section>
+</article>
+<article class="task" data-task-id="mg02_compare_mixed_lengths" data-domain="measurement">
+<h2>48. Längen fair vergleichen<span>2 Punkte</span></h2>
+<p>Band A ist 2 m 8 cm lang. Band B ist 218 cm lang.</p>
+<section class="part"><p class="part-prompt">a) Welches Band ist länger? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>A</span></li>
+<li><span class="box"></span><span>B</span></li>
+<li><span class="box"></span><span>Beide gleich</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Um wie viele Zentimeter ist es länger? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>cm</span></div>
+</section>
+</article>
+<article class="task" data-task-id="mg03_unit_price" data-domain="measurement">
+<h2>49. Ein gleicher Stückpreis<span>2 Punkte</span></h2>
+<p>Drei gleiche Eintrittskarten kosten zusammen 6 €. Jede Karte hat denselben Preis; es gibt keine zusätzlichen Gebühren oder Rabatte.</p>
+<section class="part"><p class="part-prompt">a) Wie viel kostet eine Karte? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>€</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viel kosten fünf Karten? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>€</span></div>
+</section>
+</article>
+<article class="task" data-task-id="mg03_price_table_multiples" data-domain="measurement">
+<h2>50. Eine Preistabelle ergänzen<span>2 Punkte</span></h2>
+<p>Vier gleiche Postkarten kosten 3 €. Der Stückpreis bleibt für jede Menge gleich; es gibt keine Rabatte.</p>
+<table class="data-table" aria-label="Preistabelle: vier Postkarten kosten 3 Euro; Preise für acht und zwölf fehlen."><thead><tr><th>Postkarten</th><th>Preis</th></tr></thead><tbody><tr><td>4</td><td>3 €</td></tr><tr><td>8</td><td>?</td></tr><tr><td>12</td><td>?</td></tr></tbody></table>
+<section class="part"><p class="part-prompt">a) Wie viel kosten acht Postkarten? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>€</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viel kosten zwölf Postkarten? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>€</span></div>
+</section>
+</article>
+<article class="task" data-task-id="mg04_purchase_and_change" data-domain="measurement">
+<h2>51. Einkauf und Rückgeld<span>2 Punkte</span></h2>
+<p>Zwei Hefte kosten jeweils 1,80 €, drei Stifte jeweils 0,60 €. Der Einkauf wird mit 10 € bezahlt.</p>
+<section class="part"><p class="part-prompt">a) Wie hoch ist der Gesamtpreis? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>€</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viel Rückgeld gibt es? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>€</span></div>
+</section>
+</article>
+<article class="task" data-task-id="mg04_euro_cent_comparison" data-domain="measurement">
+<h2>52. Euro und Cent vergleichen<span>2 Punkte</span></h2>
+<p>Sam hat 175 Cent. Robin hat 1,80 €. Verwende 1 € = 100 Cent.</p>
+<section class="part"><p class="part-prompt">a) Wer hat mehr Geld? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Sam</span></li>
+<li><span class="box"></span><span>Robin</span></li>
+<li><span class="box"></span><span>Beide gleich viel</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Wie groß ist der Unterschied in Cent? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>ct</span></div>
+</section>
+</article>
+<article class="task" data-task-id="mg05_afternoon_clock" data-domain="measurement">
+<h2>53. Eine Uhr am Nachmittag<span>2 Punkte</span></h2>
+<p>Die Uhr zeigt eine Zeit am Nachmittag. Gib die Uhrzeit in der 24-Stunden-Schreibweise an.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="Analoguhr: langer Zeiger auf der 5, kurzer Zeiger etwas nach der 3. Es ist Nachmittag."><title>Analoguhr: langer Zeiger auf der 5, kurzer Zeiger etwas nach der 3. Es ist Nachmittag.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><circle cx="90" cy="90" r="72" fill="white" stroke="#27333c" stroke-width="2"/><text x="119" y="43.7705" text-anchor="middle" font-size="13" font-weight="normal">1</text><text x="140.229" y="65" text-anchor="middle" font-size="13" font-weight="normal">2</text><text x="148" y="94" text-anchor="middle" font-size="13" font-weight="normal">3</text><text x="140.229" y="123" text-anchor="middle" font-size="13" font-weight="normal">4</text><text x="119" y="144.229" text-anchor="middle" font-size="13" font-weight="normal">5</text><text x="90" y="152" text-anchor="middle" font-size="13" font-weight="normal">6</text><text x="61" y="144.229" text-anchor="middle" font-size="13" font-weight="normal">7</text><text x="39.7705" y="123" text-anchor="middle" font-size="13" font-weight="normal">8</text><text x="32" y="94" text-anchor="middle" font-size="13" font-weight="normal">9</text><text x="39.7705" y="65" text-anchor="middle" font-size="13" font-weight="normal">10</text><text x="61" y="43.7705" text-anchor="middle" font-size="13" font-weight="normal">11</text><text x="90" y="36" text-anchor="middle" font-size="13" font-weight="normal">12</text><line x1="90" y1="90" x2="115" y2="133.301" stroke="#27333c" stroke-width="2"/><line x1="90" y1="90" x2="124.17" y2="97.5754" stroke="#27333c" stroke-width="4"/><circle cx="90" cy="90" r="3"/></g></svg>
+<section class="part"><p class="part-prompt">a) Welche Stundenzahl steht vor dem Doppelpunkt? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Welche Minutenzahl steht nach dem Doppelpunkt? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="mg05_elapsed_with_break" data-domain="measurement">
+<h2>54. Dauer mit Pause<span>2 Punkte</span></h2>
+<p>Eine Werkstatt beginnt um 09:45 Uhr und endet um 11:10 Uhr. Darin ist eine 15-minütige Pause enthalten.</p>
+<section class="part"><p class="part-prompt">a) Wie viele Minuten liegen zwischen Beginn und Ende? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>min</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Minuten bleiben ohne die Pause? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>min</span></div>
+</section>
+</article>
+<article class="task" data-task-id="mg06_ruler_nonzero_start" data-domain="measurement">
+<h2>55. Nicht bei Null begonnen<span>2 Punkte</span></h2>
+<p>Ein Streifen beginnt an der 2-cm-Markierung eines Lineals und endet an der 8-cm-Markierung. Verwende die Markierungen, nicht ein eigenes Lineal am Bildschirm.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 455 79" role="img" aria-label="Skala von 2 bis 8 cm in Zentimeterschritten; Streifenanfang bei 2 und Ende bei 8."><title>Skala von 2 bis 8 cm in Zentimeterschritten; Streifenanfang bei 2 und Ende bei 8.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><line x1="25" y1="30" x2="415" y2="30" stroke="#27333c" stroke-width="2"/><line x1="25" y1="23" x2="25" y2="40" stroke="#27333c" stroke-width="1.4"/><text x="25" y="61" text-anchor="middle" font-size="12" font-weight="normal">2</text><line x1="90" y1="23" x2="90" y2="40" stroke="#27333c" stroke-width="1.4"/><text x="90" y="61" text-anchor="middle" font-size="12" font-weight="normal">3</text><line x1="155" y1="23" x2="155" y2="40" stroke="#27333c" stroke-width="1.4"/><text x="155" y="61" text-anchor="middle" font-size="12" font-weight="normal">4</text><line x1="220" y1="23" x2="220" y2="40" stroke="#27333c" stroke-width="1.4"/><text x="220" y="61" text-anchor="middle" font-size="12" font-weight="normal">5</text><line x1="285" y1="23" x2="285" y2="40" stroke="#27333c" stroke-width="1.4"/><text x="285" y="61" text-anchor="middle" font-size="12" font-weight="normal">6</text><line x1="350" y1="23" x2="350" y2="40" stroke="#27333c" stroke-width="1.4"/><text x="350" y="61" text-anchor="middle" font-size="12" font-weight="normal">7</text><line x1="415" y1="23" x2="415" y2="40" stroke="#27333c" stroke-width="1.4"/><text x="415" y="61" text-anchor="middle" font-size="12" font-weight="normal">8</text><text x="434" y="61" text-anchor="middle" font-size="12" font-weight="normal">cm</text></g></svg>
+<section class="part"><p class="part-prompt">a) Wie lang ist der Streifen? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>cm</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Welche Rechnung bestimmt die Länge? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>8 − 2</span></li>
+<li><span class="box"></span><span>8 + 2</span></li>
+<li><span class="box"></span><span>Nur die 8 ablesen</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mg06_paper_segment" data-domain="measurement">
+<h2>56. Eine Strecke mit dem Lineal<span>2 Punkte</span></h2>
+<p>Zeichne auf Papier eine Strecke von 6,5 cm. Lege die Nullmarke des Lineals an den Anfangspunkt. Die Papierzeichnung wird separat geprüft.</p>
+<section class="part"><p class="part-prompt">a) Wie viele Millimeter sind 6,5 cm? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>mm</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Beschreibe deine Zeichnung und lege sie zur Prüfung vor. <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mg07_fill_to_one_litre" data-domain="measurement">
+<h2>57. Bis zu einem Liter auffüllen<span>2 Punkte</span></h2>
+<p>Eine Flasche enthält 750 ml Wasser. Sie soll bis 1 l gefüllt werden. Verwende 1 l = 1000 ml.</p>
+<section class="part"><p class="part-prompt">a) Wie viele Milliliter fehlen? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>ml</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Milliliter sind 2 l? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>ml</span></div>
+</section>
+</article>
+<article class="task" data-task-id="mg07_three_cups" data-domain="measurement">
+<h2>58. Saft in drei Becher<span>2 Punkte</span></h2>
+<p>Ein Krug enthält 1 l Saft. Drei Becher werden mit jeweils 200 ml gefüllt. Verwende 1 l = 1000 ml.</p>
+<section class="part"><p class="part-prompt">a) Wie viele Milliliter werden ausgegossen? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>ml</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Milliliter bleiben im Krug? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>ml</span></div>
+</section>
+</article>
+<article class="task" data-task-id="mg04_zz_deposit_and_refund" data-domain="measurement">
+<h2>59. Preis, Pfand und Rückgabe<span>3 Punkte</span></h2>
+<p>Eine Flasche Limonade kostet 1,25 € für das Getränk und zusätzlich 0,25 € Pfand. Du kaufst 4 Flaschen. Danach gibst du 3 leere Pfandflaschen zurück und bekommst für jede 0,25 € erstattet. Es gibt keine weiteren Kosten oder Erstattungen.</p>
+<section class="part"><p class="part-prompt">a) Wie viel bezahlst du beim Kauf vor der Rückgabe? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>€</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viel bekommst du für die 3 leeren Flaschen zurück? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>€</span></div>
+</section>
+<section class="part"><p class="part-prompt">c) Wie viel Geld hast du nach Kauf und Rückgabe insgesamt weniger? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>€</span></div>
+</section>
+</article>
+<article class="task" data-task-id="mg07_zz_pour_and_return" data-domain="measurement">
+<h2>60. Hin- und zurückgießen<span>2 Punkte</span></h2>
+<p>Eine Kanne enthält 1 l Wasser. Ein leerer Becher fasst mindestens 250 ml. Gieße zuerst 250 ml aus der Kanne in den Becher. Gieße danach genau 100 ml aus dem Becher zurück in die Kanne. Nichts wird verschüttet. Es gilt: 1 l = 1000 ml.</p>
+<section class="part"><p class="part-prompt">a) Wie viel Wasser ist am Ende im Becher? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>ml</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viel Wasser ist am Ende in der Kanne? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>ml</span></div>
+</section>
+</article>
+<h2 class="domain-title" data-domain="data">Daten und Zufall</h2>
+<article class="task" data-task-id="md01_table_maximum_total" data-domain="data">
+<h2>61. Eine Tagesübersicht lesen<span>2 Punkte</span></h2>
+<p>Die Tabelle zählt Reparaturen an drei Tagen. Jede Reparatur wird genau einmal gezählt.</p>
+<table class="data-table" aria-label="Reparaturen: Montag 8, Dienstag 12, Mittwoch 10."><thead><tr><th>Tag</th><th>Reparaturen</th></tr></thead><tbody><tr><td>Montag</td><td>8</td></tr><tr><td>Dienstag</td><td>12</td></tr><tr><td>Mittwoch</td><td>10</td></tr></tbody></table>
+<section class="part"><p class="part-prompt">a) An welchem Tag gab es die meisten Reparaturen? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Montag</span></li>
+<li><span class="box"></span><span>Dienstag</span></li>
+<li><span class="box"></span><span>Mittwoch</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Reparaturen gab es an den drei Tagen zusammen? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="md01_missing_frequency" data-domain="data">
+<h2>62. Eine Häufigkeit fehlt<span>2 Punkte</span></h2>
+<p>28 Personen wählen jeweils genau eine Aktivität. 11 wählen Schwimmen, 7 Basteln, die übrigen Musik.</p>
+<section class="part"><p class="part-prompt">a) Wie viele wählen Musik? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele mehr wählen Schwimmen als Basteln? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="md02_build_unit_bars" data-domain="data">
+<h2>63. Säulen aufbauen<span>1 Punkte</span></h2>
+<p>Die Häufigkeiten sind A = 2, B = 4 und C = 3. Die drei Spalten im Antwortgitter stehen von links nach rechts für A, B und C. Jedes Feld zählt eine Einheit. Baue jede Säule von unten ohne Lücke auf.</p>
+<section class="part"><p class="part-prompt">a) Markiere genau die Felder der drei Säulen. <span class="points">(1 P.)</span></p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 134 218" role="img" aria-label="Leeres Gitter mit sechs Reihen und drei Spalten; Spalten von links A, B, C; jede Zelle zählt eine Einheit, Null ist unten."><title>Leeres Gitter mit sechs Reihen und drei Spalten; Spalten von links A, B, C; jede Zelle zählt eine Einheit, Null ist unten.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><rect x="25" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="25" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="53" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="53" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="53" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="81" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="109" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="109" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="109" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="137" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="137" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="137" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="25" y="165" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="53" y="165" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><rect x="81" y="165" width="28" height="28" fill="white" stroke="#27333c" stroke-width="1.2"/><text x="15" y="43.48" text-anchor="middle" font-size="10" font-weight="normal">1</text><text x="15" y="71.48" text-anchor="middle" font-size="10" font-weight="normal">2</text><text x="15" y="99.48" text-anchor="middle" font-size="10" font-weight="normal">3</text><text x="15" y="127.48" text-anchor="middle" font-size="10" font-weight="normal">4</text><text x="15" y="155.48" text-anchor="middle" font-size="10" font-weight="normal">5</text><text x="15" y="183.48" text-anchor="middle" font-size="10" font-weight="normal">6</text><text x="39" y="17" text-anchor="middle" font-size="10" font-weight="normal">1</text><text x="67" y="17" text-anchor="middle" font-size="10" font-weight="normal">2</text><text x="95" y="17" text-anchor="middle" font-size="10" font-weight="normal">3</text></g></svg>
+</section>
+</article>
+<article class="task" data-task-id="md02_paper_bar_chart" data-domain="data">
+<h2>64. Ein eigenes Diagramm zeichnen<span>3 Punkte</span></h2>
+<p>Zeichne auf kariertem Papier ein Säulendiagramm zu drei Umfragewerten: Lesen 2, Musik 5, Sport 4. Jede Person hat genau eine Antwort gegeben. Wähle eine gemeinsame Skala mit 1 Kästchen = 1 Person.</p>
+<section class="part"><p class="part-prompt">a) Beschreibe dein Diagramm und lege die Zeichnung zur Prüfung vor. <span class="points">(3 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="md03_read_two_step_chart" data-domain="data">
+<h2>65. Eine Zweierskala lesen<span>2 Punkte</span></h2>
+<p>Das Diagramm zählt Besuche. Achte darauf, welchen Wert ein Achsenabstand darstellt.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 211" role="img" aria-label="Achse 0, 2, 4, 6, 8, 10. A ist zwei Skalenabstände hoch, B vier und C drei."><title>Achse 0, 2, 4, 6, 8, 10. A ist zwei Skalenabstände hoch, B vier und C drei.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><line x1="52" y1="176" x2="422" y2="176" stroke="#27333c" stroke-width="0.6"/><text x="42" y="180" text-anchor="end" font-size="11" font-weight="normal">0</text><line x1="52" y1="146" x2="422" y2="146" stroke="#27333c" stroke-width="0.6"/><text x="42" y="150" text-anchor="end" font-size="11" font-weight="normal">2</text><line x1="52" y1="116" x2="422" y2="116" stroke="#27333c" stroke-width="0.6"/><text x="42" y="120" text-anchor="end" font-size="11" font-weight="normal">4</text><line x1="52" y1="86" x2="422" y2="86" stroke="#27333c" stroke-width="0.6"/><text x="42" y="90" text-anchor="end" font-size="11" font-weight="normal">6</text><line x1="52" y1="56" x2="422" y2="56" stroke="#27333c" stroke-width="0.6"/><text x="42" y="60" text-anchor="end" font-size="11" font-weight="normal">8</text><line x1="52" y1="26" x2="422" y2="26" stroke="#27333c" stroke-width="0.6"/><text x="42" y="30" text-anchor="end" font-size="11" font-weight="normal">10</text><line x1="52" y1="26" x2="52" y2="176" stroke="#27333c" stroke-width="1.7"/><line x1="52" y1="176" x2="422" y2="176" stroke="#27333c" stroke-width="1.7"/><rect x="80.3667" y="116" width="66.6" height="60" fill="#aebfc9" stroke="#27333c" stroke-width="1.2"/><text x="113.667" y="198" text-anchor="middle" font-size="12" font-weight="normal">A</text><rect x="203.7" y="56" width="66.6" height="120" fill="#aebfc9" stroke="#27333c" stroke-width="1.2"/><text x="237" y="198" text-anchor="middle" font-size="12" font-weight="normal">B</text><rect x="327.033" y="86" width="66.6" height="90" fill="#aebfc9" stroke="#27333c" stroke-width="1.2"/><text x="360.333" y="198" text-anchor="middle" font-size="12" font-weight="normal">C</text><text x="52" y="15" text-anchor="start" font-size="11" font-weight="normal">Besuche</text></g></svg>
+<section class="part"><p class="part-prompt">a) Wie viele Besuche gehören zu C? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Besuche mehr hat B als A? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="md03_pictogram_key" data-domain="data">
+<h2>66. Ein Zeichen zählt mehrere<span>2 Punkte</span></h2>
+<p>Im Bilddiagramm steht jedes volle Kreiszeichen für 4 Fahrten. Alle Zeichen sind gleich groß.</p>
+<table class="data-table" aria-label="Montag drei Kreiszeichen, Dienstag fünf. Die Legende legt vier Fahrten pro Kreis fest."><thead><tr><th>Tag</th><th>Zeichen; 1 Kreis = 4 Fahrten</th></tr></thead><tbody><tr><td>Montag</td><td>● ● ●</td></tr><tr><td>Dienstag</td><td>● ● ● ● ●</td></tr></tbody></table>
+<section class="part"><p class="part-prompt">a) Wie viele Fahrten gab es am Dienstag? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Fahrten mehr waren es am Dienstag als am Montag? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="md04_bag_event_language" data-domain="data">
+<h2>67. Sicher oder nur möglich?<span>3 Punkte</span></h2>
+<p>In einem gut gemischten Beutel liegen 3 rote und 2 blaue, gleich große und gleich schwere Plättchen. Ein Plättchen wird ohne Hinsehen gezogen.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 296 64" role="img" aria-label="Drei rote und zwei blaue gleichartige Plättchen im Beutel."><title>Drei rote und zwei blaue gleichartige Plättchen im Beutel.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><circle cx="32" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="32" y="36" text-anchor="middle" font-size="12" font-weight="normal">rot</text><circle cx="90" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="90" y="36" text-anchor="middle" font-size="12" font-weight="normal">rot</text><circle cx="148" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="148" y="36" text-anchor="middle" font-size="12" font-weight="normal">rot</text><circle cx="206" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="206" y="36" text-anchor="middle" font-size="12" font-weight="normal">blau</text><circle cx="264" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="264" y="36" text-anchor="middle" font-size="12" font-weight="normal">blau</text></g></svg>
+<section class="part"><p class="part-prompt">a) Ein rotes Plättchen ziehen ist … <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>sicher</span></li>
+<li><span class="box"></span><span>möglich, aber nicht sicher</span></li>
+<li><span class="box"></span><span>unmöglich</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Ein grünes Plättchen ziehen ist … <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>sicher</span></li>
+<li><span class="box"></span><span>möglich, aber nicht sicher</span></li>
+<li><span class="box"></span><span>unmöglich</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">c) Ein rotes oder blaues Plättchen ziehen ist … <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>sicher</span></li>
+<li><span class="box"></span><span>möglich, aber nicht sicher</span></li>
+<li><span class="box"></span><span>unmöglich</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="md04_die_event_categories" data-domain="data">
+<h2>68. Ereignisse beim Würfeln<span>3 Punkte</span></h2>
+<p>Ein gewöhnlicher fairer Würfel zeigt eine der Zahlen 1, 2, 3, 4, 5 oder 6.</p>
+<section class="part"><p class="part-prompt">a) Eine ungerade Zahl würfeln ist … <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>sicher</span></li>
+<li><span class="box"></span><span>möglich, aber nicht sicher</span></li>
+<li><span class="box"></span><span>unmöglich</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Eine Zahl von höchstens 6 würfeln ist … <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>sicher</span></li>
+<li><span class="box"></span><span>möglich, aber nicht sicher</span></li>
+<li><span class="box"></span><span>unmöglich</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">c) Eine 7 würfeln ist … <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>sicher</span></li>
+<li><span class="box"></span><span>möglich, aber nicht sicher</span></li>
+<li><span class="box"></span><span>unmöglich</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="md05_equal_totals_chance" data-domain="data">
+<h2>69. Welche Sternchance ist größer?<span>2 Punkte</span></h2>
+<p>Beutel A enthält zwei Stern- und zwei Kreisplättchen. Beutel B enthält ein Stern- und drei Kreisplättchen. Alle Plättchen sind gleich groß und schwer; jeder Beutel wird gut gemischt, und jedes seiner Plättchen ist gleich wahrscheinlich.</p>
+<section class="part"><p class="part-prompt">a) Aus welchem Beutel ist ein Stern wahrscheinlicher? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>A</span></li>
+<li><span class="box"></span><span>B</span></li>
+<li><span class="box"></span><span>Gleich wahrscheinlich</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Begründe mit günstigen und insgesamt vorhandenen Plättchen. <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="md05_make_fair_by_adding" data-domain="data">
+<h2>70. Durch Ergänzen fair machen<span>2 Punkte</span></h2>
+<p>In einem Beutel liegen vier Stern- und zwei Kreisplättchen. Alle Plättchen sind gleichartig, und jedes wird beim Ziehen gleich wahrscheinlich getroffen. Es dürfen nur Kreisplättchen hinzugefügt werden.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 354 64" role="img" aria-label="Vier Stern- und zwei Kreisplättchen."><title>Vier Stern- und zwei Kreisplättchen.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><circle cx="32" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="32" y="36" text-anchor="middle" font-size="10" font-weight="normal">Stern</text><circle cx="90" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="90" y="36" text-anchor="middle" font-size="10" font-weight="normal">Stern</text><circle cx="148" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="148" y="36" text-anchor="middle" font-size="10" font-weight="normal">Stern</text><circle cx="206" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="206" y="36" text-anchor="middle" font-size="10" font-weight="normal">Stern</text><circle cx="264" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="264" y="36" text-anchor="middle" font-size="10" font-weight="normal">Kreis</text><circle cx="322" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="322" y="36" text-anchor="middle" font-size="10" font-weight="normal">Kreis</text></g></svg>
+<section class="part"><p class="part-prompt">a) Wie viele Kreisplättchen müssen dazu, damit Stern und Kreis gleich wahrscheinlich werden? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Plättchen liegen danach insgesamt im Beutel? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="md02_zz_tally_frequency_table" data-domain="data">
+<h2>71. Striche in Häufigkeiten übersetzen<span>3 Punkte</span></h2>
+<p>Eine Strichliste erfasst drei Antworten A, B und C. Jeder senkrechte Strich zählt genau eine Antwort. Ein Leerraum zwischen Strichgruppen ändert ihren Wert nicht. Übertrage die Häufigkeiten in Zahlen.</p>
+<table class="data-table" aria-label="Strichliste: A mit fünf Strichen und einem weiteren, B mit vier Strichen, C mit fünf Strichen und drei weiteren."><thead><tr><th>Antwort</th><th>Striche</th></tr></thead><tbody><tr><td>A</td><td>||||| |</td></tr><tr><td>B</td><td>||||</td></tr><tr><td>C</td><td>||||| |||</td></tr></tbody></table>
+<section class="part"><p class="part-prompt">a) Welche Häufigkeit gehört zu A? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Welche Häufigkeit gehört zu B? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">c) Welche Häufigkeit gehört zu C? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="md03_zz_largest_is_not_majority" data-domain="data">
+<h2>72. Am meisten ist nicht immer mehr als die Hälfte<span>3 Punkte</span></h2>
+<p>Jede Person stimmt für genau eine der drei Möglichkeiten A, B oder C. Alle Stimmen sind im Diagramm enthalten. Sam sagt: „A hat die meisten Stimmen. Also hat mehr als die Hälfte aller Personen A gewählt.“ Prüfe die zweite Aussage.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 211" role="img" aria-label="Säulendiagramm mit Skala 0 bis 10 in Einerschritten. A: 9, B: 7, C: 4 Stimmen."><title>Säulendiagramm mit Skala 0 bis 10 in Einerschritten. A: 9, B: 7, C: 4 Stimmen.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><line x1="52" y1="176" x2="422" y2="176" stroke="#27333c" stroke-width="0.6"/><text x="42" y="180" text-anchor="end" font-size="11" font-weight="normal">0</text><line x1="52" y1="161" x2="422" y2="161" stroke="#27333c" stroke-width="0.6"/><text x="42" y="165" text-anchor="end" font-size="11" font-weight="normal">1</text><line x1="52" y1="146" x2="422" y2="146" stroke="#27333c" stroke-width="0.6"/><text x="42" y="150" text-anchor="end" font-size="11" font-weight="normal">2</text><line x1="52" y1="131" x2="422" y2="131" stroke="#27333c" stroke-width="0.6"/><text x="42" y="135" text-anchor="end" font-size="11" font-weight="normal">3</text><line x1="52" y1="116" x2="422" y2="116" stroke="#27333c" stroke-width="0.6"/><text x="42" y="120" text-anchor="end" font-size="11" font-weight="normal">4</text><line x1="52" y1="101" x2="422" y2="101" stroke="#27333c" stroke-width="0.6"/><text x="42" y="105" text-anchor="end" font-size="11" font-weight="normal">5</text><line x1="52" y1="86" x2="422" y2="86" stroke="#27333c" stroke-width="0.6"/><text x="42" y="90" text-anchor="end" font-size="11" font-weight="normal">6</text><line x1="52" y1="71" x2="422" y2="71" stroke="#27333c" stroke-width="0.6"/><text x="42" y="75" text-anchor="end" font-size="11" font-weight="normal">7</text><line x1="52" y1="56" x2="422" y2="56" stroke="#27333c" stroke-width="0.6"/><text x="42" y="60" text-anchor="end" font-size="11" font-weight="normal">8</text><line x1="52" y1="41" x2="422" y2="41" stroke="#27333c" stroke-width="0.6"/><text x="42" y="45" text-anchor="end" font-size="11" font-weight="normal">9</text><line x1="52" y1="26" x2="422" y2="26" stroke="#27333c" stroke-width="0.6"/><text x="42" y="30" text-anchor="end" font-size="11" font-weight="normal">10</text><line x1="52" y1="26" x2="52" y2="176" stroke="#27333c" stroke-width="1.7"/><line x1="52" y1="176" x2="422" y2="176" stroke="#27333c" stroke-width="1.7"/><rect x="80.3667" y="41" width="66.6" height="135" fill="#aebfc9" stroke="#27333c" stroke-width="1.2"/><text x="113.667" y="198" text-anchor="middle" font-size="12" font-weight="normal">A</text><rect x="203.7" y="71" width="66.6" height="105" fill="#aebfc9" stroke="#27333c" stroke-width="1.2"/><text x="237" y="198" text-anchor="middle" font-size="12" font-weight="normal">B</text><rect x="327.033" y="116" width="66.6" height="60" fill="#aebfc9" stroke="#27333c" stroke-width="1.2"/><text x="360.333" y="198" text-anchor="middle" font-size="12" font-weight="normal">C</text><text x="52" y="15" text-anchor="start" font-size="11" font-weight="normal">Stimmen</text></g></svg>
+<section class="part"><p class="part-prompt">a) Wie viele Stimmen gibt es insgesamt? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Hat mehr als die Hälfte aller Personen A gewählt? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Ja</span></li>
+<li><span class="box"></span><span>Nein</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">c) Begründe mit der Gesamtzahl und der Stimmenzahl von A. <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<footer>Originale NumberNebula-Aufgaben · AGPL-3.0-only · Lernstandshinweise sind keine Testvorhersage.</footer>
+<script>
+document.getElementById('domain-filter').addEventListener('change', function () {
+  const selected = this.value;
+  document.querySelectorAll('[data-domain]').forEach(function (element) {
+    element.hidden = selected !== 'all' && element.dataset.domain !== selected;
+  });
+});
+</script></body></html>

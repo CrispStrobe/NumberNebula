@@ -23,6 +23,7 @@ import '../../missions/screens/mission_hub_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../games/widgets/debug_panel.dart';
 import '../../../shared/widgets/imprint_dialog.dart';
+import '../../kompass/screens/kompass_hub_screen.dart' deferred as kompass;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -48,6 +49,45 @@ class _HomeScreenState extends State<HomeScreen>
 
   int _debugTapCount = 0;
   Timer? _debugResetTimer;
+  bool _openingKompass = false;
+
+  Future<void> _openKompass() async {
+    if (_openingKompass) return;
+    setState(() => _openingKompass = true);
+    try {
+      await kompass.loadLibrary();
+      if (!mounted) return;
+      await Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => kompass.KompassHubScreen(),
+      ));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(Localizations.localeOf(context).languageCode == 'de'
+            ? 'Der Lernpfad konnte nicht geöffnet werden. Bitte versuche es erneut.'
+            : 'The learning path could not be opened. Please try again.'),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _openingKompass = false);
+    }
+  }
+
+  Widget _buildKompassButton() => Padding(
+    padding: const EdgeInsets.only(top: 12),
+    child: OutlinedButton.icon(
+      key: const ValueKey('open-kompass'),
+      onPressed: _openingKompass ? null : _openKompass,
+      icon: const Icon(Icons.explore_outlined),
+      label: Text(Localizations.localeOf(context).languageCode == 'de'
+          ? 'KOMPASS 4 · Mathematik' : 'KOMPASS 4 · Mathematics'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.white,
+        side: const BorderSide(color: SpaceTheme.starYellow),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      ),
+    ),
+  );
 
   @override
   void initState() {
@@ -81,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     _fadeController.forward();
     Future.delayed(const Duration(milliseconds: 300), () {
-      _slideController.forward();
+      if (mounted) _slideController.forward();
     });
   }
 
@@ -172,8 +212,12 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildHeader() {
-    return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+        key: const ValueKey('home-header'),
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 16,
+        runSpacing: 12,
         children: [
         GestureDetector(
             onTap: () {
@@ -212,8 +256,11 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         
         // --- UPDATED ROW ---
-        Row(
-          mainAxisSize: MainAxisSize.min,
+        Wrap(
+          key: const ValueKey('home-toolbar'),
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
           children: [
             // --- IMPRINT BUTTON ADDED ---
             IconButton(
@@ -234,7 +281,6 @@ class _HomeScreenState extends State<HomeScreen>
                 padding: const EdgeInsets.all(12),
               ),
             ),
-            const SizedBox(width: 8), // Spacing
             // Streak chip — flame + current consecutive-day count.
             Consumer<StreakService>(
               builder: (context, streak, _) {
@@ -326,7 +372,6 @@ class _HomeScreenState extends State<HomeScreen>
                     : btn;
               },
             ),
-            const SizedBox(width: 8),
             Consumer<PlayerProfileService>(builder: (context, players, _) {
               final s = S.of(context)!;
               final name = players.active.name.isEmpty ? s.originalPlayer : players.active.name;
@@ -360,9 +405,9 @@ class _HomeScreenState extends State<HomeScreen>
                 padding: const EdgeInsets.all(12),
               ),
             ),
-            const SizedBox(width: 8),
             IconButton(
               onPressed: _navigateToSettings,
+              tooltip: S.of(context)!.settings,
               icon: const Icon(
               Icons.settings,
               color: Colors.white,
@@ -439,6 +484,7 @@ class _HomeScreenState extends State<HomeScreen>
                     child: _buildStartButton(isSmallScreen),
                   ),
                 ),
+                _buildKompassButton(),
               ],
             ), // Column
           ) // SingleChildScrollView
@@ -478,7 +524,8 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildPortraitLayout() {
-    return Column(
+    return SingleChildScrollView(child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
         FadeTransition(
             opacity: _fadeAnimation,
@@ -497,7 +544,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
         ),
 
-        const Spacer(),
+        const SizedBox(height: 24),
 
         SlideTransition(
             position: _slideAnimation,
@@ -523,7 +570,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
         ),
 
-        const Spacer(),
+        const SizedBox(height: 24),
 
         SlideTransition(
             position: _slideAnimation,
@@ -540,8 +587,9 @@ class _HomeScreenState extends State<HomeScreen>
             child: _buildStartButton(false),
             ),
         ),
+        _buildKompassButton(),
         ],
-    );
+    ));
     }
 
   Widget _buildMissionsButton(bool isSmallScreen) {
@@ -791,12 +839,14 @@ class CompactStatsCard extends StatelessWidget {
                     size: isSmallScreen ? 12 : 20, // Larger icon on big screens
                   ),
                   SizedBox(width: isSmallScreen ? 4 : 8),
-                  Text(
-                    S.of(context)!.progress,
-                    style: TextStyle(
-                      fontSize: isSmallScreen ? 10 : 16, // Larger text on big screens
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                  Flexible(
+                    child: Text(
+                      S.of(context)!.progress,
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 10 : 16, // Larger text on big screens
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -925,10 +975,13 @@ class CompactAchievementsPreview extends StatelessWidget {
                     size: isSmallScreen ? 10 : 14, // Smaller icon
                   ),
                   SizedBox(width: isSmallScreen ? 2 : 4), // Less spacing
-                  Text(
-                    S.of(context)!.achievements,
-                    style: SpaceTheme.titleStyle.copyWith(
-                      fontSize: isSmallScreen ? 8 : 12 // Smaller text
+                  Flexible(
+                    child: Text(
+                      S.of(context)!.achievements,
+                      textAlign: TextAlign.center,
+                      style: SpaceTheme.titleStyle.copyWith(
+                        fontSize: isSmallScreen ? 8 : 12 // Smaller text
+                      ),
                     ),
                   ),
                 ],
@@ -1035,12 +1088,15 @@ class CompactGradeSelector extends StatelessWidget {
                     size: 20, // Smaller icon
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    S.of(context)!.gradeN(gameProvider.grade), // Use gradeN for localization
-                    style: const TextStyle(
-                      fontSize: 16, // Smaller text
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                  Flexible(
+                    child: Text(
+                      S.of(context)!.gradeN(gameProvider.grade), // Use gradeN for localization
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 16, // Smaller text
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -1060,8 +1116,8 @@ class CompactGradeSelector extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
-                      width: 40,
-                      height: 40,
+                      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         gradient: isSelected
                             ? const LinearGradient(

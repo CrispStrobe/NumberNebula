@@ -1,9 +1,29 @@
 # Executable next-work lanes
 
-Updated 2026-11-05. Read [HANDOVER.md](HANDOVER.md) first for the current state,
+Updated 2026-11-09. Read [HANDOVER.md](HANDOVER.md) first for the current state,
 the shipping baseline and completed audits. These are scoped next steps, not claims
 that the named games are broken. Each round-audit batch below is independent;
 implement one game per PR rather than combining an entire batch.
+
+## Active owner-requested KOMPASS pathway
+
+The active combined work is on
+[`integrate/kompass4-all`](https://github.com/CrispStrobe/NumberNebula/tree/integrate/kompass4-all),
+in [draft PR #71](https://github.com/CrispStrobe/NumberNebula/pull/71). It combines
+the foundation/harder labs from #69, the reasoning expansion from #70, and the
+six original kompass4 mathematics papers. Continue on this integration rather
+than the earlier component branches. Older lab drafts retain their recipe;
+new rounds use the harder recipe. Original-paper tasks retain a separate use
+and evidence classification.
+Use [the feature handoff](docs/kompass4-implementation.md) for source contracts,
+validation commands and known limits, and [the coverage map](docs/kompass4-coverage.md)
+for the 32 competencies. Read [the expansion record](docs/kompass4-reasoning-expansion.md)
+for the expansion's evidence. At integrated `2546d424`, strict analysis, 187
+KOMPASS cases, the 2,247-case native suite and pure calibration passed; browser
+validation was still queued. Verify the latest PR #71 head and review before merging;
+then verify merged-main publication through the existing workflows. Learner and
+teacher pilots remain necessary before any learning-outcome or test-readiness
+claim. Existing release and unrelated game-audit lanes below remain separate.
 
 ## Next up (in this order)
 

@@ -1,0 +1,339 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>NumberNebula · 45-Minuten-Probe</title><style>
+@page { size: A4; margin: 16mm 17mm 17mm; }
+* { box-sizing: border-box; }
+body { max-width: 820px; margin: 0 auto; padding: 24px; color: #17242e; background: white;
+       font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.4; }
+h1 { font-size: 29px; line-height: 1.15; margin: 10px 0; }
+h2 { font-size: 19px; margin: 0 0 8px; line-height: 1.3; }
+h3 { font-size: 16px; margin: 12px 0 6px; }
+p { margin: 6px 0 10px; }
+.eyebrow { text-transform: uppercase; letter-spacing: .1em; font-size: 11px; font-weight: bold; color: #45616c; }
+.intro { border: 1px solid #c3cdd3; border-left: 4px solid #416c69; padding: 14px 16px; margin: 18px 0; }
+.warning { font-size: 13px; color: #364b57; }
+.name { margin: 22px 0; }
+.toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; padding: 12px 0; margin-bottom: 14px; }
+button, select { font: inherit; background: #eef2f4; border: 1px solid #9dadb8; border-radius: 6px; padding: 8px 12px; }
+.domain-title { font-size: 24px; margin: 30px 0 14px; border-bottom: 2px solid #416c69; padding-bottom: 6px; }
+.task { margin: 0 0 22px; padding: 15px 0 16px; border-bottom: 1px solid #c7d0d7; break-inside: avoid; page-break-inside: avoid; }
+.task h2 span { font-size: 11px; font-weight: normal; color: #546572; margin-left: 8px; white-space: nowrap; }
+.part { margin-top: 12px; }
+.part-prompt { font-weight: 600; }
+.points { font-size: 11px; font-weight: normal; color: #526472; }
+.response { display: flex; align-items: baseline; gap: 9px; margin: 16px 0 5px; }
+.number-line { display: inline-block; width: 160px; border-bottom: 1px solid #4b5b65; height: 20px; }
+.writing-line { height: 27px; border-bottom: 1px solid #9caab4; }
+.choices { list-style: none; margin: 5px 0; padding: 0; }
+.choices li { display: flex; gap: 8px; margin: 6px 0; align-items: baseline; }
+.box { display: inline-block; border: 1px solid #4b5b65; width: 13px; height: 13px; flex: 0 0 13px; }
+.order-box { width: 24px; height: 20px; }
+.diagram { display: block; width: 100%; height: auto; max-width: 100%; max-height: 185px; margin: 10px auto; }
+.data-table, .score-table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+th, td { border: 1px solid #7d909d; padding: 7px 9px; text-align: left; vertical-align: top; }
+th { background: #eef2f4; font-weight: 600; }
+.solution { padding: 9px 12px; background: #f0f5f2; border-left: 3px solid #416c69; }
+.rubric { margin: 6px 0 10px; padding-left: 22px; font-size: 13px; }
+.source { font-size: 11px; color: #53646f; overflow-wrap: anywhere; }
+.review-sheet { break-before: page; page-break-before: always; }
+footer { margin-top: 24px; border-top: 1px solid #c7d0d7; padding-top: 8px; font-size: 11px; color: #53646f; }
+[hidden] { display: none !important; }
+@media print {
+  body { padding: 0; max-width: none; font-size: 10.5pt; }
+  h1 { font-size: 22pt; } h2 { font-size: 13pt; }
+  .screen-only { display: none !important; }
+  .intro { padding: 9px 12px; }
+  .task { margin-bottom: 12px; padding-top: 10px; }
+  .domain-title { break-before: page; page-break-before: always; font-size: 17pt; }
+  .diagram { max-height: 44mm; }
+  .data-table, .score-table { font-size: 9.5pt; }
+  th, td { padding: 5px 7px; }
+  a { color: inherit; text-decoration: none; }
+  .solution { background: white; }
+}
+</style></head><body>
+<div class="toolbar screen-only"><button type="button" onclick="window.print()">Drucken / als PDF speichern</button><label for="domain-filter">Bereich:</label><select id="domain-filter"><option value="all">Alle Bereiche</option><option value="numbers">Zahlen und Operationen</option><option value="geometry">Raum und Form</option><option value="measurement">Größen und Messen</option><option value="data">Daten und Zufall</option></select></div>
+<div class="eyebrow">NumberNebula · KOMPASS 4 Mathematik</div>
+<h1>45-Minuten-Probe</h1><p>20 Aufgaben · Deutsch · 2.1.0</p>
+<div class="intro"><p>Diese eigenständigen Aufgaben gehören zum optionalen KOMPASS-4-Mathematik-Lernpfad. Sie sind kein amtlicher Test. Aus Punkten folgt keine amtliche Niveaustufe oder Schulartempfehlung.</p><p><strong>Nach dem Lesen der allgemeinen Hinweise beginnen 45 Minuten Arbeitszeit, einschließlich Aufgabenlesen und Kontrolle. Aufgaben dürfen übersprungen und später bearbeitet werden. Lösungen erst nach Abgabe ansehen.</strong></p><p>Material: Papier, Bleistift, Radiergummi und Lineal. Ohne Taschenrechner. Maße an Zeichnungen gelten nach Beschriftung; Bildschirmbilder nicht mit einem echten Lineal messen.</p></div>
+<p class="name">Name: ______________________________  Datum: ______________</p>
+<h2 class="domain-title" data-domain="numbers">Zahlen und Operationen</h2>
+<article class="task" data-task-id="mz01_missing_bundle_count" data-domain="numbers">
+<h2>1. Eine Bündelzahl fehlt<span>2 Punkte</span></h2>
+<p>Eine Sammlung stellt 2734 dar: 2 Tausender, eine unbekannte Anzahl Hunderter, 13 Zehner und 4 Einer.</p>
+<section class="part"><p class="part-prompt">a) Wie viele Hunderter gehören in die Lücke? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Zeige mit einer Rechnung, dass deine Darstellung 2734 ergibt. <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz02_missing_comparison_digit" data-domain="numbers">
+<h2>2. Eine Ziffer passt mehrfach<span>2 Punkte</span></h2>
+<p>Die dreistellige Zahl 6□4 soll größer als 654 und kleiner als 684 sein.</p>
+<section class="part"><p class="part-prompt">a) Welche Ziffern passen in das Kästchen? Wähle alle. <span class="points">(1 P.)</span></p>
+<p class="points">Alle passenden ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>4</span></li>
+<li><span class="box"></span><span>5</span></li>
+<li><span class="box"></span><span>6</span></li>
+<li><span class="box"></span><span>7</span></li>
+<li><span class="box"></span><span>8</span></li>
+<li><span class="box"></span><span>9</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Warum passt die Ziffer 8 nicht? <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz04_subtraction_audit" data-domain="numbers">
+<h2>3. Ein Ergebnis überprüfen<span>2 Punkte</span></h2>
+<p>Auf einem Zettel steht: 3004 − 1789 = 1325. Prüfe die Rechnung.</p>
+<section class="part"><p class="part-prompt">a) Wie lautet das richtige Ergebnis? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Welche Rechnung prüft ein Ergebnis x passend? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>x + 1789 muss 3004 ergeben</span></li>
+<li><span class="box"></span><span>x + 3004 muss 1789 ergeben</span></li>
+<li><span class="box"></span><span>x − 1789 muss 3004 ergeben</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mz05_quarter_hundred_groups" data-domain="numbers">
+<h2>4. Mit Vierergruppen rechnen<span>2 Punkte</span></h2>
+<p>Vier Päckchen mit je 25 Marken enthalten zusammen 100 Marken. Es sind 36 solcher Päckchen vorhanden.</p>
+<section class="part"><p class="part-prompt">a) Wie viele Marken enthalten 36 Päckchen? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Erkläre einen Weg über die Vierergruppen. <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz07_near_thousand_correction" data-domain="numbers">
+<h2>5. Einen Rechenvorschlag prüfen<span>2 Punkte</span></h2>
+<p>Jemand sagt: &#x27;999 + 68 rechne ich als 1000 + 68. Das Ergebnis 1068 ist schon fertig.&#x27;</p>
+<section class="part"><p class="part-prompt">a) Wie lautet das richtige Ergebnis von 999 + 68? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Was fehlt im vorgeschlagenen Rechenweg? <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz08_invariant_sum_pattern" data-domain="numbers">
+<h2>6. Ein Rechenpäckchen fortsetzen<span>2 Punkte</span></h2>
+<p>Ein Päckchen folgt dieser Regel: Der erste Summand wächst immer um 1, der zweite sinkt immer um 1. Es beginnt mit 201 + 89, 202 + 88, 203 + 87.</p>
+<section class="part"><p class="part-prompt">a) Welcher zweite Summand gehört zur ersten Zahl 205? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Was passiert mit den Summen? Begründe. <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mz09_best_pair_below_limit" data-domain="numbers">
+<h2>7. Möglichst nah an die Grenze<span>2 Punkte</span></h2>
+<p>Wähle genau zwei verschiedene Karten aus 12, 15, 18 und 21. Ihre Summe darf 35 nicht überschreiten und soll möglichst groß sein.</p>
+<section class="part"><p class="part-prompt">a) Wie groß ist die beste mögliche Summe? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Welche Paare erreichen diese beste Summe? Wähle alle. <span class="points">(1 P.)</span></p>
+<p class="points">Alle passenden ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>12 und 21</span></li>
+<li><span class="box"></span><span>15 und 18</span></li>
+<li><span class="box"></span><span>15 und 21</span></li>
+<li><span class="box"></span><span>18 und 21</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mz10_insufficient_information" data-domain="numbers">
+<h2>8. Reichen die Angaben?<span>2 Punkte</span></h2>
+<p>Drei Kisten enthalten Bücher. In der ersten sind 12, in der zweiten 15. Zur dritten Kiste ist nur bekannt, dass sie blau ist. Gesucht ist die Gesamtzahl der Bücher.</p>
+<section class="part"><p class="part-prompt">a) Kann die genaue Gesamtzahl mit diesen Angaben bestimmt werden? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Ja, es sind 27 Bücher.</span></li>
+<li><span class="box"></span><span>Nein, eine Mengenangabe fehlt.</span></li>
+<li><span class="box"></span><span>Ja, es sind 30 Bücher.</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Welche zusätzliche Angabe wird gebraucht? <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<h2 class="domain-title" data-domain="geometry">Raum und Form</h2>
+<article class="task" data-task-id="mr02_join_identical_rectangles" data-domain="geometry">
+<h2>9. Zwei Rechtecke aneinanderlegen<span>2 Punkte</span></h2>
+<p>Zwei Papier-Rechtecke sind jeweils 2 cm mal 3 cm groß. Sie werden ohne Überlappung an einer ganzen, gleich langen Seite zusammengelegt. Die Außenform soll wieder ein Rechteck sein.</p>
+<section class="part"><p class="part-prompt">a) Welche Außenmaße sind möglich? Wähle alle, Drehungen nicht doppelt. <span class="points">(1 P.)</span></p>
+<p class="points">Alle passenden ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>2 cm × 6 cm</span></li>
+<li><span class="box"></span><span>4 cm × 3 cm</span></li>
+<li><span class="box"></span><span>4 cm × 6 cm</span></li>
+<li><span class="box"></span><span>2 cm × 3 cm</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Beschreibe einen der beiden Legewege. <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mr03_combine_half_squares" data-domain="geometry">
+<h2>10. Halbe Flächeneinheiten<span>2 Punkte</span></h2>
+<p>Eine Fläche besteht aus 4 ganzen Einheitsquadraten und 2 Dreiecken. Jedes Dreieck ist genau die Hälfte eines weiteren Einheitsquadrats. Alle Teile liegen ohne Lücken oder Überlappungen aneinander.</p>
+<section class="part"><p class="part-prompt">a) Wie viele ganze Flächeneinheiten sind das zusammen? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Erkläre, wie du die beiden Dreiecke gezählt hast. <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mr05_triangle_axis_counterexample" data-domain="geometry">
+<h2>11. Eine Behauptung widerlegen<span>2 Punkte</span></h2>
+<p>Jona sagt: &#x27;Jedes Dreieck hat eine Spiegelachse.&#x27; Betrachte ein Dreieck mit Seitenlängen 3 cm, 4 cm und 5 cm.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 193.333 155" role="img" aria-label="Rechtwinkliges Dreieck mit drei verschieden langen Seiten: 3 cm, 4 cm, 5 cm."><title>Rechtwinkliges Dreieck mit drei verschieden langen Seiten: 3 cm, 4 cm, 5 cm.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><polygon points="20,135 173.333,135 20,20" fill="#eef1f4" stroke="#27333c" stroke-width="1.8"/></g></svg>
+<section class="part"><p class="part-prompt">a) Wie viele Spiegelachsen hat dieses Dreieck? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Was zeigt dieses Beispiel über Jonas Behauptung? <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mr06_reverse_view_plans" data-domain="geometry">
+<h2>12. Mehrere Baupläne sind möglich<span>2 Punkte</span></h2>
+<p>Ein Gebäude hat genau 6 Würfel. Sein Schattenbild von vorn ist links 2 und rechts 3 Würfel hoch. In jedem Plan stehen zuerst die hintere, danach die vordere Reihe. 0 bedeutet: kein Turm.</p>
+<section class="part"><p class="part-prompt">a) Welche Pläne erfüllen beide Angaben? Wähle alle. <span class="points">(1 P.)</span></p>
+<p class="points">Alle passenden ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Hinten: 2, 1; vorne: 0, 3</span></li>
+<li><span class="box"></span><span>Hinten: 2, 3; vorne: 2, 0</span></li>
+<li><span class="box"></span><span>Hinten: 2, 1; vorne: 0, 2</span></li>
+<li><span class="box"></span><span>Hinten: 0, 3; vorne: 2, 1</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Warum legt eine Vorderansicht nicht jeden einzelnen Turm fest? <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mr07_valid_net_selection" data-domain="geometry">
+<h2>13. Welche Netze schließen einen Würfel?<span>2 Punkte</span></h2>
+<p>Jede Figur besteht aus sechs gleich großen Quadraten. Gefaltet wird nur an gemeinsamen Kanten, ohne Schneiden oder Überlappen.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 696 117" role="img" aria-label="Vier Sechserfiguren: A zwei Dreierreihen, die zweite beginnt unter dem letzten Feld der ersten; B ein 2-mal-3-Rechteck; C eine Reihe aus sechs; D eine Viererreihe mit einem Quadrat über dem linken und einem unter dem rechten Ende."><title>Vier Sechserfiguren: A zwei Dreierreihen, die zweite beginnt unter dem letzten Feld der ersten; B ein 2-mal-3-Rechteck; C eine Reihe aus sechs; D eine Viererreihe mit einem Quadrat über dem linken und einem unter dem rechten Ende.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><text x="87" y="16" text-anchor="middle" font-size="15" font-weight="bold">A</text><rect x="18" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="41" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="64" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="64" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="87" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="110" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><text x="261" y="16" text-anchor="middle" font-size="15" font-weight="bold">B</text><rect x="192" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="215" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="238" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="192" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="215" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="238" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><text x="435" y="16" text-anchor="middle" font-size="15" font-weight="bold">C</text><rect x="366" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="389" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="412" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="435" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="458" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="481" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><text x="609" y="16" text-anchor="middle" font-size="15" font-weight="bold">D</text><rect x="540" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="563" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="586" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="609" y="53" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="540" y="30" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/><rect x="609" y="76" width="23" height="23" fill="#c4ced5" stroke="#27333c" stroke-width="1.2"/></g></svg>
+<section class="part"><p class="part-prompt">a) Welche Figuren sind gültige Würfelnetze? Wähle alle. <span class="points">(1 P.)</span></p>
+<p class="points">Alle passenden ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>A</span></li>
+<li><span class="box"></span><span>B</span></li>
+<li><span class="box"></span><span>C</span></li>
+<li><span class="box"></span><span>D</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Warum genügt die Anzahl von sechs Quadraten allein nicht? <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<h2 class="domain-title" data-domain="measurement">Größen und Messen</h2>
+<article class="task" data-task-id="mg01_implausible_label" data-domain="measurement">
+<h2>14. Eine unplausible Beschriftung<span>2 Punkte</span></h2>
+<p>Auf vier Etiketten stehen übliche Alltagsgrößen: eine Banane 150 kg, ein beladener Rucksack 3 kg, ein Bleistift 15 cm, eine große Saftflasche 2 l.</p>
+<section class="part"><p class="part-prompt">a) Welches Etikett passt offensichtlich nicht? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Banane: 150 kg</span></li>
+<li><span class="box"></span><span>Rucksack: 3 kg</span></li>
+<li><span class="box"></span><span>Bleistift: 15 cm</span></li>
+<li><span class="box"></span><span>Saftflasche: 2 l</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Ändere nur die Einheit des unplausiblen Etiketts, damit die Angabe passt. <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<article class="task" data-task-id="mg02_reconstruct_route_leg" data-domain="measurement">
+<h2>15. Ein Wegstück fehlt<span>2 Punkte</span></h2>
+<p>Eine Wanderstrecke ist insgesamt 3 km lang. Das erste Teilstück misst 1 km 200 m, das zweite 650 m. Ein drittes Teilstück führt zum Ziel. Verwende 1 km = 1000 m.</p>
+<section class="part"><p class="part-prompt">a) Wie lang ist das dritte Teilstück in Metern? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>m</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Welche gemischte Schreibweise passt zu dieser Länge? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>1 km 150 m</span></li>
+<li><span class="box"></span><span>1 km 15 m</span></li>
+<li><span class="box"></span><span>11 km 50 m</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="mg04_reverse_receipt" data-domain="measurement">
+<h2>16. Ein fehlender Preis auf dem Bon<span>2 Punkte</span></h2>
+<p>Ein Einkauf wird mit 20 € bezahlt, und 7,50 € werden zurückgegeben. Auf dem Bon stehen genau zwei Artikel: ein Buch für 4,50 € und ein Spiel mit unleserlichem Preis.</p>
+<section class="part"><p class="part-prompt">a) Wie viel wurde insgesamt ausgegeben? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>€</span></div>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viel kostete das Spiel? Ziehe den Buchpreis von deinem Gesamtpreis ab. <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>€</span></div>
+</section>
+</article>
+<article class="task" data-task-id="mg05_timetable_with_walk" data-domain="measurement">
+<h2>17. Der späteste passende Bus<span>2 Punkte</span></h2>
+<p>Ein Termin beginnt um 10:30 Uhr. Von der Zielhaltestelle sind es noch 12 Minuten zu Fuß. Die Tabelle zeigt drei Busse. Wähle den spätesten Bus, mit dem der Termin pünktlich erreicht wird.</p>
+<table class="data-table" aria-label="Bus A fährt 09:05 ab und kommt 10:00 an; B 09:25 bis 10:20; C 09:40 bis 10:35."><thead><tr><th>Bus</th><th>Abfahrt</th><th>Ankunft Haltestelle</th></tr></thead><tbody><tr><td>A</td><td>09:05</td><td>10:00</td></tr><tr><td>B</td><td>09:25</td><td>10:20</td></tr><tr><td>C</td><td>09:40</td><td>10:35</td></tr></tbody></table>
+<section class="part"><p class="part-prompt">a) Welcher Bus passt? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Bus A</span></li>
+<li><span class="box"></span><span>Bus B</span></li>
+<li><span class="box"></span><span>Bus C</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Minuten bleiben nach dem Fußweg bis 10:30 übrig? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span>min</span></div>
+</section>
+</article>
+<h2 class="domain-title" data-domain="data">Daten und Zufall</h2>
+<article class="task" data-task-id="md01_table_constraints" data-domain="data">
+<h2>18. Einen passenden Raum finden<span>2 Punkte</span></h2>
+<p>Für eine Veranstaltung werden mindestens 18 Plätze gebraucht. Der Raum darf höchstens 25 € kosten. Die Tabelle enthält alle angebotenen Räume.</p>
+<table class="data-table" aria-label="Raum A: 16 Plätze, 20 Euro. B: 20 Plätze, 25 Euro. C: 24 Plätze, 30 Euro."><thead><tr><th>Raum</th><th>Plätze</th><th>Preis</th></tr></thead><tbody><tr><td>A</td><td>16</td><td>20 €</td></tr><tr><td>B</td><td>20</td><td>25 €</td></tr><tr><td>C</td><td>24</td><td>30 €</td></tr></tbody></table>
+<section class="part"><p class="part-prompt">a) Welcher Raum erfüllt beide Bedingungen? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>A</span></li>
+<li><span class="box"></span><span>B</span></li>
+<li><span class="box"></span><span>C</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Wie viele Plätze bleiben bei 18 Personen in diesem Raum frei? <span class="points">(1 P.)</span></p>
+<div class="response"><span class="number-line"></span><span></span></div>
+</section>
+</article>
+<article class="task" data-task-id="md04_draw_two_without_replacement" data-domain="data">
+<h2>19. Zwei Plättchen ohne Zurücklegen<span>2 Punkte</span></h2>
+<p>In einem Beutel liegen genau zwei rote und ein blaues Plättchen. Es werden zwei Plättchen ohne Hinsehen und ohne Zurücklegen gezogen.</p>
+<svg class="diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 64" role="img" aria-label="Beutel mit zwei roten und einem blauen Plättchen; gezogen werden zwei ohne Zurücklegen."><title>Beutel mit zwei roten und einem blauen Plättchen; gezogen werden zwei ohne Zurücklegen.</title><g font-family="Arial, Helvetica, sans-serif" fill="#17242e"><circle cx="32" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="32" y="36" text-anchor="middle" font-size="12" font-weight="normal">rot</text><circle cx="90" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="90" y="36" text-anchor="middle" font-size="12" font-weight="normal">rot</text><circle cx="148" cy="32" r="24" fill="#eef1f4" stroke="#27333c" stroke-width="1.3"/><text x="148" y="36" text-anchor="middle" font-size="12" font-weight="normal">blau</text></g></svg>
+<section class="part"><p class="part-prompt">a) Welche Aussage ist sicher richtig? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Beide sind rot.</span></li>
+<li><span class="box"></span><span>Mindestens eines ist rot.</span></li>
+<li><span class="box"></span><span>Beide sind blau.</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Zwei blaue Plättchen zu ziehen ist … <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>sicher</span></li>
+<li><span class="box"></span><span>möglich, aber nicht sicher</span></li>
+<li><span class="box"></span><span>unmöglich</span></li>
+</ul>
+</section>
+</article>
+<article class="task" data-task-id="md05_fair_number_card_rules" data-domain="data">
+<h2>20. Gleich gute Gewinnregeln<span>2 Punkte</span></h2>
+<p>Die Zahlenkarten 1 bis 8 liegen gut gemischt verdeckt. Jede Karte ist gleich wahrscheinlich. Alex gewinnt einen Punkt bei einer Zahl größer als 6. Für Bo soll eine Regel mit derselben Gewinnchance gewählt werden.</p>
+<section class="part"><p class="part-prompt">a) Welche Regel ist für Bo gleich günstig? <span class="points">(1 P.)</span></p>
+<p class="points">Genau eine Antwort ankreuzen.</p><ul class="choices">
+<li><span class="box"></span><span>Die Zahl ist gerade.</span></li>
+<li><span class="box"></span><span>Die Zahl ist höchstens 2.</span></li>
+<li><span class="box"></span><span>Die Zahl ist ungerade.</span></li>
+</ul>
+</section>
+<section class="part"><p class="part-prompt">b) Begründe mit den passenden Karten. <span class="points">(1 P.)</span></p>
+<div class="writing-line"></div><div class="writing-line"></div><div class="writing-line"></div>
+</section>
+</article>
+<footer>Originale NumberNebula-Aufgaben · AGPL-3.0-only · Lernstandshinweise sind keine Testvorhersage.</footer>
+<script>
+document.getElementById('domain-filter').addEventListener('change', function () {
+  const selected = this.value;
+  document.querySelectorAll('[data-domain]').forEach(function (element) {
+    element.hidden = selected !== 'all' && element.dataset.domain !== selected;
+  });
+});
+</script></body></html>

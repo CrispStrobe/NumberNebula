@@ -23,6 +23,14 @@ jobs:
       - name: Check build wrapper and source identity
         run: python3 tool/test_build_web.py
 
+      - name: Check KOMPASS content, mathematics and printable reproducibility
+        run: |
+          python3 -B tool/kompass/build_content.py --check
+          python3 -B tool/kompass/validate_content.py
+          python3 -B tool/kompass/build_print.py --check
+          python3 -B tool/kompass/import_kompass4_math.py --check
+          python3 -B -m unittest discover -s tool/kompass -p 'test_*.py' -v
+
       - name: Read Flutter SDK pin
         run: echo "FLUTTER_VERSION=$(cat .flutter-version)" >> "$GITHUB_ENV"
 
@@ -41,6 +49,14 @@ jobs:
 
       - name: Static analysis
         run: flutter analyze --fatal-infos
+
+      - name: Check KOMPASS scoring, evidence, labs, course and restoration
+        run: |
+          dart tool/kompass/audit_reasoning_labs.dart
+          dart tool/kompass/audit_journey_area_labs.dart
+          dart tool/kompass/audit_chance_labs.dart
+          dart tool/kompass/audit_legacy_lab_recipes.dart
+          flutter test test/kompass --concurrency=1 --reporter expanded
 
       - name: Check actual practice rules, hints and difficulty selection
         run: flutter test test/widgets/all_games_coaching_test.dart test/widgets/practice_rule_shell_test.dart test/logic/board_hint_engine_test.dart test/logic/practice_difficulty_test.dart --concurrency=1 --reporter expanded
