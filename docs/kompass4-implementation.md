@@ -12,6 +12,13 @@ The authoring reference is CrispStrobe/kompass4 at
 are project-owned identifiers, not official IBBW assessment codes. Published
 official papers remain linked references and are not embedded or adapted.
 
+The resumed implementation uses app version **1.6.0+64** and content version
+**2.0.1**. kompass4 supplies a deterministic, pinned competency metadata export;
+the interactive exercises remain original NumberNebula content. The mapping
+includes exact curriculum references and estimated time bounds in seconds.
+The source matrix does not author a prerequisite graph; none is inferred from
+task order or curriculum identifiers.
+
 ## Delivery checklist
 
 - [x] Versioned original bilingual content covering all 32 competencies, with
@@ -116,6 +123,12 @@ work time are monotonic revisions. A family first exposed in the current saved
 session can still be new; abandoning it, seeing a paper copy or solving an earlier
 item in that family makes later attempts previously seen.
 
+Opening a worked solution or requesting a hint updates assistance immediately,
+without submitting a draft response. Solution exposure remains visible after a
+correction or reopening. Attempt revisions carry an integer generation; a stale
+editor cannot overwrite a newer response or manual review. Progress uses this
+generation before timestamps when choosing between revisions.
+
 The planner describes observations, not predicted scores. Two distinct families
 solved correctly on their first independent submission support the label
 “solved independently”; a later independent error returns the goal to practice.
@@ -140,8 +153,16 @@ remote source checkpoints do not back up a learner's device-local progress.
 
 ## Authoring and validation commands
 
-The authoritative original authoring sources are in `tool/kompass/`. Rebuild and
-validate with Python's standard library:
+Original interactive-task authoring sources are in `tool/kompass/`. Canonical
+competency metadata comes from kompass4's `data/numbernebula_math_mapping_v1.json`.
+The reviewed export is copied locally and protected by an immutable commit and
+SHA-256 lock. Builders and tests reject an altered export, mismatched provenance,
+wrong time units, duplicate IDs or unreviewed fields. This corrects six curriculum
+links that had drifted from the source matrix, while preserving the independently
+authored tasks and their explicit scoring rules. No task prose or official test
+material is imported through this bridge.
+
+Rebuild and validate with Python's standard library:
 
 ```sh
 python3 -B tool/kompass/build_content.py

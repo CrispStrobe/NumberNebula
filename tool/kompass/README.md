@@ -1,9 +1,10 @@
 # KOMPASS mathematics content and paper authoring
 
-This directory is the editable source of NumberNebula's optional KOMPASS 4
-mathematics pathway. It produces one bilingual content package and standalone
-paper worksheets from the same reviewed tasks. All tools use the Python standard
-library; run them from the repository root.
+This directory contains the original interactive tasks for NumberNebula's optional
+KOMPASS 4 mathematics pathway. It produces one bilingual content package and
+standalone paper worksheets from the same reviewed tasks. Canonical competency
+metadata is imported from a pinned kompass4 export. All tools use the Python
+standard library; run them from the repository root.
 
 ## Current content
 
@@ -37,6 +38,9 @@ eight broader curriculum entries are `M-Z11`, `M-Z12`, `M-R01`, `M-R08`, `M-G06`
 | --- | --- |
 | `common.py` | Small authoring helpers; no answer inference from prose |
 | `competencies.py` | Bilingual goals, evidence labels, curriculum and existing game links |
+| `source_mapping.py` | Validates pinned competency metadata and its provenance |
+| `source_mapping_v1.json`, `source_mapping.lock.json` | Reviewed kompass4 export and immutable source/hash lock |
+| `sync_mapping.py` | Imports or checks an explicitly reviewed source export |
 | `content_numbers.py` | Numbers and operations tasks |
 | `content_geometry.py` | Space and shape tasks |
 | `content_measurement.py` | Measurement and applied quantity tasks |
@@ -75,6 +79,35 @@ python3 -B -m unittest discover -s tool/kompass -p 'test_*.py' -v
 The `--check` commands compare generated output byte for byte and do not write
 files. Avoid timestamps, random generation and environment-dependent formatting.
 Python `-B` keeps bytecode caches out of the repository.
+
+## Updating the kompass4 mapping
+
+kompass4 owns the 32 project competency IDs, domain and evidence classifications,
+curriculum codes/URLs/versions, and author-estimated time bounds. The export is
+deliberately limited to those fields. It contains no source task prose, solutions
+or official papers and grants no license to other kompass4 documents.
+
+The initial reviewed export is at
+[`f57dddd`](https://github.com/CrispStrobe/kompass4/commit/f57ddddb17db338e7f7f94b3463d62b6c8091ce3).
+It preserves the original matrix pin and records time bounds explicitly in
+**seconds**, separately from task duration estimates. The source has no authored
+prerequisite graph; the course does not invent one.
+
+For an update, review the export and its source matrix in kompass4, then supply
+the exact commit containing it:
+
+```sh
+python3 -B tool/kompass/sync_mapping.py \
+  --source ../kompass4/data/numbernebula_math_mapping_v1.json \
+  --source-commit FULL_REVIEWED_COMMIT_SHA
+```
+
+Add `--check` to compare without writing. The importer is offline; the reviewer
+must verify that the supplied commit contains those bytes. Builders verify the
+local SHA-256 lock on every run. After changing the mapping, bump the content
+version, regenerate JSON and paper output, and run the four gates above. The
+generated package includes the exact source/export provenance under
+`source.competencyMapping`.
 
 ## Content contract
 

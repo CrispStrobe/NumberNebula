@@ -23,6 +23,9 @@ class KompassAttempt {
   final int activeSeconds;
   final DateTime at;
   final DateTime updatedAt;
+
+  /// Persisted edit generation, so an old editor cannot replace newer work.
+  final int revision;
   final bool completed;
   final bool solutionSeenBeforeFirstResponse;
   final bool solutionSeen;
@@ -47,6 +50,7 @@ class KompassAttempt {
     required this.activeSeconds,
     required this.at,
     required this.updatedAt,
+    required this.revision,
     required this.completed,
     required this.solutionSeenBeforeFirstResponse,
     required this.solutionSeen,
@@ -63,6 +67,7 @@ class KompassAttempt {
         hintsBeforeFirstResponse < 0 ||
         hintsUsed < hintsBeforeFirstResponse ||
         activeSeconds < 0 ||
+        revision < 0 ||
         (solutionSeenBeforeFirstResponse && !solutionSeen)) {
       throw const FormatException('Invalid attempt evidence.');
     }
@@ -81,7 +86,8 @@ class KompassAttempt {
   bool get assisted => hintsUsed > 0 || solutionSeen;
   bool get pendingReview => score.pendingReview;
   List<String> get competencyIds => List.unmodifiable(
-      firstScore.parts.expand((part) => part.competencyIds).toSet());
+        firstScore.parts.expand((part) => part.competencyIds).toSet(),
+      );
 
   factory KompassAttempt.forTask({
     required String id,
@@ -120,13 +126,17 @@ class KompassAttempt {
       activeSeconds: activeSeconds,
       at: submittedAt,
       updatedAt: submittedAt,
+      revision: 0,
       completed: completed,
       solutionSeenBeforeFirstResponse: solutionSeenBeforeFirstResponse,
       solutionSeen: solutionSeen || solutionSeenBeforeFirstResponse,
       isNovel: isNovel,
       firstScore: KompassScorer.score(task, firstResponses),
-      score: KompassScorer.score(task, currentResponses,
-          manualPoints: manualPoints),
+      score: KompassScorer.score(
+        task,
+        currentResponses,
+        manualPoints: manualPoints,
+      ),
     );
   }
 
@@ -178,6 +188,7 @@ class KompassAttempt {
       activeSeconds: (result['activeSeconds'] as num? ?? 0).toInt(),
       at: submittedAt,
       updatedAt: submittedAt,
+      revision: 0,
       completed: true,
       solutionSeenBeforeFirstResponse: false,
       solutionSeen: result['solutionSeen'] == true,
@@ -205,10 +216,12 @@ class KompassAttempt {
     bool? solutionSeen,
     bool? isNovel,
     DateTime? updatedAt,
+    int? revision,
   }) {
     if (responses != null && score == null) {
       throw ArgumentError(
-          'Changed responses need an explicitly revised score.');
+        'Changed responses need an explicitly revised score.',
+      );
     }
     return KompassAttempt._(
       id: id,
@@ -227,6 +240,7 @@ class KompassAttempt {
       activeSeconds: activeSeconds ?? this.activeSeconds,
       at: at,
       updatedAt: (updatedAt ?? DateTime.now()).toUtc(),
+      revision: revision ?? this.revision + 1,
       completed: completed ?? this.completed,
       solutionSeenBeforeFirstResponse: solutionSeenBeforeFirstResponse,
       solutionSeen: solutionSeen ?? this.solutionSeen,
@@ -276,6 +290,7 @@ class KompassAttempt {
         'activeSeconds': activeSeconds,
         'at': at.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
+        'revision': revision,
         'completed': completed,
         'solutionSeenBeforeFirstResponse': solutionSeenBeforeFirstResponse,
         'solutionSeen': solutionSeen,
@@ -306,6 +321,7 @@ class KompassAttempt {
       activeSeconds: json['activeSeconds'] as int,
       at: DateTime.parse(json['at'] as String).toUtc(),
       updatedAt: DateTime.parse(json['updatedAt'] as String).toUtc(),
+      revision: json['revision'] as int? ?? 0,
       completed: json['completed'] as bool,
       solutionSeenBeforeFirstResponse:
           json['solutionSeenBeforeFirstResponse'] as bool,

@@ -1,0 +1,402 @@
+{
+  "schemaVersion": 1,
+  "id": "kompass4_numbernebula_math_mapping",
+  "version": "1.0.0",
+  "source": {
+    "repository": "https://github.com/CrispStrobe/kompass4",
+    "commit": "9a0b25a6b0706b7c7944836e00f163bcbfd46676",
+    "path": "data/kompass_matrix_mathe.json",
+    "sha256": "ebb11af8ce6cc8b06aec9a4ad738186090884f57ad8a78406412b2323709e2f5",
+    "timeUnit": "seconds",
+    "timeBasis": "authorEstimates",
+    "prerequisitesAuthored": false,
+    "rights": "Source rights unchanged; no repository-wide license is granted by this export.",
+    "scope": "Project-owned competency identifiers and curriculum metadata only; no tasks, answers, official papers or prose rubrics."
+  },
+  "competencies": [
+    {
+      "id": "M-Z01",
+      "domain": "numbers",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_01_01",
+      "curriculumCode": "3.2.1.1 (1), (2)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 75,
+        "max": 150
+      }
+    },
+    {
+      "id": "M-Z02",
+      "domain": "numbers",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_01_01",
+      "curriculumCode": "3.2.1.1 (4), (5)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 35,
+        "max": 75
+      }
+    },
+    {
+      "id": "M-Z03",
+      "domain": "numbers",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_01_01",
+      "curriculumCode": "3.2.1.1 (2), (4), (5)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 60,
+        "max": 120
+      }
+    },
+    {
+      "id": "M-Z04",
+      "domain": "numbers",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_01_02",
+      "curriculumCode": "3.2.1.2 (3), (4), (8)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 60,
+        "max": 120
+      }
+    },
+    {
+      "id": "M-Z05",
+      "domain": "numbers",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_01_02",
+      "curriculumCode": "3.2.1.2 (1), (3), (13)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 60,
+        "max": 120
+      }
+    },
+    {
+      "id": "M-Z06",
+      "domain": "numbers",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_01_02",
+      "curriculumCode": "3.2.1.2 (2)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 90,
+        "max": 180
+      }
+    },
+    {
+      "id": "M-Z07",
+      "domain": "numbers",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_01_02",
+      "curriculumCode": "3.2.1.2 (5), (7), (8)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 60,
+        "max": 120
+      }
+    },
+    {
+      "id": "M-Z08",
+      "domain": "numbers",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_01_02",
+      "curriculumCode": "3.2.1.2 (15)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 45,
+        "max": 90
+      }
+    },
+    {
+      "id": "M-Z09",
+      "domain": "numbers",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_01_03",
+      "curriculumCode": "3.2.1.3 (11)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 150,
+        "max": 240
+      }
+    },
+    {
+      "id": "M-Z10",
+      "domain": "numbers",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_01_03",
+      "curriculumCode": "3.2.1.3 (1), (3)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 60,
+        "max": 120
+      }
+    },
+    {
+      "id": "M-Z11",
+      "domain": "numbers",
+      "evidence": "curriculum",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_01_02",
+      "curriculumCode": "3.2.1.2 (10), (14)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 60,
+        "max": 120
+      }
+    },
+    {
+      "id": "M-Z12",
+      "domain": "numbers",
+      "evidence": "curriculum",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_01_03",
+      "curriculumCode": "3.2.1.3 (10)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 90,
+        "max": 150
+      }
+    },
+    {
+      "id": "M-R01",
+      "domain": "geometry",
+      "evidence": "curriculum",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_02_02",
+      "curriculumCode": "3.2.2.2 (2), (3), (4)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 120,
+        "max": 180
+      }
+    },
+    {
+      "id": "M-R02",
+      "domain": "geometry",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_02_01",
+      "curriculumCode": "3.2.2.1 (3)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 90,
+        "max": 150
+      }
+    },
+    {
+      "id": "M-R03",
+      "domain": "geometry",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_02_04",
+      "curriculumCode": "3.2.2.4 (2)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 75,
+        "max": 150
+      }
+    },
+    {
+      "id": "M-R04",
+      "domain": "geometry",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_02_01",
+      "curriculumCode": "3.2.2.1 (3)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 75,
+        "max": 150
+      }
+    },
+    {
+      "id": "M-R05",
+      "domain": "geometry",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_02_03",
+      "curriculumCode": "3.2.2.3 (2)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 120,
+        "max": 210
+      }
+    },
+    {
+      "id": "M-R06",
+      "domain": "geometry",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_02_01",
+      "curriculumCode": "3.2.2.1 (1), (2), (4)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 120,
+        "max": 210
+      }
+    },
+    {
+      "id": "M-R07",
+      "domain": "geometry",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_02_02",
+      "curriculumCode": "3.2.2.2 (8)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 120,
+        "max": 210
+      }
+    },
+    {
+      "id": "M-R08",
+      "domain": "geometry",
+      "evidence": "curriculum",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_02_04",
+      "curriculumCode": "3.2.2.4 (1), (2)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 90,
+        "max": 150
+      }
+    },
+    {
+      "id": "M-G01",
+      "domain": "measurement",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_03_01",
+      "curriculumCode": "3.2.3.1 (5), (7)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 45,
+        "max": 90
+      }
+    },
+    {
+      "id": "M-G02",
+      "domain": "measurement",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_03_01",
+      "curriculumCode": "3.2.3.1 (3)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 90,
+        "max": 150
+      }
+    },
+    {
+      "id": "M-G03",
+      "domain": "measurement",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_03_02",
+      "curriculumCode": "3.2.3.2 (4), (5)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 60,
+        "max": 120
+      }
+    },
+    {
+      "id": "M-G04",
+      "domain": "measurement",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_03_02",
+      "curriculumCode": "3.2.3.2 (2), (3)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 90,
+        "max": 180
+      }
+    },
+    {
+      "id": "M-G05",
+      "domain": "measurement",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_03_02",
+      "curriculumCode": "3.2.3.2 (2), (3)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 75,
+        "max": 150
+      }
+    },
+    {
+      "id": "M-G06",
+      "domain": "measurement",
+      "evidence": "curriculum",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_03_01",
+      "curriculumCode": "3.2.3.1 (2), (3), (6)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 60,
+        "max": 120
+      }
+    },
+    {
+      "id": "M-G07",
+      "domain": "measurement",
+      "evidence": "curriculum",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_03_01",
+      "curriculumCode": "3.2.3.1 (2), (3)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 45,
+        "max": 90
+      }
+    },
+    {
+      "id": "M-D01",
+      "domain": "data",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_04_01",
+      "curriculumCode": "3.2.4.1 (3)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 45,
+        "max": 90
+      }
+    },
+    {
+      "id": "M-D02",
+      "domain": "data",
+      "evidence": "curriculum",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_04_01",
+      "curriculumCode": "3.2.4.1 (1), (3)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 120,
+        "max": 210
+      }
+    },
+    {
+      "id": "M-D03",
+      "domain": "data",
+      "evidence": "curriculum",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_04_01",
+      "curriculumCode": "3.2.4.1 (3), (4)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 45,
+        "max": 90
+      }
+    },
+    {
+      "id": "M-D04",
+      "domain": "data",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_04_02",
+      "curriculumCode": "3.2.4.2 (2)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 45,
+        "max": 90
+      }
+    },
+    {
+      "id": "M-D05",
+      "domain": "data",
+      "evidence": "published2025",
+      "curriculumUrl": "https://www.bildungsplaene-bw.de/,Lde/BP2016BW_ALLG_GS_M.V2_IK_3-4_04_02",
+      "curriculumCode": "3.2.4.2 (1)",
+      "curriculumVersion": "V2 (29.02.2024)",
+      "estimatedSeconds": {
+        "min": 90,
+        "max": 180
+      }
+    }
+  ]
+}

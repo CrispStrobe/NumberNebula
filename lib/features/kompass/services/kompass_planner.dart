@@ -70,8 +70,10 @@ class KompassPlanner {
   /// Two distinct independent families provide an observation of success.
   /// A later error returns that skill to practice; manual reviews remain separate.
   static Map<String, KompassCompetencyProgress> progress(
-      KompassPack pack, List<KompassAttempt> attempts,
-      {DateTime? now}) {
+    KompassPack pack,
+    List<KompassAttempt> attempts, {
+    DateTime? now,
+  }) {
     final reference = (now ?? DateTime.now()).toUtc();
     final evidence = {
       for (final competency in pack.competencies)
@@ -80,7 +82,10 @@ class KompassPlanner {
     final unique = <String, KompassAttempt>{};
     for (final attempt in attempts) {
       final previous = unique[attempt.id];
-      if (previous == null || attempt.updatedAt.isAfter(previous.updatedAt)) {
+      if (previous == null ||
+          attempt.revision > previous.revision ||
+          (attempt.revision == previous.revision &&
+              attempt.updatedAt.isAfter(previous.updatedAt))) {
         unique[attempt.id] = attempt;
       }
     }
@@ -138,7 +143,10 @@ class KompassPlanner {
   }
 
   static KompassCompetencyProgress _summarize(
-      String id, _SkillEvidence evidence, DateTime now) {
+    String id,
+    _SkillEvidence evidence,
+    DateTime now,
+  ) {
     final latest = evidence.independentResults;
     final independentlySolved = latest.length >= 2 &&
         latest[latest.length - 1] &&
@@ -184,10 +192,13 @@ class KompassPlanner {
     final reference = (now ?? DateTime.now()).toUtc();
     final statuses = progress(pack, attempts, now: reference);
     final candidates = pack.tasks
-        .where((task) =>
-            task.use == 'practice' &&
-            (domain == null || task.domain == domain) &&
-            (competencyId == null || task.competencyIds.contains(competencyId)))
+        .where(
+          (task) =>
+              task.use == 'practice' &&
+              (domain == null || task.domain == domain) &&
+              (competencyId == null ||
+                  task.competencyIds.contains(competencyId)),
+        )
         .toList();
     _sortPractice(candidates, statuses, attempts, reference);
     return candidates.isEmpty ? null : candidates.first;
@@ -212,10 +223,12 @@ class KompassPlanner {
     };
     final statuses = progress(pack, attempts, now: reference);
     final candidates = pack.tasks
-        .where((task) =>
-            task.use == mode.name &&
-            (domain == null || task.domain == domain) &&
-            (mode == KompassMode.practice || !seen.contains(task.familyId)))
+        .where(
+          (task) =>
+              task.use == mode.name &&
+              (domain == null || task.domain == domain) &&
+              (mode == KompassMode.practice || !seen.contains(task.familyId)),
+        )
         .toList();
     _sortPractice(candidates, statuses, attempts, reference);
     if (domain != null) {
@@ -251,7 +264,9 @@ class KompassPlanner {
     final groups = {
       for (final domain in kompassDomains)
         domain: _distinctFamilies(
-            candidates.where((task) => task.domain == domain), quotas[domain]!),
+          candidates.where((task) => task.domain == domain),
+          quotas[domain]!,
+        ),
     };
     final selected = <KompassTask>[];
     var changed = true;
@@ -274,7 +289,9 @@ class KompassPlanner {
   }
 
   static List<KompassTask> _distinctFamilies(
-      Iterable<KompassTask> tasks, int limit) {
+    Iterable<KompassTask> tasks,
+    int limit,
+  ) {
     final result = <KompassTask>[];
     final families = <String>{};
     for (final task in tasks) {

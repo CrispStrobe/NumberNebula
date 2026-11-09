@@ -12,7 +12,11 @@ class _StoredProgress {
   final Set<String> closedSessions;
 
   _StoredProgress(
-      this.attempts, this.session, this.exposures, this.closedSessions);
+    this.attempts,
+    this.session,
+    this.exposures,
+    this.closedSessions,
+  );
   factory _StoredProgress.empty() => _StoredProgress([], null, {}, {});
 
   factory _StoredProgress.decode(String? raw) {
@@ -96,29 +100,34 @@ class KompassStore {
   Future<T> _enqueue<T>(Future<T> Function() action) {
     final previous = _writes[profileId] ?? Future<void>.value();
     final operation = previous.then((_) => action());
-    _writes[profileId] =
-        operation.then<void>((_) {}, onError: (Object _, StackTrace __) {});
+    _writes[profileId] = operation.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace __) {},
+    );
     return operation;
   }
 
-  Future<bool> _mutate(bool Function(_StoredProgress) operation) =>
-      _enqueue(() async {
-        _StoredProgress current;
-        try {
-          current = _StoredProgress.decode(_prefs.getString(storageKey));
-        } catch (_) {
-          _corruptionError = 'Saved learning data could not be read.';
-          throw StateError(
-              'Restore or explicitly reset unreadable learning data before saving.');
-        }
-        final changed = operation(current);
-        if (changed && !await _prefs.setString(storageKey, current.encode())) {
-          throw StateError('Learning progress could not be saved.');
-        }
-        _state = current;
-        _corruptionError = null;
-        return changed;
-      });
+  Future<bool> _mutate(bool Function(_StoredProgress) operation) => _enqueue(
+        () async {
+          _StoredProgress current;
+          try {
+            current = _StoredProgress.decode(_prefs.getString(storageKey));
+          } catch (_) {
+            _corruptionError = 'Saved learning data could not be read.';
+            throw StateError(
+              'Restore or explicitly reset unreadable learning data before saving.',
+            );
+          }
+          final changed = operation(current);
+          if (changed &&
+              !await _prefs.setString(storageKey, current.encode())) {
+            throw StateError('Learning progress could not be saved.');
+          }
+          _state = current;
+          _corruptionError = null;
+          return changed;
+        },
+      );
 
   /// Returns false for an already recorded completion; never awards it twice.
   Future<bool> record(KompassAttempt attempt) => _mutate((state) {
@@ -135,7 +144,12 @@ class KompassStore {
             !state.attempts.any((a) => a.familyId == attempt.familyId) &&
             (exposedBy == null || exposedBy == attempt.sessionId);
         state.attempts.add(
-            attempt.copyWith(isNovel: novel, updatedAt: attempt.updatedAt));
+          attempt.copyWith(
+            isNovel: novel,
+            updatedAt: attempt.updatedAt,
+            revision: attempt.revision,
+          ),
+        );
         state.exposures.putIfAbsent(attempt.familyId, () => attempt.sessionId);
         return true;
       });
@@ -169,14 +183,25 @@ class KompassStore {
           throw ArgumentError(
               'A revision cannot replace first-attempt evidence.');
         }
+        if (revised.revision != saved.revision + 1) {
+          // Surface the current durable response to this stale editor, too.
+          // Wall-clock order cannot detect two edits based on the same version.
+          _state = state;
+          throw StateError('This attempt changed. Review its latest response.');
+        }
         if (revised.hintsUsed < saved.hintsUsed ||
             revised.activeSeconds < saved.activeSeconds ||
             (saved.solutionSeen && !revised.solutionSeen) ||
             (saved.completed && !revised.completed)) {
           throw ArgumentError(
-              'A revision cannot erase support, elapsed work or completion.');
+            'A revision cannot erase support, elapsed work or completion.',
+          );
         }
-        state.attempts[index] = revised.copyWith(isNovel: saved.isNovel);
+        state.attempts[index] = revised.copyWith(
+          isNovel: saved.isNovel,
+          updatedAt: revised.updatedAt,
+          revision: revised.revision,
+        );
         return true;
       });
 
@@ -193,8 +218,10 @@ class KompassStore {
   }
 
   /// Snapshots immediately. Old callbacks cannot resurrect a completed session.
-  Future<bool> saveSession(Map<String, dynamic> session,
-      {bool replace = false}) {
+  Future<bool> saveSession(
+    Map<String, dynamic> session, {
+    bool replace = false,
+  }) {
     final snapshot = kompassFreezeJson(session) as Map<String, dynamic>;
     final id = _sessionId(snapshot);
     return _mutate((state) {
@@ -283,13 +310,16 @@ class KompassStore {
   static bool _deepEqual(dynamic a, dynamic b) {
     if (a is Map && b is Map) {
       return a.length == b.length &&
-          a.keys
-              .every((key) => b.containsKey(key) && _deepEqual(a[key], b[key]));
+          a.keys.every(
+            (key) => b.containsKey(key) && _deepEqual(a[key], b[key]),
+          );
     }
     if (a is List && b is List) {
       return a.length == b.length &&
-          List.generate(a.length, (i) => _deepEqual(a[i], b[i]))
-              .every((v) => v);
+          List.generate(
+            a.length,
+            (i) => _deepEqual(a[i], b[i]),
+          ).every((v) => v);
     }
     return a == b;
   }

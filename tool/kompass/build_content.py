@@ -11,6 +11,7 @@ from content_numbers import tasks as number_tasks
 from content_geometry import tasks as geometry_tasks
 from content_measurement import tasks as measurement_tasks
 from content_data import tasks as data_tasks
+from source_mapping import source_metadata
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSET = ROOT / "assets/kompass/math_v2.json"
@@ -20,12 +21,13 @@ def build_package():
     return {
         "schemaVersion": 2,
         "id": "numbernebula_kompass_math",
-        "version": "2.0.0",
+        "version": "2.0.1",
         "source": {
             "kind": "original",
             "license": "AGPL-3.0-only",
             "authoringReference": "https://github.com/CrispStrobe/kompass4",
             "referenceCommit": "9a0b25a6b0706b7c7944836e00f163bcbfd46676",
+            "competencyMapping": source_metadata(),
             "scope": "Original bilingual mathematics exercises authored for NumberNebula; project-owned competency identifiers are retained. No official test item or official answer booklet is embedded or adapted.",
             "officialInformation": "https://ibbw-bw.de/,Lde/Startseite/Pruefungen%2B_%2BLernstandserhebungen/Kompass%2B4-%2BKonzeption",
             "assessmentLimits": "Practice evidence is not an official KOMPASS score, school recommendation, calibrated difficulty, or predicted result. Times are author estimates, not learner norms.",
