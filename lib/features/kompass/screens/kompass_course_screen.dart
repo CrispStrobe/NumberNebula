@@ -717,6 +717,12 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
                   padding: const EdgeInsets.all(16),
                   child: SelectableText(kompassText(task.solution, _german)),
                 ),
+                if (task.solutionFigure case final figure?)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: KompassFigureView(
+                        figure: figure, german: _german, plain: true),
+                  ),
               ],
             ),
         ] else
@@ -883,13 +889,15 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
                   decimal: true,
                   signed: true,
                 )
-              : TextInputType.multiline,
-          minLines: part.kind == 'text' ? 2 : 1,
-          maxLines: part.kind == 'text' ? 5 : 1,
+              : part.isManual
+                  ? TextInputType.multiline
+                  : TextInputType.text,
+          minLines: part.isManual ? 2 : 1,
+          maxLines: part.isManual ? 5 : 1,
           decoration: InputDecoration(
             labelText: kc(_german, 'Deine Antwort', 'Your answer'),
             suffixText: part.unit.isEmpty ? null : part.unit,
-            helperText: part.kind == 'text'
+            helperText: part.isManual
                 ? kc(
                     _german,
                     'Du kannst deine Erklärung auch auf Papier notieren und hier „auf Papier“ eintragen.',

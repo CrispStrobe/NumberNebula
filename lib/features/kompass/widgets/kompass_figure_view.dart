@@ -35,6 +35,61 @@ class KompassFigureView extends StatelessWidget {
     final style = TextStyle(color: ink, fontSize: 16, height: 1.4);
     Widget body;
     switch (kind) {
+      case 'stack':
+        // Original print tasks: text, tables and diagrams in their print order.
+        return Column(
+          key: const ValueKey('kompass_figure_stack'),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final item in _list(data['items']).map(_map))
+              KompassFigureView(
+                figure: {
+                  'kind': item['kind'],
+                  'data': item['data'] ?? const <String, dynamic>{},
+                  'alt': item['alt'] ?? '',
+                },
+                german: german,
+                plain: plain,
+              ),
+          ],
+        );
+      case 'text':
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: SelectableText(
+            figureText(data['text'], german),
+            style: const TextStyle(fontSize: 18, height: 1.5),
+          ),
+        );
+      case 'image':
+        final width = _number(data['width'], 1);
+        final height = _number(data['height'], 1);
+        // Print diagrams are rendered for paper: keep them on white, at most
+        // their printed width, and never wider than the screen.
+        final printed = _number(data['widthCm'], 16) * 38;
+        body = Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: printed * scale),
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.all(4),
+              child: AspectRatio(
+                aspectRatio: width / height,
+                child: ExcludeSemantics(
+                  child: Image.asset(
+                    data['asset'] as String? ?? '',
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                    errorBuilder: (_, __, ___) => Text(
+                      alt.isNotEmpty ? alt : strings.kompassFigureUnavailable,
+                      style: style,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
       case 'wall':
         body = _wall(data, ink, accent, style);
       case 'placeValue':

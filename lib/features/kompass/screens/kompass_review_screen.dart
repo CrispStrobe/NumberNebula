@@ -174,7 +174,7 @@ class _KompassReviewScreenState extends State<KompassReviewScreen> {
       for (final part in task.parts) {
         report.writeln(kompassText(part.prompt, _german));
         report.writeln(_response(part, attempt.responses[part.id]));
-        if (part.isManual) {
+        if (part.mayNeedReview) {
           report.writeln(kompassText(part.answer['criteria'], _german));
         }
       }
@@ -475,7 +475,9 @@ class _KompassReviewScreenState extends State<KompassReviewScreen> {
                                   'Credit for a valid follow-up step despite an earlier arithmetic slip.',
                                 ),
                               ),
-                            if (part.isManual) ...[
+                            if (part.isManual ||
+                                attempt.score.partById(part.id)?.manual ==
+                                    true) ...[
                               const SizedBox(height: 10),
                               Text(
                                 kc(
@@ -553,6 +555,9 @@ class _KompassReviewScreenState extends State<KompassReviewScreen> {
                     ),
                     const SizedBox(height: 8),
                     SelectableText(kompassText(task.solution, _german)),
+                    if (task.solutionFigure case final figure?)
+                      KompassFigureView(
+                          figure: figure, german: _german, plain: true),
                   ],
                 ),
               ),

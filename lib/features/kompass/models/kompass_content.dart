@@ -139,6 +139,11 @@ class KompassPart {
 
   bool get isManual => answer['type'] == 'manual';
 
+  /// Manual parts, and typed answers whose other wordings go to rubric review.
+  bool get mayNeedReview =>
+      isManual ||
+      (answer['type'] == 'text' && answer['reviewOnMismatch'] == true);
+
   factory KompassPart.fromJson(Map<String, dynamic> json) {
     final kind = _requiredString(json, 'kind');
     if (!['number', 'choice', 'multiChoice', 'text', 'cells', 'order']
@@ -147,7 +152,8 @@ class KompassPart {
     }
     final answer = kompassMap(json['answer'], 'answer');
     final type = answer['type'];
-    if (!['number', 'choice', 'set', 'sequence', 'manual'].contains(type)) {
+    if (!['number', 'choice', 'set', 'sequence', 'manual', 'text']
+        .contains(type)) {
       throw FormatException('Unknown answer type: $type.');
     }
     if (type == 'number' &&
@@ -161,6 +167,15 @@ class KompassPart {
       _strings(answer['values'], 'answer.values');
     }
     if (type == 'manual') _localized(answer['criteria'], 'answer.criteria');
+    if (type == 'text') {
+      final values = _strings(answer['values'], 'answer.values');
+      if (values.isEmpty || values.any((v) => v.trim().isEmpty)) {
+        throw const FormatException('Text answers need accepted values.');
+      }
+      if (answer['reviewOnMismatch'] == true) {
+        _localized(answer['criteria'], 'answer.criteria');
+      }
+    }
     if (answer['tolerance'] != null &&
         (answer['tolerance'] is! num ||
             !(answer['tolerance'] as num).isFinite ||
@@ -264,6 +279,12 @@ class KompassTask {
 
   double get maxPoints =>
       parts.fold<double>(0, (total, part) => total + part.maxPoints);
+
+  /// The original paper (e.g. `mathe3`) of a task with use `original`.
+  String? get paperId => _json['paperId'] as String?;
+  Map<String, dynamic>? get solutionFigure => _json['solutionFigure'] == null
+      ? null
+      : kompassMap(_json['solutionFigure'], 'solutionFigure');
   List<String> get competencyIds =>
       List.unmodifiable(parts.expand((p) => p.competencyIds).toSet());
   bool get hasManualParts => parts.any((part) => part.isManual);
@@ -275,7 +296,7 @@ class KompassTask {
     if (!kompassDomains.contains(domain)) {
       throw FormatException('Unknown task domain: $domain.');
     }
-    if (!['practice', 'check', 'rehearsal'].contains(use)) {
+    if (!['practice', 'check', 'rehearsal', 'original'].contains(use)) {
       throw FormatException('Unknown task use: $use.');
     }
     if (level is! int || level < 1 || level > 3) {
@@ -336,11 +357,22 @@ class KompassPack {
   final Map<String, dynamic> source;
   final List<KompassCompetency> competencies;
   final List<KompassTask> tasks;
+
+  /// Complete original practice papers (kompass4 tests), in print order.
+  final List<KompassPaper> papers;
   final Map<String, KompassTask> _taskIndex;
   final Map<String, KompassCompetency> _competencyIndex;
 
-  KompassPack._(this.schemaVersion, this.id, this.version, this.source,
-      this.competencies, this.tasks, this._taskIndex, this._competencyIndex);
+  KompassPack._(
+      this.schemaVersion,
+      this.id,
+      this.version,
+      this.source,
+      this.competencies,
+      this.tasks,
+      this.papers,
+      this._taskIndex,
+      this._competencyIndex);
 
   factory KompassPack.fromJson(Map<String, dynamic> json) {
     if (json['schemaVersion'] != 2) {
@@ -379,6 +411,17 @@ class KompassPack {
     if (version == null || version.isEmpty) {
       throw const FormatException('A pack requires a version.');
     }
+    final papers = [
+      for (final p in json['papers'] as List? ?? const [])
+        KompassPaper.fromJson(kompassMap(p, 'paper')),
+    ];
+    for (final paper in papers) {
+      for (final id in paper.taskIds) {
+        if (taskIndex[id]?.paperId != paper.id) {
+          throw FormatException('Paper ${paper.id} lists unknown task $id.');
+        }
+      }
+    }
     return KompassPack._(
       2,
       _requiredString(json, 'id'),
@@ -387,6 +430,7 @@ class KompassPack {
           as Map<String, dynamic>,
       List.unmodifiable(competencies),
       List.unmodifiable(tasks),
+      List.unmodifiable(papers),
       Map.unmodifiable(taskIndex),
       Map.unmodifiable(competencyIndex),
     );
@@ -394,4 +438,52 @@ class KompassPack {
 
   KompassTask? taskById(String id) => _taskIndex[id];
   KompassCompetency? competencyById(String id) => _competencyIndex[id];
+}
+
+/// A complete original practice paper. Its tasks keep their print order.
+class KompassPaper {
+  final String id;
+  final String title;
+  final List<String> taskIds;
+  final int totalPoints;
+  final int totalSeconds;
+  final String printUrl;
+  final String solutionsUrl;
+  final List<String> instructions;
+  final Map<String, dynamic> _json;
+
+  KompassPaper._(
+      this.id,
+      this.title,
+      this.taskIds,
+      this.totalPoints,
+      this.totalSeconds,
+      this.printUrl,
+      this.solutionsUrl,
+      this.instructions,
+      this._json);
+
+  factory KompassPaper.fromJson(Map<String, dynamic> json) {
+    final ids = _strings(json['taskIds'], 'paper.taskIds');
+    if (ids.isEmpty || ids.toSet().length != ids.length) {
+      throw const FormatException('A paper needs distinct tasks.');
+    }
+    final points = json['totalPoints'], seconds = json['totalSeconds'];
+    if (points is! int || points <= 0 || seconds is! int || seconds <= 0) {
+      throw const FormatException('A paper needs points and a duration.');
+    }
+    return KompassPaper._(
+      _requiredString(json, 'id'),
+      _requiredString(json, 'title'),
+      ids,
+      points,
+      seconds,
+      _requiredString(json, 'printUrl'),
+      _requiredString(json, 'solutionsUrl'),
+      _strings(json['instructions'] ?? const [], 'paper.instructions'),
+      kompassFreezeJson(json) as Map<String, dynamic>,
+    );
+  }
+
+  Map<String, dynamic> toJson() => _json;
 }
