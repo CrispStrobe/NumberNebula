@@ -1,5 +1,12 @@
 # KOMPASS mathematics: construction, planning and reasoning
 
+This document records the reasoning component from PR #70. The active combined
+implementation is now [`integrate/kompass4-all`, PR #71](https://github.com/CrispStrobe/NumberNebula/pull/71),
+app **1.6.2+68**. It also includes harder lab recipes and six original kompass4
+papers. Use [the implementation record](kompass4-implementation.md#integrated-application)
+and PR #71 checks for current integrated validation; the component's earlier
+status and source identity below are historical.
+
 The expansion adds four untimed, resumable labs and 16 original bilingual tasks
 to the optional mathematics pathway. It gives learners more opportunities to
 construct a solution, plan several steps, explain a relationship and disprove a

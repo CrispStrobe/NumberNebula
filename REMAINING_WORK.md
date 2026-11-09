@@ -7,16 +7,20 @@ implement one game per PR rather than combining an entire batch.
 
 ## Active owner-requested KOMPASS pathway
 
-The full mathematics pathway and its reasoning expansion are integrated on
-[`codex/kompass4-reasoning-expansion-20261109`](https://github.com/CrispStrobe/NumberNebula/tree/codex/kompass4-reasoning-expansion-20261109),
-in [draft PR #70](https://github.com/CrispStrobe/NumberNebula/pull/70). This includes
-the foundation from PR #69; coordinate its review to avoid merging the same
-foundation twice. The extension adds four labs and 16 written tasks, retaining
-the original lab recipes and task identities.
+The active combined work is on
+[`integrate/kompass4-all`](https://github.com/CrispStrobe/NumberNebula/tree/integrate/kompass4-all),
+in [draft PR #71](https://github.com/CrispStrobe/NumberNebula/pull/71). It combines
+the foundation/harder labs from #69, the reasoning expansion from #70, and the
+six original kompass4 mathematics papers. Continue on this integration rather
+than the earlier component branches. Older lab drafts retain their recipe;
+new rounds use the harder recipe. Original-paper tasks retain a separate use
+and evidence classification.
 Use [the feature handoff](docs/kompass4-implementation.md) for source contracts,
 validation commands and known limits, and [the coverage map](docs/kompass4-coverage.md)
 for the 32 competencies. Read [the expansion record](docs/kompass4-reasoning-expansion.md)
-for the latest local evidence and pending gates. Complete exact-head remote CI and review before merging;
+for the expansion's evidence. At integrated `2546d424`, strict analysis, 187
+KOMPASS cases, the 2,247-case native suite and pure calibration passed; browser
+validation was still queued. Verify the latest PR #71 head and review before merging;
 then verify merged-main publication through the existing workflows. Learner and
 teacher pilots remain necessary before any learning-outcome or test-readiness
 claim. Existing release and unrelated game-audit lanes below remain separate.

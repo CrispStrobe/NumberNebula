@@ -3,7 +3,41 @@
 Updated 2026-11-09. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
-## Current KOMPASS reasoning expansion (2026-11-09)
+## Active KOMPASS integration: PR #71 (2026-11-09)
+
+Continue on [`integrate/kompass4-all`](https://github.com/CrispStrobe/NumberNebula/tree/integrate/kompass4-all),
+in [draft PR #71](https://github.com/CrispStrobe/NumberNebula/pull/71). It combines
+the foundation and harder labs from #69, the reasoning expansion from #70, and
+the six original kompass4 practice papers. PRs #69 and #70 are earlier component
+branches; do not treat their older heads as the active integrated application.
+
+App **1.6.2+68** contains the main **144-task / 298-part bilingual bank** plus
+**120 original German paper tasks / 249 parts / 240 points**, grouped into six
+20-task papers. The combined loader version is **2.1.0+k4.1.0.0**. The original
+papers use their own selection and preserve `contentUse: original`; they do not
+enter the main practice/check/rehearsal pools or become verified independent
+course evidence. Their digital answer mappings remain drafts pending teacher
+review. The eight labs retain saved recipe-1 rounds and use the harder recipe 2
+for new rounds. The 48 free-play games retain their existing rules.
+
+At integrated head `2546d4245e2594662340d1c02a4473bac480ca3c`,
+[CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/42671817079)
+passed strict analysis, **187 focused KOMPASS cases** and the **2,247-case full
+native suite**, with no reported skips/failures in the successful attempt.
+The focused tests are included in the full count. CI was attempt 2;
+[pure calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/42671816877)
+was attempt 3 and passed **60,400 generation cases across 48 games**. The
+[web workflow](https://github.com/CrispStrobe/NumberNebula/actions/runs/42671817293)
+built WASM/JavaScript and completed capture/replay; live browser tests were still
+queued when checked. Later commits need their own required checks.
+
+The follow-up browser regression verifies that the independent-check answer
+actually reaches the saved draft and immutable first response. Earlier fixes
+for saved score parts, text editing and restored fields are already integrated.
+Use PR #71 checks for the latest head. This integration has not been merged or
+published.
+
+## Earlier KOMPASS reasoning expansion (2026-11-09)
 
 The owner requested more suitable minigames and content after reviewing the
 latest kompass4 mathematics bank. The integrated expansion is checkpointed on

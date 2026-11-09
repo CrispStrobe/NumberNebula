@@ -160,14 +160,16 @@ test('KOMPASS independent work defers feedback and rehearsal keeps its 45-minute
   await expect(page.getByText('Recognise the same number', { exact: true })).toBeVisible();
   expect(await page.getByRole('button', { name: 'Hint', exact: true }).count()).toBe(0);
   expect(await page.getByRole('button', { name: 'Check answer', exact: true }).count()).toBe(0);
-  await (await reach(page, page.getByRole('textbox', {
+  await type(page, page.getByRole('textbox', {
     name: 'What number results when exactly one hundred is added to 5042? Your answer',
     exact: true,
-  }))).fill('5142');
+  }), '5142', async () =>
+    (await records(page))?.session?.responses?.mz01_equivalent_expansions?.increase);
   await (await reach(page, page.getByRole('button', { name: 'Finish session', exact: true }))).click();
   await page.getByRole('button', { name: 'Finish', exact: true }).click();
   await expect.poll(async () => (await records(page))?.session).toBeNull();
   expect((await records(page)).attempts[0].mode).toBe('check');
+  expect((await records(page)).attempts[0].firstResponses.increase).toBe('5142');
   await (await reach(page, page.getByRole('button', { name: 'Back to learning overview', exact: true }))).click();
   await page.getByRole('button', { name: '45-minute rehearsal', exact: true }).click();
   await page.getByRole('button', { name: 'Start', exact: true }).click();

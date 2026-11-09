@@ -6,9 +6,11 @@ Implement the complete optional mathematics pathway across numbers and operation
 space and shape, quantities and measurement, and data and chance. Keep free play,
 all existing games, local profiles, saved progress, and the all-ages positioning.
 The foundation is checkpointed on `codex/kompass4-learning-path` (PR #69).
-The integrated extension is on `codex/kompass4-reasoning-expansion-20261109`
-([PR #70](https://github.com/CrispStrobe/NumberNebula/pull/70)); it includes the
-foundation so the existing main-targeted validation workflows run.
+The active combined implementation is on `integrate/kompass4-all`
+([PR #71](https://github.com/CrispStrobe/NumberNebula/pull/71)). It includes the
+foundation/harder labs from #69, the reasoning expansion from #70 and the six
+original kompass4 papers. Continue on this integration; the two earlier PRs
+are component histories.
 
 The authoring reference is CrispStrobe/kompass4 at
 `9a0b25a6b0706b7c7944836e00f163bcbfd46676`. Its 32 mathematics competency IDs
@@ -18,7 +20,10 @@ official papers remain linked references and are not embedded or adapted.
 The current implementation uses app version **1.6.2+68** and content version
 **2.1.0**: 144 original bilingual tasks, 298 scored parts and eight labs with
 22 activity types. See [the reasoning expansion](kompass4-reasoning-expansion.md)
-for the four added labs, 16 added tasks and their validation status.
+for the four added labs and 16 added tasks. A separate original-paper package
+adds 120 German tasks, 249 parts and 240 points across six 20-task papers. Its
+version is 1.0.0; the combined loader identifies both packages as
+`2.1.0+k4.1.0.0`. English UI retains these papers' German wording.
 kompass4 supplies a deterministic, pinned competency metadata export;
 the interactive exercises remain original NumberNebula content. The mapping
 includes exact curriculum references and estimated time bounds in seconds.
@@ -49,7 +54,7 @@ The bundled asset `assets/kompass/math_v2.json` contains `schemaVersion`, `id`,
 (`published2025` or `curriculum`), `curriculumUrl`, and `gameKeys`.
 
 Tasks contain `id`, `familyId`, `domain`, `title`, `prompt`, `level` (1–3),
-`use` (`practice`, `check`, or `rehearsal`), `parts`, `hints`, `solution`, and
+`use` (`practice`, `check`, `rehearsal`, or the separately imported `original`), `parts`, `hints`, `solution`, and
 `source`. Optional fields are `figure` and `estimatedSeconds`.
 
 Each part contains `id`, `kind` (`number`, `choice`, `multiChoice`, `text`,
@@ -261,6 +266,25 @@ bank's difficulty labels or time estimates. Any outcome claim needs that evidenc
 
 ## Validation evidence
 
+### Integrated application
+
+For exact head `2546d4245e2594662340d1c02a4473bac480ca3c`,
+[CI attempt 2](https://github.com/CrispStrobe/NumberNebula/actions/runs/42671817079)
+passed strict analysis, 83 Python cases, the four standalone lab audits,
+**187 focused KOMPASS tests** and the **2,247-test full native suite**. The
+successful native logs contain no reported skipped or failed cases. The focused
+KOMPASS tests are part of the full suite and must not be added to its count.
+[Pure calibration attempt 3](https://github.com/CrispStrobe/NumberNebula/actions/runs/42671816877)
+passed **60,400 generated cases across all 48 games with zero failures**.
+
+The [web workflow for that head](https://github.com/CrispStrobe/NumberNebula/actions/runs/42671817293)
+completed the WASM/JavaScript build and headless capture/replay jobs; its browser
+job was still queued when checked. Follow-up source or browser-test edits require
+their own exact-head gates. Current results are recorded in
+[PR #71 checks](https://github.com/CrispStrobe/NumberNebula/pull/71/checks).
+
+### Foundation and expansion history
+
 The expansion's local content and mathematical checks are recorded separately in
 [its validation table](kompass4-reasoning-expansion.md#validation). They do not
 inherit the foundation's earlier Flutter result below. New widget and browser
@@ -321,9 +345,10 @@ showed both distances live. Now:
 - Symmetry rounds draw from nine shapes with zero to four axes, verified by
   reflecting each vertex set; cube-net rounds grow any of the eleven nets.
 
-The lab draft schema is now 2: older drafts would replay as different rounds,
-so they start a fresh lab session. Seven new generator tests cover the revised
-rounds.
+The first difficulty change introduced schema 2. The integrated version preserves
+older drafts with frozen recipe-1 generators instead of discarding or
+reinterpreting them; after completion, the next round uses recipe 2. Seven new
+generator tests cover the revised rounds, alongside the frozen recipe audit.
 
 **1.6.1+67 — preserve intermediate regrouping.** A generated round could
 legitimately hold 30 hundreds after a trade, while restoration previously capped
@@ -357,7 +382,7 @@ that queued hosted checks have passed.
 Exact integrated-head full-suite, calibration, wasm/JavaScript browser and preview
 results are recorded in the branch pull request. Use its current checks rather
 than treating a prior checkpoint as proof of the final head:
-[branch pull request and checks](https://github.com/CrispStrobe/NumberNebula/pulls?q=is%3Apr+head%3Acodex%2Fkompass4-learning-path).
+[integration pull request and checks](https://github.com/CrispStrobe/NumberNebula/pull/71/checks).
 Remote browser artifacts include real-control screenshots and print-layout PDFs.
 Native store binaries and learner outcome studies are outside this branch's
 verified results. Publication still follows the existing release process.
