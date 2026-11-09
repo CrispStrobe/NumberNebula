@@ -66,6 +66,8 @@ flutter:
     - assets/puzzles/
     - assets/kompass/math_v2.json
     - assets/kompass/print/
+    - assets/kompass/kompass4/
+    - assets/kompass/kompass4/figures/
     
   fonts:
     - family: SpaceGrotesk

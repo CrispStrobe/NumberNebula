@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import '../../lib/features/kompass/labs/kompass_lab_round.dart';
+import 'package:space_math_academy/features/kompass/labs/kompass_lab_round.dart';
 
 const _baselineCommit = '8971225b9c435867fa5f8fa4e20e98e3baa24fce';
 const _variants = {

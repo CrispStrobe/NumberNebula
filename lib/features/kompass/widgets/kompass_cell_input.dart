@@ -100,8 +100,8 @@ class KompassCellInput extends StatelessWidget {
     final state = fixed
         ? (german ? 'vorgegeben' : 'given')
         : marked
-        ? (german ? 'markiert' : 'selected')
-        : (german ? 'leer' : 'empty');
+            ? (german ? 'markiert' : 'selected')
+            : (german ? 'leer' : 'empty');
     final label = german
         ? 'Zeile ${row + 1}, Spalte ${col + 1}, $state'
         : 'Row ${row + 1}, column ${col + 1}, $state';
@@ -139,11 +139,11 @@ class KompassCellInput extends StatelessWidget {
             child: fixed
                 ? const Icon(Icons.square, size: 22)
                 : marked
-                ? const Icon(Icons.check, size: 26)
-                : Text(
-                    '${row + 1},${col + 1}',
-                    style: const TextStyle(fontSize: 11),
-                  ),
+                    ? const Icon(Icons.check, size: 26)
+                    : Text(
+                        '${row + 1},${col + 1}',
+                        style: const TextStyle(fontSize: 11),
+                      ),
           ),
         ),
       ),

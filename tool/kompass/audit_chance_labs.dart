@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import '../../lib/features/kompass/labs/kompass_lab_round.dart';
+import 'package:space_math_academy/features/kompass/labs/kompass_lab_round.dart';
 
 void main() {
   var checks = 0;

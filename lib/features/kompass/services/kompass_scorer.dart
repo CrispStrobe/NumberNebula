@@ -148,6 +148,16 @@ class KompassScorer {
         .replaceAll('\u202f', ' ');
     if (text.isEmpty) return null;
     final expectedUnit = unit.trim().toLowerCase();
+    if (expectedUnit == '€') {
+      // "345 ct" and "3 € 45 ct" are unambiguous euro amounts.
+      final cents = RegExp(r'^(?:(\d+)\s*(?:€|euro)\s*)?(\d+)\s*(?:ct|cent)$',
+              caseSensitive: false)
+          .firstMatch(text);
+      if (cents != null) {
+        return int.parse(cents.group(1) ?? '0') +
+            int.parse(cents.group(2)!) / 100;
+      }
+    }
     if (expectedUnit.isNotEmpty) {
       final aliases = [...?_unitAliases[expectedUnit], expectedUnit]
         ..sort((a, b) => b.length.compareTo(a.length));
@@ -287,6 +297,36 @@ class KompassScorer {
                 List.generate(expected.length, (i) => given[i] == expected[i])
                     .every((equal) => equal);
             if (correct) points = part.maxPoints;
+          case 'text':
+            String normal(Object? value) {
+              var text =
+                  value.toString().trim().replaceAll(RegExp(r'\s+'), ' ');
+              if (part.answer['caseSensitive'] != true) {
+                text = text.toLowerCase();
+              }
+              return text;
+            }
+            final accepted =
+                (part.answer['values'] as List).map(normal).toSet();
+            correct = accepted.contains(normal(response));
+            if (correct) {
+              points = part.maxPoints;
+            } else if (part.answer['reviewOnMismatch'] == true) {
+              // Another wording may be right: a person decides, never a
+              // fuzzy string match.
+              final review = manualPoints[part.id];
+              if (review != null) {
+                if (!review.isFinite || review < 0 || review > part.maxPoints) {
+                  throw ArgumentError.value(review, 'manualPoints',
+                      'Review points must be between zero and the part maximum.');
+                }
+                points = review;
+                reviewed = true;
+                correct = review == part.maxPoints;
+              } else {
+                pending = true;
+              }
+            }
           case 'manual':
             final review = manualPoints[part.id];
             if (review != null) {
@@ -300,6 +340,35 @@ class KompassScorer {
             } else {
               pending = true;
             }
+        }
+        // A rubric may credit a correct continuation of a wrong earlier step.
+        // That needs a person: the wrong answer goes to review, not to zero.
+        final followOn = part.answer['followOnFrom'];
+        if (!correct && !pending && !carried && followOn is String) {
+          final source = scores.where((s) => s.partId == followOn).firstOrNull;
+          if (source != null &&
+              source.attempted &&
+              !source.correct &&
+              !source.pendingReview) {
+            final review = manualPoints[part.id];
+            if (review != null) {
+              if (!review.isFinite || review < 0 || review > part.maxPoints) {
+                throw ArgumentError.value(review, 'manualPoints',
+                    'Review points must be between zero and the part maximum.');
+              }
+              points = review;
+              reviewed = true;
+              correct = review == part.maxPoints;
+            } else {
+              pending = true;
+              feedback = const {
+                'de':
+                    'Dein vorheriges Ergebnis war nicht richtig. Ob du damit richtig weitergerechnet hast, wird am Ende mit den Kriterien geprüft.',
+                'en':
+                    'Your earlier result was not right. Whether you continued correctly from it is reviewed against the criteria at the end.',
+              };
+            }
+          }
         }
         if (!correct && !pending && !carried) {
           for (final error in part.errors) {
@@ -322,7 +391,7 @@ class KompassScorer {
         maxPoints: part.maxPoints,
         correct: correct,
         pendingReview: pending,
-        manual: type == 'manual',
+        manual: type == 'manual' || pending || reviewed,
         reviewed: reviewed,
         attempted: attempted,
         carriedError: carried,

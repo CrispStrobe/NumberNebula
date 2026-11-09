@@ -292,10 +292,12 @@ void main() {
         var sharedEdges = 0;
         for (final value in cells) {
           final coordinates = value.split(',').map(int.parse).toList();
-          if (cells.contains('${coordinates[0] + 1},${coordinates[1]}'))
+          if (cells.contains('${coordinates[0] + 1},${coordinates[1]}')) {
             sharedEdges++;
-          if (cells.contains('${coordinates[0]},${coordinates[1] + 1}'))
+          }
+          if (cells.contains('${coordinates[0]},${coordinates[1] + 1}')) {
             sharedEdges++;
+          }
         }
         final side = measure.config['sideCm'] as int;
         if (side == 2) twoCentimetreCases++;

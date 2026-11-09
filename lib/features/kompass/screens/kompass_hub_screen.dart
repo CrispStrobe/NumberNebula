@@ -204,6 +204,57 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
     }
   }
 
+  /// Opens one complete original paper, either timed as a test or as
+  /// practice with hints and immediate feedback. The task order is the print
+  /// order; nothing is drawn from the practice/check/rehearsal partitions.
+  Future<void> _startPaper(KompassPaper paper, {required bool timed}) async {
+    if (_opening || _pack == null || _store == null) return;
+    final tasks =
+        paper.taskIds.map(_pack!.taskById).whereType<KompassTask>().toList();
+    if (tasks.length != paper.taskIds.length) return;
+    _opening = true;
+    try {
+      if (!await _replaceSession() || !mounted) return;
+      if (timed) {
+        final begin = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('${paper.title} · ${paper.totalSeconds ~/ 60} min'),
+            content: SingleChildScrollView(
+                child: Text([
+              ...paper.instructions,
+              kc(
+                  _german,
+                  'Lege Papier, Stift und Lineal bereit. Zeichnungen und Begründungen prüfst du am Ende mit den Kriterien. Die Uhr läuft auch beim Verlassen der App weiter. Punkte sind keine amtliche Bewertung.',
+                  'Have paper, a pencil and a ruler ready. Drawings and explanations are reviewed against the criteria at the end. The clock keeps running if you leave the app. Points are not an official assessment.'),
+            ].join('\n\n'))),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(kc(_german, 'Zurück', 'Back'))),
+              FilledButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text(S.of(context)!.kompassRehearsalStart)),
+            ],
+          ),
+        );
+        if (begin != true || !mounted) return;
+      }
+      await _store!.clearSession();
+      if (!mounted) return;
+      await Navigator.of(context).push(MaterialPageRoute<void>(
+          builder: (_) => KompassCourseScreen(
+              pack: _pack!,
+              store: _store!,
+              tasks: tasks,
+              mode: timed ? KompassMode.rehearsal : KompassMode.practice,
+              rehearsalDuration: Duration(seconds: paper.totalSeconds))));
+      if (mounted) setState(() {});
+    } finally {
+      _opening = false;
+    }
+  }
+
   Future<void> _resume() async {
     if (_store?.session == null || _opening) return;
     _opening = true;
@@ -458,6 +509,60 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
                 onTap: () => _openLab(lab[0]),
               )),
             ),
+        if (pack.papers.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          Text(kc(_german, 'Original-Übungstests', 'Original practice papers'),
+              style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 8),
+          Text(kc(
+              _german,
+              'Sechs vollständige Mathematiktests aus dem Projekt kompass4, je 45 Minuten. Die Aufgaben sind deutsch. Löse sie als Test oder übe sie mit Hinweisen. Das Heft und die Lösungen gibt es auch zum Drucken.',
+              'Six complete mathematics papers from the kompass4 project, 45 minutes each. The tasks are in German. Take one as a test or practise it with hints. The booklet and its solutions are also available to print.')),
+          const SizedBox(height: 12),
+          for (final paper in pack.papers)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Card(
+                  child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(paper.title,
+                          style: Theme.of(context).textTheme.titleMedium),
+                      Text(kc(
+                          _german,
+                          '${paper.taskIds.length} Aufgaben · ${paper.totalPoints} Punkte · ${paper.totalSeconds ~/ 60} Minuten',
+                          '${paper.taskIds.length} tasks · ${paper.totalPoints} points · ${paper.totalSeconds ~/ 60} minutes')),
+                      const SizedBox(height: 8),
+                      Wrap(spacing: 8, runSpacing: 8, children: [
+                        FilledButton.tonalIcon(
+                            key: ValueKey('kompass-paper-${paper.id}-test'),
+                            onPressed: () => _startPaper(paper, timed: true),
+                            icon: const Icon(Icons.timer_outlined),
+                            label: Text(kc(_german, 'Als Test', 'As a test'))),
+                        OutlinedButton.icon(
+                            key: ValueKey('kompass-paper-${paper.id}-practice'),
+                            onPressed: () => _startPaper(paper, timed: false),
+                            icon: const Icon(Icons.school_outlined),
+                            label: Text(kc(_german, 'Üben', 'Practise'))),
+                        TextButton.icon(
+                            onPressed: () => launchUrl(
+                                Uri.parse(paper.printUrl),
+                                mode: LaunchMode.externalApplication),
+                            icon: const Icon(Icons.picture_as_pdf_outlined),
+                            label: Text(kc(_german, 'Heft', 'Booklet'))),
+                        TextButton.icon(
+                            onPressed: () => launchUrl(
+                                Uri.parse(paper.solutionsUrl),
+                                mode: LaunchMode.externalApplication),
+                            icon: const Icon(Icons.fact_check_outlined),
+                            label: Text(kc(_german, 'Lösungen', 'Solutions'))),
+                      ]),
+                    ]),
+              )),
+            ),
+        ],
         const SizedBox(height: 20),
         Text(kc(_german, 'Deine Lernziele', 'Your learning goals'),
             style: Theme.of(context).textTheme.headlineSmall),

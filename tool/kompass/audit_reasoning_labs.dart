@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import '../../lib/features/kompass/labs/extensions/reasoning_rounds.dart';
+import 'package:space_math_academy/features/kompass/labs/extensions/reasoning_rounds.dart';
 
 /// Bounded independent arithmetic audit; needs Dart only, no Flutter engine.
 void main() {
@@ -100,8 +100,9 @@ void main() {
     final codes = <String>[];
     for (var first = 0; first < symbols.length; first++) {
       for (var second = 0; second < symbols.length; second++) {
-        if (repeat || first != second)
+        if (repeat || first != second) {
           codes.add('${symbols[first]}${symbols[second]}');
+        }
       }
     }
     final answer = {

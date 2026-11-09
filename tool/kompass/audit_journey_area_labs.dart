@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import '../../lib/features/kompass/labs/extensions/area_rounds.dart';
-import '../../lib/features/kompass/labs/extensions/journey_rounds.dart';
-import '../../lib/features/kompass/labs/kompass_lab_round.dart';
+import 'package:space_math_academy/features/kompass/labs/extensions/area_rounds.dart';
+import 'package:space_math_academy/features/kompass/labs/extensions/journey_rounds.dart';
+import 'package:space_math_academy/features/kompass/labs/kompass_lab_round.dart';
 
 var _checks = 0;
 
