@@ -12,6 +12,8 @@ import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from content_compatibility import verify_compatibility
+
 ROOT = Path(__file__).resolve().parents[2]
 ASSET = ROOT / "assets/kompass/math_v2.json"
 DOMAINS = {"numbers", "geometry", "measurement", "data"}
@@ -305,6 +307,11 @@ def validate_package(package, *, complete=True):
         for skill in SKILLS:
             require(coverage[skill]["practice"] >= 2 and coverage[skill]["check"] >= 1 and coverage[skill]["rehearsal"] >= 1,
                     f"{skill}: insufficient practice/check/rehearsal coverage")
+        if tuple(map(int, package["version"].split("."))) >= (2, 1, 0):
+            try:
+                verify_compatibility(package)
+            except ValueError as error:
+                raise ContentError(str(error)) from error
     return {"competencies": len(competencies), "tasks": len(tasks), "parts": sum(len(t["parts"]) for t in tasks),
             "modes": dict(Counter(t["use"] for t in tasks)), "domains": dict(Counter(t["domain"] for t in tasks))}
 

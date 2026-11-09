@@ -11,6 +11,8 @@ from content_numbers import tasks as number_tasks
 from content_geometry import tasks as geometry_tasks
 from content_measurement import tasks as measurement_tasks
 from content_data import tasks as data_tasks
+from content_extension import tasks as extension_tasks
+from content_compatibility import compatibility_for
 from source_mapping import source_metadata
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -18,10 +20,12 @@ ASSET = ROOT / "assets/kompass/math_v2.json"
 
 
 def build_package():
+    tasks = number_tasks() + geometry_tasks() + measurement_tasks() + data_tasks() + extension_tasks()
     return {
         "schemaVersion": 2,
         "id": "numbernebula_kompass_math",
-        "version": "2.0.1",
+        "version": "2.1.0",
+        "compatibleTaskIds": compatibility_for(tasks),
         "source": {
             "kind": "original",
             "license": "AGPL-3.0-only",
@@ -33,7 +37,7 @@ def build_package():
             "assessmentLimits": "Practice evidence is not an official KOMPASS score, school recommendation, calibrated difficulty, or predicted result. Times are author estimates, not learner norms.",
         },
         "competencies": competencies(),
-        "tasks": number_tasks() + geometry_tasks() + measurement_tasks() + data_tasks(),
+        "tasks": tasks,
     }
 
 

@@ -1,7 +1,139 @@
 {
   "schemaVersion": 2,
   "id": "numbernebula_kompass_math",
-  "version": "2.0.1",
+  "version": "2.1.0",
+  "compatibleTaskIds": {
+    "2.0.1": [
+      "md01_missing_frequency",
+      "md01_table_constraints",
+      "md01_table_maximum_total",
+      "md01_two_way_table",
+      "md02_build_unit_bars",
+      "md02_choose_efficient_scale",
+      "md02_paper_bar_chart",
+      "md02_repair_inaccurate_bar",
+      "md03_chart_double_claim",
+      "md03_pictogram_key",
+      "md03_read_two_step_chart",
+      "md03_unshown_category_total",
+      "md04_bag_event_language",
+      "md04_die_event_categories",
+      "md04_draw_two_without_replacement",
+      "md04_repeat_spin_possible",
+      "md05_different_totals_same_share",
+      "md05_equal_totals_chance",
+      "md05_fair_number_card_rules",
+      "md05_make_fair_by_adding",
+      "mg01_desk_reference_length",
+      "mg01_implausible_label",
+      "mg01_mass_reference_comparison",
+      "mg01_sensible_units",
+      "mg02_compare_mixed_lengths",
+      "mg02_cut_three_lengths",
+      "mg02_metres_centimetres",
+      "mg02_reconstruct_route_leg",
+      "mg03_constant_rate_table",
+      "mg03_price_table_multiples",
+      "mg03_reverse_budget_quantity",
+      "mg03_unit_price",
+      "mg04_euro_cent_comparison",
+      "mg04_price_table_budget",
+      "mg04_purchase_and_change",
+      "mg04_reverse_receipt",
+      "mg05_afternoon_clock",
+      "mg05_backward_departure",
+      "mg05_elapsed_with_break",
+      "mg05_timetable_with_walk",
+      "mg06_broken_ruler",
+      "mg06_paper_segment",
+      "mg06_repair_drawn_length",
+      "mg06_ruler_nonzero_start",
+      "mg07_compare_mixed_capacities",
+      "mg07_fill_to_one_litre",
+      "mg07_full_cups_remainder",
+      "mg07_three_cups",
+      "mr01_paper_rectangle_construction",
+      "mr01_property_table_classification",
+      "mr01_rectangle_properties",
+      "mr01_tilted_square",
+      "mr02_complete_tile_rectangle",
+      "mr02_equal_vertical_partition",
+      "mr02_join_identical_rectangles",
+      "mr02_tile_rectangle_factors",
+      "mr03_area_after_rearrangement",
+      "mr03_combine_half_squares",
+      "mr03_different_area_units",
+      "mr03_same_unit_area_comparison",
+      "mr04_compose_turns",
+      "mr04_half_turn_missing_corner",
+      "mr04_quarter_turn_grid",
+      "mr04_rotation_or_reflection",
+      "mr05_rectangle_all_axes",
+      "mr05_triangle_axis_counterexample",
+      "mr05_two_fold_holes",
+      "mr05_vertical_tile_reflection",
+      "mr06_front_view_heights",
+      "mr06_reverse_view_plans",
+      "mr06_right_view_two_rows",
+      "mr06_total_versus_side_view",
+      "mr07_complete_cross_net",
+      "mr07_cross_net_opposites",
+      "mr07_offset_net_opposites",
+      "mr07_valid_net_selection",
+      "mr08_area_and_boundary",
+      "mr08_equal_area_unequal_perimeter",
+      "mr08_missing_rectangle_side",
+      "mr08_one_row_extension",
+      "mz01_bundle_exchange",
+      "mz01_digit_card_minimum",
+      "mz01_equivalent_expansions",
+      "mz01_missing_bundle_count",
+      "mz02_four_digit_order",
+      "mz02_interval_candidates",
+      "mz02_missing_comparison_digit",
+      "mz02_neighbour_tens",
+      "mz03_equal_route_sections",
+      "mz03_marked_number_line",
+      "mz03_midpoint_balance",
+      "mz03_missing_endpoint",
+      "mz04_four_digit_columns",
+      "mz04_inverse_wall",
+      "mz04_subtraction_audit",
+      "mz04_unknown_addend_probe",
+      "mz05_quarter_hundred_groups",
+      "mz05_regrouped_division",
+      "mz05_split_product",
+      "mz05_tens_analogy",
+      "mz06_comparison_story_roles",
+      "mz06_equal_trays_model",
+      "mz06_measure_groups_division",
+      "mz06_write_sharing_story",
+      "mz07_multiply_near_twenty",
+      "mz07_near_thousand_correction",
+      "mz07_paired_compensation",
+      "mz07_subtraction_compensation",
+      "mz08_alternating_machine",
+      "mz08_constant_step",
+      "mz08_input_output_rule",
+      "mz08_invariant_sum_pattern",
+      "mz09_best_pair_below_limit",
+      "mz09_compare_operation_orders",
+      "mz09_largest_two_digit_difference",
+      "mz09_maximise_wall_top",
+      "mz10_insufficient_information",
+      "mz10_library_change_model",
+      "mz10_seats_and_people",
+      "mz10_whole_pack_purchase",
+      "mz11_estimate_is_not_proof",
+      "mz11_hundred_rounding_check",
+      "mz11_near_multiple_estimate",
+      "mz11_two_factor_sanity_check",
+      "mz12_even_digit_pairs",
+      "mz12_one_game_per_pair",
+      "mz12_outfit_table",
+      "mz12_two_symbol_codes"
+    ]
+  },
   "source": {
     "kind": "original",
     "license": "AGPL-3.0-only",
@@ -13607,6 +13739,2073 @@
         "referenceCompetencies": [
           "M-D05"
         ]
+      }
+    },
+    {
+      "id": "mz07_zz_division_doubling",
+      "familyId": "mz07_zz_division_doubling",
+      "domain": "numbers",
+      "title": {
+        "de": "Eine bekannte Division verdoppeln",
+        "en": "Double a known division"
+      },
+      "prompt": {
+        "de": "48 Plättchen werden in Gruppen mit jeweils 8 Plättchen gelegt. Das sind 6 Gruppen. Nun sollen 96 Plättchen in genauso große Gruppen gelegt werden.",
+        "en": "48 counters are arranged in groups of 8 counters each. That makes 6 groups. Now arrange 96 counters in groups of the same size."
+      },
+      "level": 2,
+      "use": "practice",
+      "parts": [
+        {
+          "id": "groups",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie viele Gruppen entstehen aus 96 Plättchen?",
+            "en": "How many groups do 96 counters make?"
+          },
+          "competencyIds": [
+            "M-Z07"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 12
+          },
+          "errors": [
+            {
+              "value": "6",
+              "code": "unchanged_group_count",
+              "feedback": {
+                "de": "Die Gruppengröße bleibt gleich, aber es sind doppelt so viele Plättchen vorhanden.",
+                "en": "The group size stays the same, but there are twice as many counters."
+              }
+            }
+          ]
+        },
+        {
+          "id": "reason",
+          "kind": "choice",
+          "prompt": {
+            "de": "Welche Begründung passt?",
+            "en": "Which explanation fits?"
+          },
+          "competencyIds": [
+            "M-Z07"
+          ],
+          "maxPoints": 1,
+          "options": [
+            {
+              "id": "double_groups",
+              "label": {
+                "de": "96 sind zweimal 48. Jede Hälfte bildet 6 Gruppen, zusammen also zweimal 6.",
+                "en": "96 is twice 48. Each half makes 6 groups, giving twice 6 altogether."
+              }
+            },
+            {
+              "id": "double_size",
+              "label": {
+                "de": "Es müssen nun 16 Plättchen in jeder Gruppe liegen.",
+                "en": "Each group must now contain 16 counters."
+              }
+            },
+            {
+              "id": "add_eight",
+              "label": {
+                "de": "Zur Zahl der Gruppen müssen immer 8 addiert werden.",
+                "en": "Always add 8 to the number of groups."
+              }
+            }
+          ],
+          "answer": {
+            "type": "choice",
+            "value": "double_groups"
+          }
+        }
+      ],
+      "hints": [
+        {
+          "de": "Was hat sich verändert: die Gesamtzahl oder die Größe jeder Gruppe?",
+          "en": "What changed: the total number or the size of each group?"
+        },
+        {
+          "de": "Teile die 96 Plättchen gedanklich in zwei gleich große Vorräte von 48.",
+          "en": "Think of the 96 counters as two equal supplies of 48."
+        },
+        {
+          "de": "Jeder Vorrat ergibt 6 Gruppen. Verbinde die beiden Gruppenzahlen.",
+          "en": "Each supply makes 6 groups. Combine those two group counts."
+        }
+      ],
+      "solution": {
+        "de": "96 : 8 = 12. Weil der Vorrat bei unveränderter Gruppengröße verdoppelt wird, verdoppelt sich die Gruppenzahl: 6 + 6 = 12.",
+        "en": "96 ÷ 8 = 12. Doubling the supply while keeping each group the same size doubles the number of groups: 6 + 6 = 12."
+      },
+      "estimatedSeconds": 120,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-Z07"
+        ]
+      }
+    },
+    {
+      "id": "mz08_zz_two_direction_number_grid",
+      "familyId": "mz08_zz_two_direction_number_grid",
+      "domain": "numbers",
+      "title": {
+        "de": "Zwei Richtungen, zwei Regeln",
+        "en": "Two directions, two rules"
+      },
+      "prompt": {
+        "de": "In diesem Zahlenfeld gilt nach rechts überall derselbe Additionsschritt. Nach unten gilt ebenfalls überall derselbe Additionsschritt; er darf ein anderer sein. A und B verdecken zwei Zahlen.",
+        "en": "Every step to the right in this number grid adds the same amount. Every step down also adds a constant amount, which may be different. A and B cover two numbers."
+      },
+      "level": 2,
+      "use": "practice",
+      "parts": [
+        {
+          "id": "a",
+          "kind": "number",
+          "prompt": {
+            "de": "Welche Zahl steht unter A?",
+            "en": "What number is hidden by A?"
+          },
+          "competencyIds": [
+            "M-Z08"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 46
+          }
+        },
+        {
+          "id": "b",
+          "kind": "number",
+          "prompt": {
+            "de": "Welche Zahl steht unter B?",
+            "en": "What number is hidden by B?"
+          },
+          "competencyIds": [
+            "M-Z08"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 60
+          }
+        },
+        {
+          "id": "rule",
+          "kind": "choice",
+          "prompt": {
+            "de": "Welche beiden Schritte passen zum ganzen Zahlenfeld?",
+            "en": "Which two steps fit the whole grid?"
+          },
+          "competencyIds": [
+            "M-Z08"
+          ],
+          "maxPoints": 1,
+          "options": [
+            {
+              "id": "right6_down20",
+              "label": {
+                "de": "Nach rechts +6, nach unten +20",
+                "en": "Right +6, down +20"
+              }
+            },
+            {
+              "id": "right20_down6",
+              "label": {
+                "de": "Nach rechts +20, nach unten +6",
+                "en": "Right +20, down +6"
+              }
+            },
+            {
+              "id": "right6_down14",
+              "label": {
+                "de": "Nach rechts +6, nach unten +14",
+                "en": "Right +6, down +14"
+              }
+            }
+          ],
+          "answer": {
+            "type": "choice",
+            "value": "right6_down20"
+          }
+        }
+      ],
+      "hints": [
+        {
+          "de": "Vergleiche zuerst zwei bekannte Nachbarn in derselben Zeile.",
+          "en": "First compare two known neighbours in the same row."
+        },
+        {
+          "de": "Vergleiche dann zwei bekannte Zahlen direkt untereinander.",
+          "en": "Then compare two known numbers directly above and below one another."
+        },
+        {
+          "de": "Prüfe eine verdeckte Zahl auf zwei Wegen: von links und von oben.",
+          "en": "Check a hidden number in two ways: from the left and from above."
+        }
+      ],
+      "solution": {
+        "de": "Nach rechts wird 6 addiert, nach unten 20. A = 40 + 6 = 46 und auch 26 + 20 = 46. B = 54 + 6 = 60 und auch 40 + 20 = 60.",
+        "en": "Moving right adds 6 and moving down adds 20. A = 40 + 6 = 46 and also 26 + 20 = 46. B = 54 + 6 = 60 and also 40 + 20 = 60."
+      },
+      "estimatedSeconds": 120,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-Z08"
+        ]
+      },
+      "figure": {
+        "kind": "table",
+        "data": {
+          "headers": [
+            "1",
+            "2",
+            "3"
+          ],
+          "rows": [
+            [
+              "14",
+              "20",
+              "26"
+            ],
+            [
+              "34",
+              "40",
+              "A"
+            ],
+            [
+              "54",
+              "B",
+              "66"
+            ]
+          ]
+        },
+        "alt": {
+          "de": "Zahlenfeld mit drei Spalten. Zeilen: 14, 20, 26; 34, 40, A; 54, B, 66.",
+          "en": "Three-column number grid. Rows: 14, 20, 26; 34, 40, A; 54, B, 66."
+        }
+      }
+    },
+    {
+      "id": "mz12_zz_constrained_grid_routes",
+      "familyId": "mz12_zz_constrained_grid_routes",
+      "domain": "numbers",
+      "title": {
+        "de": "Alle erlaubten Wege finden",
+        "en": "Find every allowed route"
+      },
+      "prompt": {
+        "de": "Starte im Feld oben links und gehe zum Feld unten rechts. Ein Schritt führt in ein benachbartes Feld nach rechts (→) oder nach unten (↓). Du brauchst genau zwei Schritte jeder Art. Das graue Feld oben rechts ist gesperrt und darf nicht betreten werden.",
+        "en": "Start in the top-left cell and go to the bottom-right cell. Each step moves to an adjacent cell right (→) or down (↓). You need exactly two steps of each kind. The grey top-right cell is blocked and must not be entered."
+      },
+      "level": 3,
+      "use": "check",
+      "parts": [
+        {
+          "id": "routes",
+          "kind": "multiChoice",
+          "prompt": {
+            "de": "Wähle alle erlaubten Schrittfolgen.",
+            "en": "Select every allowed sequence of steps."
+          },
+          "competencyIds": [
+            "M-Z12"
+          ],
+          "maxPoints": 1,
+          "options": [
+            {
+              "id": "rrdd",
+              "label": {
+                "de": "→→↓↓",
+                "en": "→→↓↓"
+              }
+            },
+            {
+              "id": "rdrd",
+              "label": {
+                "de": "→↓→↓",
+                "en": "→↓→↓"
+              }
+            },
+            {
+              "id": "rddr",
+              "label": {
+                "de": "→↓↓→",
+                "en": "→↓↓→"
+              }
+            },
+            {
+              "id": "drrd",
+              "label": {
+                "de": "↓→→↓",
+                "en": "↓→→↓"
+              }
+            },
+            {
+              "id": "drdr",
+              "label": {
+                "de": "↓→↓→",
+                "en": "↓→↓→"
+              }
+            },
+            {
+              "id": "ddrr",
+              "label": {
+                "de": "↓↓→→",
+                "en": "↓↓→→"
+              }
+            }
+          ],
+          "answer": {
+            "type": "set",
+            "values": [
+              "rdrd",
+              "rddr",
+              "drrd",
+              "drdr",
+              "ddrr"
+            ]
+          }
+        },
+        {
+          "id": "count",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie viele verschiedene erlaubte Wege gibt es insgesamt?",
+            "en": "How many different allowed routes are there altogether?"
+          },
+          "competencyIds": [
+            "M-Z12"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 5
+          }
+        }
+      ],
+      "hints": [
+        {
+          "de": "Verfolge jede Schrittfolge vom Start aus, auch ihre Zwischenfelder.",
+          "en": "Trace each sequence from the start, including its intermediate cells."
+        },
+        {
+          "de": "Zwei Schritte nach rechts gleich am Anfang führen in das gesperrte Feld.",
+          "en": "Two rightward steps at the start lead into the blocked cell."
+        }
+      ],
+      "solution": {
+        "de": "Von den sechs Schrittfolgen ist nur →→↓↓ gesperrt. Die anderen fünf erreichen das Ziel ohne das Feld oben rechts. Vollständigkeit: Die zwei Rechts-Schritte können an sechs verschiedenen Paaren der vier Positionen stehen; eines dieser Paare ist verboten.",
+        "en": "Only →→↓↓ is blocked among the six sequences. The other five reach the goal without entering the top-right cell. Completeness: the two rightward steps can occupy six different pairs of the four positions; one pair is forbidden."
+      },
+      "estimatedSeconds": 150,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-Z12"
+        ]
+      },
+      "figure": {
+        "kind": "grid",
+        "data": {
+          "rows": 3,
+          "cols": 3,
+          "filled": [
+            "0,2"
+          ]
+        },
+        "alt": {
+          "de": "Drei mal drei Felder. Start: Reihe 1, Spalte 1. Ziel: Reihe 3, Spalte 3. Gesperrt: Reihe 1, Spalte 3.",
+          "en": "Three-by-three cells. Start: row 1, column 1. Goal: row 3, column 3. Blocked: row 1, column 3."
+        }
+      }
+    },
+    {
+      "id": "mz10_zz_reverse_two_stage_stock",
+      "familyId": "mz10_zz_reverse_two_stage_stock",
+      "domain": "numbers",
+      "title": {
+        "de": "Den Anfangsbestand rekonstruieren",
+        "en": "Reconstruct the starting stock"
+      },
+      "prompt": {
+        "de": "Am Morgen wird genau die Hälfte aller Aufkleber verteilt. Am Nachmittag verteilen 4 Helfer zusammen weitere 18 Aufkleber. Danach bleiben 27 übrig. Wie viele Aufkleber waren am Morgen vor dem Verteilen vorhanden?",
+        "en": "Exactly half of all the stickers are handed out in the morning. In the afternoon, 4 helpers hand out another 18 stickers altogether. Afterwards, 27 remain. How many stickers were there before any were handed out?"
+      },
+      "level": 3,
+      "use": "rehearsal",
+      "parts": [
+        {
+          "id": "model",
+          "kind": "choice",
+          "prompt": {
+            "de": "Welche Rechnung stellt den Anfangsbestand wieder her?",
+            "en": "Which calculation reconstructs the starting stock?"
+          },
+          "competencyIds": [
+            "M-Z10"
+          ],
+          "maxPoints": 1,
+          "options": [
+            {
+              "id": "undo_then_double",
+              "label": {
+                "de": "(27 + 18) · 2",
+                "en": "(27 + 18) × 2"
+              }
+            },
+            {
+              "id": "double_then_add",
+              "label": {
+                "de": "27 · 2 + 18",
+                "en": "27 × 2 + 18"
+              }
+            },
+            {
+              "id": "multiply_helpers",
+              "label": {
+                "de": "(27 + 18) · 4",
+                "en": "(27 + 18) × 4"
+              }
+            }
+          ],
+          "answer": {
+            "type": "choice",
+            "value": "undo_then_double"
+          }
+        },
+        {
+          "id": "start",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie viele Aufkleber waren es am Anfang?",
+            "en": "How many stickers were there at the start?"
+          },
+          "competencyIds": [
+            "M-Z10"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 90
+          },
+          "errors": [
+            {
+              "value": "72",
+              "code": "reverse_steps_wrong_order",
+              "feedback": {
+                "de": "Stelle zuerst den Bestand vor dem Nachmittag wieder her. Erst dieser Bestand ist die Hälfte des Anfangs.",
+                "en": "First reconstruct the stock before the afternoon. That stock is half of the starting amount."
+              }
+            }
+          ]
+        }
+      ],
+      "hints": [
+        {
+          "de": "Arbeite vom Ende der Geschichte zurück zum Anfang.",
+          "en": "Work backwards from the end of the story."
+        },
+        {
+          "de": "18 Aufkleber werden von allen 4 Helfern zusammen verteilt, nicht von jedem einzeln.",
+          "en": "The 4 helpers hand out 18 stickers altogether, not 18 each."
+        }
+      ],
+      "solution": {
+        "de": "Vor dem Nachmittag lagen noch 27 + 18 = 45 Aufkleber bereit. Diese 45 sind die Hälfte des Anfangsbestands: 45 · 2 = 90. Die Helferzahl 4 wird nicht zum Multiplizieren gebraucht.",
+        "en": "Before the afternoon there were 27 + 18 = 45 stickers. Those 45 are half of the starting stock: 45 × 2 = 90. The number of helpers, 4, is not a multiplier."
+      },
+      "estimatedSeconds": 120,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-Z10"
+        ]
+      }
+    },
+    {
+      "id": "mr08_zz_joined_and_exposed_edges",
+      "familyId": "mr08_zz_joined_and_exposed_edges",
+      "domain": "geometry",
+      "title": {
+        "de": "Gemeinsame Kanten zählen nicht doppelt",
+        "en": "Separate joined and exposed edges"
+      },
+      "prompt": {
+        "de": "Drei quadratische Platten liegen ohne Überlappung in einer L-Form. Jede Plattenkante ist 2 cm lang. Ein Band soll nur am äußeren Rand entlanglaufen, nicht an den gemeinsamen Kanten zwischen Platten.",
+        "en": "Three square tiles form an L without overlaps. Each tile edge is 2 cm long. A ribbon follows only the outside boundary, not the shared edges between tiles."
+      },
+      "level": 2,
+      "use": "practice",
+      "parts": [
+        {
+          "id": "shared",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie viele ganze Kanten teilen sich je zwei Platten?",
+            "en": "How many whole edges are shared by two tiles?"
+          },
+          "competencyIds": [
+            "M-R08"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 2
+          }
+        },
+        {
+          "id": "boundary",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie lang muss das Band für den äußeren Rand sein?",
+            "en": "How long must the ribbon be to cover the outside boundary?"
+          },
+          "competencyIds": [
+            "M-R08"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 16
+          },
+          "unit": "cm"
+        },
+        {
+          "id": "reason",
+          "kind": "choice",
+          "prompt": {
+            "de": "Warum zählt die Summe der drei einzelnen Plattenumfänge zu viel?",
+            "en": "Why is the sum of the three separate tile perimeters too large?"
+          },
+          "competencyIds": [
+            "M-R08"
+          ],
+          "maxPoints": 1,
+          "options": [
+            {
+              "id": "shared_twice",
+              "label": {
+                "de": "Jede gemeinsame Kante kommt darin zweimal vor, aber gar nicht am äußeren Rand.",
+                "en": "Each shared edge is counted twice, although it is not on the outside boundary."
+              }
+            },
+            {
+              "id": "only_corners",
+              "label": {
+                "de": "Am äußeren Rand dürfen nur die Ecken gezählt werden.",
+                "en": "Only corners may be counted on the outside boundary."
+              }
+            },
+            {
+              "id": "area_same",
+              "label": {
+                "de": "Umfang und Flächeninhalt sind immer dieselbe Zahl.",
+                "en": "Perimeter and area are always the same number."
+              }
+            }
+          ],
+          "answer": {
+            "type": "choice",
+            "value": "shared_twice"
+          }
+        }
+      ],
+      "hints": [
+        {
+          "de": "Fahre gedanklich mit einem Finger einmal außen um die L-Form.",
+          "en": "Trace once around the outside of the L with an imaginary finger."
+        },
+        {
+          "de": "Markiere zuerst die Kanten, die zwischen zwei Platten liegen.",
+          "en": "First mark the edges between two tiles."
+        },
+        {
+          "de": "Es gibt zwölf einzelne Plattenkanten. Für jede Verbindung fallen zwei dieser gezählten Kanten weg.",
+          "en": "The separate tiles have twelve edges altogether. Each join removes two of those counted edges."
+        }
+      ],
+      "solution": {
+        "de": "Es gibt 2 gemeinsame Kanten. Am äußeren Rand bleiben 3 · 4 − 2 · 2 = 8 Plattenkanten. 8 · 2 cm = 16 cm. Die gemeinsamen Kanten wurden bei den Einzelumfängen jeweils doppelt gezählt.",
+        "en": "There are 2 shared edges. The outside boundary has 3 × 4 − 2 × 2 = 8 tile edges. 8 × 2 cm = 16 cm. Each shared edge was counted twice in the separate perimeters."
+      },
+      "estimatedSeconds": 120,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-R08"
+        ]
+      },
+      "figure": {
+        "kind": "grid",
+        "data": {
+          "rows": 2,
+          "cols": 2,
+          "filled": [
+            "0,0",
+            "1,0",
+            "1,1"
+          ]
+        },
+        "alt": {
+          "de": "L-Form aus den Feldern oben links, unten links und unten rechts. Jede Feldkante ist 2 cm lang; das leere Feld gehört nicht zur Form.",
+          "en": "An L formed by the top-left, bottom-left and bottom-right cells. Each cell edge is 2 cm long; the empty cell is not part of the shape."
+        }
+      }
+    },
+    {
+      "id": "mr02_zz_square_and_corner_piece",
+      "familyId": "mr02_complete_tile_rectangle",
+      "domain": "geometry",
+      "title": {
+        "de": "Zwei verschiedene Teile ergänzen sich",
+        "en": "Fit two different pieces together"
+      },
+      "prompt": {
+        "de": "Ein quadratisches Brett hat 3 mal 3 gleich große Felder. Das feste quadratische Teil bedeckt oben links 2 mal 2 Felder. Das zweite Teil besteht aus fünf Feldern: drei in einer Reihe und drei in einer dazu senkrechten Reihe, wobei das Eckfeld zu beiden Reihen gehört. Es darf gedreht werden. Decke das Brett ohne Lücke und Überlappung.",
+        "en": "A square board has 3 by 3 equal cells. A fixed square piece covers the top-left 2 by 2 cells. The other piece has five cells: three in one row and three in a perpendicular row, sharing the corner cell. It may be rotated. Cover the board without gaps or overlaps."
+      },
+      "level": 2,
+      "use": "practice",
+      "parts": [
+        {
+          "id": "second_piece",
+          "kind": "cells",
+          "prompt": {
+            "de": "Markiere genau die Felder, die das zweite Teil bedeckt.",
+            "en": "Select exactly the cells covered by the second piece."
+          },
+          "competencyIds": [
+            "M-R02"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "set",
+            "values": [
+              "0,2",
+              "1,2",
+              "2,0",
+              "2,1",
+              "2,2"
+            ]
+          },
+          "figure": {
+            "kind": "grid",
+            "data": {
+              "rows": 3,
+              "cols": 3,
+              "filled": [
+                "0,0",
+                "0,1",
+                "1,0",
+                "1,1"
+              ]
+            },
+            "alt": {
+              "de": "Drei mal drei Felder; der feste quadratische Teil belegt die ersten zwei Reihen und ersten zwei Spalten.",
+              "en": "Three-by-three cells; the fixed square occupies the first two rows and first two columns."
+            }
+          }
+        },
+        {
+          "id": "covered",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie viele Felder bedecken beide Teile zusammen?",
+            "en": "How many cells do the two pieces cover together?"
+          },
+          "competencyIds": [
+            "M-R02"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 9
+          }
+        }
+      ],
+      "hints": [
+        {
+          "de": "Das feste Teil darf nicht verschoben oder überdeckt werden.",
+          "en": "The fixed piece cannot be moved or covered."
+        },
+        {
+          "de": "Suche die freien Felder an der rechten und an der unteren Brettkante.",
+          "en": "Look for the free cells along the right and bottom edges of the board."
+        },
+        {
+          "de": "Das gemeinsame Eckfeld gehört nur einmal zum zweiten Teil.",
+          "en": "The shared corner cell belongs to the second piece only once."
+        }
+      ],
+      "solution": {
+        "de": "Das zweite Teil liegt in der rechten Spalte und der unteren Reihe. Das Eckfeld unten rechts wird einmal gezählt: 3 + 3 − 1 = 5 Felder. Zusammen mit den 4 Feldern des Quadrats sind es 9.",
+        "en": "The second piece occupies the right column and the bottom row. The bottom-right corner is counted once: 3 + 3 − 1 = 5 cells. Together with the square's 4 cells, the total is 9."
+      },
+      "estimatedSeconds": 140,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-R02"
+        ]
+      }
+    },
+    {
+      "id": "mr03_zz_overlapping_rectangles_union",
+      "familyId": "mr03_zz_overlapping_rectangles_union",
+      "domain": "geometry",
+      "title": {
+        "de": "Überdeckte Fläche nur einmal zählen",
+        "en": "Count overlap only once"
+      },
+      "prompt": {
+        "de": "Jedes Feld des Gitters hat einen Flächeninhalt von 1 cm². Rechteck A ist grau eingezeichnet: Reihen 1 und 2, Spalten 1 bis 3. Lege gedanklich Rechteck B dazu: Reihen 2 und 3, Spalten 3 bis 5. Überlappende Felder zählen für die insgesamt bedeckte Fläche nur einmal.",
+        "en": "Each grid cell has area 1 cm². Rectangle A is shown in grey: rows 1 and 2, columns 1 to 3. Imagine adding rectangle B: rows 2 and 3, columns 3 to 5. Count overlapping cells only once in the total covered area."
+      },
+      "level": 3,
+      "use": "check",
+      "parts": [
+        {
+          "id": "overlap",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie groß ist die Fläche, die zu A und B gehört?",
+            "en": "What area belongs to both A and B?"
+          },
+          "competencyIds": [
+            "M-R03"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 1
+          },
+          "unit": "cm²"
+        },
+        {
+          "id": "covered",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie groß ist die insgesamt bedeckte Fläche?",
+            "en": "What is the total covered area?"
+          },
+          "competencyIds": [
+            "M-R03"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 11
+          },
+          "unit": "cm²",
+          "errors": [
+            {
+              "value": "12",
+              "code": "overlap_counted_twice",
+              "feedback": {
+                "de": "Ein Feld gehört zu beiden Rechtecken. Beim Addieren beider Flächen wird dieses Feld doppelt gezählt.",
+                "en": "One cell belongs to both rectangles. Adding their areas counts that cell twice."
+              }
+            }
+          ]
+        }
+      ],
+      "hints": [
+        {
+          "de": "Prüfe, welche Reihe und welche Spalte in beiden Beschreibungen vorkommen.",
+          "en": "Check which row and which column occur in both descriptions."
+        },
+        {
+          "de": "Addiere beide Rechteckflächen und ziehe die doppelt gezählte Fläche einmal ab.",
+          "en": "Add the rectangle areas and subtract the double-counted area once."
+        }
+      ],
+      "solution": {
+        "de": "Nur das Feld in Reihe 2, Spalte 3 gehört zu beiden Rechtecken. Die Überlappung ist 1 cm². Jedes Rechteck ist 6 cm² groß; insgesamt werden 6 + 6 − 1 = 11 cm² bedeckt.",
+        "en": "Only the cell in row 2, column 3 belongs to both rectangles. The overlap is 1 cm². Each rectangle has area 6 cm², so the total covered area is 6 + 6 − 1 = 11 cm²."
+      },
+      "estimatedSeconds": 120,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-R03"
+        ]
+      },
+      "figure": {
+        "kind": "grid",
+        "data": {
+          "rows": 3,
+          "cols": 5,
+          "filled": [
+            "0,0",
+            "0,1",
+            "0,2",
+            "1,0",
+            "1,1",
+            "1,2"
+          ]
+        },
+        "alt": {
+          "de": "Gitter mit drei Reihen und fünf Spalten. Grau ist nur Rechteck A in den ersten beiden Reihen und ersten drei Spalten. B ist noch nicht eingezeichnet.",
+          "en": "A grid with three rows and five columns. Only rectangle A is grey, in the first two rows and first three columns. B is not drawn yet."
+        }
+      }
+    },
+    {
+      "id": "mr06_zz_two_views_hidden_tower",
+      "familyId": "mr06_zz_two_views_hidden_tower",
+      "domain": "geometry",
+      "title": {
+        "de": "Eine verdeckte Höhe ist nicht eindeutig",
+        "en": "A hidden height need not be unique"
+      },
+      "prompt": {
+        "de": "Die Tabelle ist ein Bauplan mit zwei Reihen und zwei Spalten. Zahlen geben lückenlose Turmhöhen in Würfeln an; 0 bedeutet kein Turm. x ist eine ganze Zahl von 0 bis 4. Von vorne sieht man links Höhe 3 und rechts Höhe 2. Von rechts sieht man für die hintere Reihe Höhe 2 und für die vordere Reihe Höhe 3. Ein verdeckter niedriger Turm bleibt in einer Ansicht unsichtbar.",
+        "en": "The table is a two-row, two-column building plan. Numbers give solid tower heights in cubes; 0 means no tower. x is a whole number from 0 to 4. The front view has height 3 on the left and 2 on the right. The right view has height 2 for the back row and 3 for the front row. A lower tower hidden behind another is not visible in that view."
+      },
+      "level": 3,
+      "use": "rehearsal",
+      "parts": [
+        {
+          "id": "possible",
+          "kind": "multiChoice",
+          "prompt": {
+            "de": "Welche Werte für x passen zu beiden Ansichten? Wähle alle.",
+            "en": "Which values of x fit both views? Select all."
+          },
+          "competencyIds": [
+            "M-R06"
+          ],
+          "maxPoints": 1,
+          "options": [
+            {
+              "id": "0",
+              "label": {
+                "de": "0",
+                "en": "0"
+              }
+            },
+            {
+              "id": "1",
+              "label": {
+                "de": "1",
+                "en": "1"
+              }
+            },
+            {
+              "id": "2",
+              "label": {
+                "de": "2",
+                "en": "2"
+              }
+            },
+            {
+              "id": "3",
+              "label": {
+                "de": "3",
+                "en": "3"
+              }
+            },
+            {
+              "id": "4",
+              "label": {
+                "de": "4",
+                "en": "4"
+              }
+            }
+          ],
+          "answer": {
+            "type": "set",
+            "values": [
+              "0",
+              "1",
+              "2"
+            ]
+          }
+        },
+        {
+          "id": "unique",
+          "kind": "choice",
+          "prompt": {
+            "de": "Kann man x mit diesen Angaben eindeutig bestimmen?",
+            "en": "Do these observations determine x uniquely?"
+          },
+          "competencyIds": [
+            "M-R06"
+          ],
+          "maxPoints": 1,
+          "options": [
+            {
+              "id": "yes",
+              "label": {
+                "de": "Ja, genau ein Wert passt.",
+                "en": "Yes, exactly one value fits."
+              }
+            },
+            {
+              "id": "no",
+              "label": {
+                "de": "Nein, mehrere Werte passen.",
+                "en": "No, several values fit."
+              }
+            }
+          ],
+          "answer": {
+            "type": "choice",
+            "value": "no"
+          }
+        }
+      ],
+      "hints": [
+        {
+          "de": "Eine Ansicht zeigt für jede Blickreihe nur den höchsten Turm.",
+          "en": "Each line of sight shows only its tallest tower."
+        },
+        {
+          "de": "Probiere x = 0, 1, 2, 3 und 4. Prüfe jeweils beide Blickrichtungen.",
+          "en": "Try x = 0, 1, 2, 3 and 4. Check both viewing directions for each value."
+        }
+      ],
+      "solution": {
+        "de": "x darf 0, 1 oder 2 sein. Von vorne verdeckt der vordere Dreierturm diese Höhe. Von rechts verdeckt der hintere Zweierturm sie. x = 3 oder 4 widerspricht der Höhe 2 der hinteren Reihe in der rechten Ansicht. Die Höhe ist deshalb nicht eindeutig bestimmt.",
+        "en": "x can be 0, 1 or 2. From the front, the front tower of height 3 hides it. From the right, the back-row tower of height 2 hides it. x = 3 or 4 contradicts the back-row height 2 in the right view. The height is therefore not uniquely determined."
+      },
+      "estimatedSeconds": 150,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-R06"
+        ]
+      },
+      "figure": {
+        "kind": "table",
+        "data": {
+          "headers": [
+            {
+              "de": "Reihe",
+              "en": "Row"
+            },
+            {
+              "de": "links",
+              "en": "left"
+            },
+            {
+              "de": "rechts",
+              "en": "right"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "de": "hinten",
+                "en": "back"
+              },
+              "x",
+              "2"
+            ],
+            [
+              {
+                "de": "vorne",
+                "en": "front"
+              },
+              "3",
+              "1"
+            ]
+          ]
+        },
+        "alt": {
+          "de": "Bauplan: hintere Reihe x und 2; vordere Reihe 3 und 1. Links und rechts beziehen sich auf die Vorderansicht.",
+          "en": "Building plan: back row x and 2; front row 3 and 1. Left and right refer to the front view."
+        }
+      }
+    },
+    {
+      "id": "mg04_zz_deposit_and_refund",
+      "familyId": "mg04_zz_deposit_and_refund",
+      "domain": "measurement",
+      "title": {
+        "de": "Preis, Pfand und Rückgabe",
+        "en": "Price, deposit and return"
+      },
+      "prompt": {
+        "de": "Eine Flasche Limonade kostet 1,25 € für das Getränk und zusätzlich 0,25 € Pfand. Du kaufst 4 Flaschen. Danach gibst du 3 leere Pfandflaschen zurück und bekommst für jede 0,25 € erstattet. Es gibt keine weiteren Kosten oder Erstattungen.",
+        "en": "A bottle of lemonade costs €1.25 for the drink plus a €0.25 deposit. You buy 4 bottles. Afterwards, you return 3 empty deposit bottles and receive €0.25 for each. There are no other charges or refunds."
+      },
+      "level": 2,
+      "use": "practice",
+      "parts": [
+        {
+          "id": "payment",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie viel bezahlst du beim Kauf vor der Rückgabe?",
+            "en": "How much do you pay at purchase, before the return?"
+          },
+          "competencyIds": [
+            "M-G04"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 6
+          },
+          "unit": "€"
+        },
+        {
+          "id": "refund",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie viel bekommst du für die 3 leeren Flaschen zurück?",
+            "en": "How much is refunded for the 3 empty bottles?"
+          },
+          "competencyIds": [
+            "M-G04"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 0.75
+          },
+          "unit": "€"
+        },
+        {
+          "id": "net",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie viel Geld hast du nach Kauf und Rückgabe insgesamt weniger?",
+            "en": "How much less money do you have after the purchase and return together?"
+          },
+          "competencyIds": [
+            "M-G04"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 5.25
+          },
+          "unit": "€",
+          "errors": [
+            {
+              "value": "5",
+              "code": "deposit_ignored",
+              "feedback": {
+                "de": "Nach der Rückgabe bleibt das Pfand für eine nicht zurückgegebene Flasche noch bezahlt.",
+                "en": "After the return, the deposit on one unreturned bottle is still paid."
+              }
+            }
+          ]
+        }
+      ],
+      "hints": [
+        {
+          "de": "Beim Kauf gehört das Pfand für jede gekaufte Flasche zum Zahlbetrag.",
+          "en": "At purchase, each bottle's deposit is part of the payment."
+        },
+        {
+          "de": "Berechne die Rückgabe getrennt; es werden nur drei Flaschen zurückgegeben.",
+          "en": "Calculate the refund separately; only three bottles are returned."
+        },
+        {
+          "de": "Ziehe das zurückbekommene Geld vom zuerst bezahlten Geld ab.",
+          "en": "Subtract the refunded money from the original payment."
+        }
+      ],
+      "solution": {
+        "de": "Kauf: 4 · (1,25 € + 0,25 €) = 6,00 €. Rückgabe: 3 · 0,25 € = 0,75 €. Insgesamt fehlen danach 6,00 € − 0,75 € = 5,25 €.",
+        "en": "Purchase: 4 × (€1.25 + €0.25) = €6.00. Refund: 3 × €0.25 = €0.75. The net reduction in money is €6.00 − €0.75 = €5.25."
+      },
+      "estimatedSeconds": 150,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-G04"
+        ]
+      }
+    },
+    {
+      "id": "mg07_zz_pour_and_return",
+      "familyId": "mg07_zz_pour_and_return",
+      "domain": "measurement",
+      "title": {
+        "de": "Hin- und zurückgießen",
+        "en": "Pour out and pour back"
+      },
+      "prompt": {
+        "de": "Eine Kanne enthält 1 l Wasser. Ein leerer Becher fasst mindestens 250 ml. Gieße zuerst 250 ml aus der Kanne in den Becher. Gieße danach genau 100 ml aus dem Becher zurück in die Kanne. Nichts wird verschüttet. Es gilt: 1 l = 1000 ml.",
+        "en": "A jug contains 1 litre of water. An empty cup holds at least 250 ml. First pour 250 ml from the jug into the cup. Then pour exactly 100 ml from the cup back into the jug. Nothing is spilled. Use 1 litre = 1000 ml."
+      },
+      "level": 2,
+      "use": "practice",
+      "parts": [
+        {
+          "id": "cup",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie viel Wasser ist am Ende im Becher?",
+            "en": "How much water is in the cup at the end?"
+          },
+          "competencyIds": [
+            "M-G07"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 150
+          },
+          "unit": "ml"
+        },
+        {
+          "id": "jug",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie viel Wasser ist am Ende in der Kanne?",
+            "en": "How much water is in the jug at the end?"
+          },
+          "competencyIds": [
+            "M-G07"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 850
+          },
+          "unit": "ml",
+          "errors": [
+            {
+              "value": "750",
+              "code": "return_not_counted",
+              "feedback": {
+                "de": "Nach dem ersten Gießen stimmt 750 ml. Den Rückfluss von 100 ml musst du noch berücksichtigen.",
+                "en": "750 ml is correct after the first pour. You still need to include the 100 ml poured back."
+              }
+            }
+          ]
+        }
+      ],
+      "hints": [
+        {
+          "de": "Rechne die Anfangsmenge zuerst in Milliliter um.",
+          "en": "First express the starting amount in millilitres."
+        },
+        {
+          "de": "Wenn Wasser die Kanne verlässt, nimmt die Bechermenge zu. Beim Zurückgießen ist es umgekehrt.",
+          "en": "When water leaves the jug, the amount in the cup grows. Pouring it back reverses that."
+        },
+        {
+          "de": "Prüfe am Ende, ob beide Mengen zusammen noch 1000 ml ergeben.",
+          "en": "Finally check that both amounts still add up to 1000 ml."
+        }
+      ],
+      "solution": {
+        "de": "Im Becher bleiben 250 − 100 = 150 ml. In der Kanne sind 1000 − 250 + 100 = 850 ml. Kontrolle: 150 + 850 = 1000 ml.",
+        "en": "The cup contains 250 − 100 = 150 ml. The jug contains 1000 − 250 + 100 = 850 ml. Check: 150 + 850 = 1000 ml."
+      },
+      "estimatedSeconds": 120,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-G07"
+        ]
+      }
+    },
+    {
+      "id": "mg04_zz_offers_with_fixed_charge",
+      "familyId": "mg04_zz_offers_with_fixed_charge",
+      "domain": "measurement",
+      "title": {
+        "de": "Eine feste Gebühr mitrechnen",
+        "en": "Include a fixed charge"
+      },
+      "prompt": {
+        "de": "Für genau 8 Leihstühle gibt es zwei Angebote. A verlangt einmalig 6 € Bereitstellung und 2 € je Stuhl. B verlangt keine Bereitstellung und 3 € je Stuhl. Es gibt keine weiteren Gebühren, Pfandbeträge oder Rabatte.",
+        "en": "There are two offers for exactly 8 rental chairs. A charges a one-off setup fee of €6 plus €2 per chair. B has no setup fee and charges €3 per chair. There are no other fees, deposits or discounts."
+      },
+      "level": 3,
+      "use": "check",
+      "parts": [
+        {
+          "id": "a",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie viel kosten 8 Stühle bei A insgesamt?",
+            "en": "What is the total cost of 8 chairs from A?"
+          },
+          "competencyIds": [
+            "M-G04"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 22
+          },
+          "unit": "€",
+          "errors": [
+            {
+              "value": "64",
+              "code": "fixed_fee_per_item",
+              "feedback": {
+                "de": "Die Bereitstellung wird nur einmal bezahlt, nicht für jeden Stuhl.",
+                "en": "The setup fee is paid only once, not for every chair."
+              }
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie viel kosten 8 Stühle bei B insgesamt?",
+            "en": "What is the total cost of 8 chairs from B?"
+          },
+          "competencyIds": [
+            "M-G04"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 24
+          },
+          "unit": "€"
+        },
+        {
+          "id": "cheaper",
+          "kind": "choice",
+          "prompt": {
+            "de": "Welches Angebot ist für diese 8 Stühle günstiger?",
+            "en": "Which offer is cheaper for these 8 chairs?"
+          },
+          "competencyIds": [
+            "M-G04"
+          ],
+          "maxPoints": 1,
+          "options": [
+            {
+              "id": "a",
+              "label": {
+                "de": "A",
+                "en": "A"
+              }
+            },
+            {
+              "id": "b",
+              "label": {
+                "de": "B",
+                "en": "B"
+              }
+            },
+            {
+              "id": "equal",
+              "label": {
+                "de": "Beide kosten gleich viel.",
+                "en": "They cost the same."
+              }
+            }
+          ],
+          "answer": {
+            "type": "choice",
+            "value": "a"
+          }
+        }
+      ],
+      "hints": [
+        {
+          "de": "Trenne die einmalige Gebühr vom Preis, der für jeden Stuhl anfällt.",
+          "en": "Separate the one-off fee from the price charged for every chair."
+        },
+        {
+          "de": "Vergleiche die vollständigen Zahlbeträge, nicht nur die Stückpreise.",
+          "en": "Compare the complete payments, not just the per-chair prices."
+        }
+      ],
+      "solution": {
+        "de": "A kostet 6 € + 8 · 2 € = 22 €. B kostet 8 · 3 € = 24 €. Für 8 Stühle ist A um 2 € günstiger. Die feste Gebühr fällt genau einmal an.",
+        "en": "A costs €6 + 8 × €2 = €22. B costs 8 × €3 = €24. For 8 chairs, A is €2 cheaper. The fixed fee is charged exactly once."
+      },
+      "estimatedSeconds": 120,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-G04"
+        ]
+      }
+    },
+    {
+      "id": "mg05_zz_overlapping_preparations",
+      "familyId": "mg05_zz_overlapping_preparations",
+      "domain": "measurement",
+      "title": {
+        "de": "Gleichzeitige Zeiten richtig verbinden",
+        "en": "Combine overlapping times"
+      },
+      "prompt": {
+        "de": "Um 09:40 startet ein Gerät sein automatisches Aufwärmen für 18 Minuten. Gleichzeitig beginnt eine Person mit einer Vorbereitung, die 25 Minuten dauert. Sobald beides fertig ist, folgen noch genau 5 Minuten Wartezeit. Erst danach darf die Vorführung starten.",
+        "en": "At 09:40 a machine starts warming up automatically for 18 minutes. At the same time, a person starts a preparation task lasting 25 minutes. Once both are finished, there is a further wait of exactly 5 minutes. The demonstration may start only after that wait."
+      },
+      "level": 3,
+      "use": "rehearsal",
+      "parts": [
+        {
+          "id": "elapsed",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie viele Minuten vergehen von 09:40 bis zum frühesten Start?",
+            "en": "How many minutes pass from 09:40 to the earliest start?"
+          },
+          "competencyIds": [
+            "M-G05"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 30
+          },
+          "unit": "min",
+          "errors": [
+            {
+              "value": "48",
+              "code": "overlap_added_as_sequence",
+              "feedback": {
+                "de": "Aufwärmen und Vorbereitung beginnen gleichzeitig. Ihre Zeiten werden nicht hintereinander addiert.",
+                "en": "Warm-up and preparation start together. Their durations are not added one after another."
+              }
+            }
+          ]
+        },
+        {
+          "id": "start",
+          "kind": "choice",
+          "prompt": {
+            "de": "Wann ist der früheste Start?",
+            "en": "What is the earliest start time?"
+          },
+          "competencyIds": [
+            "M-G05"
+          ],
+          "maxPoints": 1,
+          "options": [
+            {
+              "id": "1003",
+              "label": {
+                "de": "10:03",
+                "en": "10:03"
+              }
+            },
+            {
+              "id": "1010",
+              "label": {
+                "de": "10:10",
+                "en": "10:10"
+              }
+            },
+            {
+              "id": "1028",
+              "label": {
+                "de": "10:28",
+                "en": "10:28"
+              }
+            }
+          ],
+          "answer": {
+            "type": "choice",
+            "value": "1010"
+          }
+        },
+        {
+          "id": "reason",
+          "kind": "text",
+          "prompt": {
+            "de": "Erkläre, welche Dauer über das Ende der gemeinsamen Vorbereitung entscheidet.",
+            "en": "Explain which duration determines when both preparations are finished."
+          },
+          "competencyIds": [
+            "M-G05"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "manual",
+            "criteria": {
+              "de": "1 Punkt: Die Vorgänge laufen gleichzeitig; der längere mit 25 Minuten bestimmt das gemeinsame Ende. Danach kommen 5 Minuten hinzu. Eine gleichwertige Erklärung ist zulässig.",
+              "en": "1 point: the activities run at the same time, so the longer 25-minute activity determines when both are ready. The further 5-minute wait follows. Accept equivalent explanations."
+            }
+          },
+          "rubric": [
+            {
+              "de": "1 Punkt: Die Vorgänge laufen gleichzeitig; der längere mit 25 Minuten bestimmt das gemeinsame Ende. Danach kommen 5 Minuten hinzu. Eine gleichwertige Erklärung ist zulässig.",
+              "en": "1 point: the activities run at the same time, so the longer 25-minute activity determines when both are ready. The further 5-minute wait follows. Accept equivalent explanations."
+            }
+          ]
+        }
+      ],
+      "hints": [
+        {
+          "de": "Bestimme getrennt, wann das Gerät fertig ist und wann die Person fertig ist.",
+          "en": "Find separately when the machine is ready and when the person is ready."
+        },
+        {
+          "de": "Die zusätzliche Wartezeit beginnt erst am späteren der beiden Zeitpunkte.",
+          "en": "The additional wait starts at the later of those two times."
+        }
+      ],
+      "solution": {
+        "de": "Das Gerät ist um 09:58 bereit, die Person um 10:05. Beides ist also erst um 10:05 fertig. Nach 5 Minuten Wartezeit beginnt die Vorführung frühestens um 10:10. Insgesamt vergehen 25 + 5 = 30 Minuten.",
+        "en": "The machine is ready at 09:58 and the person at 10:05. Both are therefore ready at 10:05. After the 5-minute wait, the earliest demonstration start is 10:10. Total elapsed time is 25 + 5 = 30 minutes."
+      },
+      "estimatedSeconds": 150,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-G05"
+        ]
+      }
+    },
+    {
+      "id": "md02_zz_tally_frequency_table",
+      "familyId": "md02_zz_tally_frequency_table",
+      "domain": "data",
+      "title": {
+        "de": "Striche in Häufigkeiten übersetzen",
+        "en": "Translate tallies into frequencies"
+      },
+      "prompt": {
+        "de": "Eine Strichliste erfasst drei Antworten A, B und C. Jeder senkrechte Strich zählt genau eine Antwort. Ein Leerraum zwischen Strichgruppen ändert ihren Wert nicht. Übertrage die Häufigkeiten in Zahlen.",
+        "en": "A tally records three answers A, B and C. Each vertical stroke counts exactly one answer. A space between groups of strokes does not change their value. Write the frequencies as numbers."
+      },
+      "level": 2,
+      "use": "practice",
+      "parts": [
+        {
+          "id": "a",
+          "kind": "number",
+          "prompt": {
+            "de": "Welche Häufigkeit gehört zu A?",
+            "en": "What is the frequency for A?"
+          },
+          "competencyIds": [
+            "M-D02"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 6
+          }
+        },
+        {
+          "id": "b",
+          "kind": "number",
+          "prompt": {
+            "de": "Welche Häufigkeit gehört zu B?",
+            "en": "What is the frequency for B?"
+          },
+          "competencyIds": [
+            "M-D02"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 4
+          }
+        },
+        {
+          "id": "c",
+          "kind": "number",
+          "prompt": {
+            "de": "Welche Häufigkeit gehört zu C?",
+            "en": "What is the frequency for C?"
+          },
+          "competencyIds": [
+            "M-D02"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 8
+          }
+        }
+      ],
+      "hints": [
+        {
+          "de": "Zähle Striche, nicht Gruppen von Strichen.",
+          "en": "Count strokes, not groups of strokes."
+        },
+        {
+          "de": "Eine Gruppe mit fünf Strichen und ein weiterer Strich bedeuten zusammen sechs.",
+          "en": "A group of five strokes and one more stroke represent six altogether."
+        }
+      ],
+      "solution": {
+        "de": "A hat 5 + 1 = 6 Antworten, B hat 4 und C hat 5 + 3 = 8. In der Häufigkeitstabelle stehen deshalb A: 6, B: 4, C: 8.",
+        "en": "A has 5 + 1 = 6 answers, B has 4, and C has 5 + 3 = 8. The frequency table therefore records A: 6, B: 4, C: 8."
+      },
+      "estimatedSeconds": 120,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-D02"
+        ]
+      },
+      "figure": {
+        "kind": "table",
+        "data": {
+          "headers": [
+            {
+              "de": "Antwort",
+              "en": "Answer"
+            },
+            {
+              "de": "Striche",
+              "en": "Tally strokes"
+            }
+          ],
+          "rows": [
+            [
+              "A",
+              "||||| |"
+            ],
+            [
+              "B",
+              "||||"
+            ],
+            [
+              "C",
+              "||||| |||"
+            ]
+          ]
+        },
+        "alt": {
+          "de": "Strichliste: A mit fünf Strichen und einem weiteren, B mit vier Strichen, C mit fünf Strichen und drei weiteren.",
+          "en": "Tallies: A has five strokes and one more, B has four strokes, C has five strokes and three more."
+        }
+      }
+    },
+    {
+      "id": "md03_zz_largest_is_not_majority",
+      "familyId": "md03_zz_largest_is_not_majority",
+      "domain": "data",
+      "title": {
+        "de": "Am meisten ist nicht immer mehr als die Hälfte",
+        "en": "The largest group need not be a majority"
+      },
+      "prompt": {
+        "de": "Jede Person stimmt für genau eine der drei Möglichkeiten A, B oder C. Alle Stimmen sind im Diagramm enthalten. Sam sagt: „A hat die meisten Stimmen. Also hat mehr als die Hälfte aller Personen A gewählt.“ Prüfe die zweite Aussage.",
+        "en": "Each person votes for exactly one of A, B or C. The chart includes every vote. Sam says, 'A has the most votes. So more than half of all the people chose A.' Check the second statement."
+      },
+      "level": 2,
+      "use": "practice",
+      "parts": [
+        {
+          "id": "total",
+          "kind": "number",
+          "prompt": {
+            "de": "Wie viele Stimmen gibt es insgesamt?",
+            "en": "How many votes are there altogether?"
+          },
+          "competencyIds": [
+            "M-D03"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 20
+          }
+        },
+        {
+          "id": "claim",
+          "kind": "choice",
+          "prompt": {
+            "de": "Hat mehr als die Hälfte aller Personen A gewählt?",
+            "en": "Did more than half of all the people choose A?"
+          },
+          "competencyIds": [
+            "M-D03"
+          ],
+          "maxPoints": 1,
+          "options": [
+            {
+              "id": "yes",
+              "label": {
+                "de": "Ja",
+                "en": "Yes"
+              }
+            },
+            {
+              "id": "no",
+              "label": {
+                "de": "Nein",
+                "en": "No"
+              }
+            }
+          ],
+          "answer": {
+            "type": "choice",
+            "value": "no"
+          }
+        },
+        {
+          "id": "reason",
+          "kind": "text",
+          "prompt": {
+            "de": "Begründe mit der Gesamtzahl und der Stimmenzahl von A.",
+            "en": "Explain using the total and A's vote count."
+          },
+          "competencyIds": [
+            "M-D03"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "manual",
+            "criteria": {
+              "de": "1 Punkt: Die Hälfte von 20 ist 10. A hat 9 Stimmen und damit nicht mehr als 10. Dass 9 der größte Einzelwert ist, genügt nicht für mehr als die Hälfte.",
+              "en": "1 point: half of 20 is 10. A has 9 votes, which is not more than 10. Being the largest individual count does not establish more than half."
+            }
+          },
+          "rubric": [
+            {
+              "de": "1 Punkt: Die Hälfte von 20 ist 10. A hat 9 Stimmen und damit nicht mehr als 10. Dass 9 der größte Einzelwert ist, genügt nicht für mehr als die Hälfte.",
+              "en": "1 point: half of 20 is 10. A has 9 votes, which is not more than 10. Being the largest individual count does not establish more than half."
+            }
+          ]
+        }
+      ],
+      "hints": [
+        {
+          "de": "Addiere für die Gesamtzahl alle drei Säulenwerte.",
+          "en": "Add all three bar values to find the total."
+        },
+        {
+          "de": "Halbiere die Gesamtzahl, nicht nur die größte Säule.",
+          "en": "Halve the total, not just the largest bar."
+        },
+        {
+          "de": "Vergleiche A mit dieser Hälfte. „Mehr als“ bedeutet streng größer.",
+          "en": "Compare A with that half. 'More than' means strictly greater."
+        }
+      ],
+      "solution": {
+        "de": "9 + 7 + 4 = 20 Stimmen. Die Hälfte ist 10. A hat zwar mehr Stimmen als B oder C einzeln, aber 9 sind weniger als 10. Sams zweite Aussage ist falsch.",
+        "en": "9 + 7 + 4 = 20 votes. Half is 10. A has more votes than B or C individually, but 9 is less than 10. Sam's second statement is false."
+      },
+      "estimatedSeconds": 150,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-D03"
+        ]
+      },
+      "figure": {
+        "kind": "barChart",
+        "data": {
+          "labels": [
+            "A",
+            "B",
+            "C"
+          ],
+          "values": [
+            9,
+            7,
+            4
+          ],
+          "max": 10,
+          "step": 1,
+          "yLabel": {
+            "de": "Stimmen",
+            "en": "Votes"
+          }
+        },
+        "alt": {
+          "de": "Säulendiagramm mit Skala 0 bis 10 in Einerschritten. A: 9, B: 7, C: 4 Stimmen.",
+          "en": "Bar chart with scale 0 to 10 in steps of one. A: 9, B: 7, C: 4 votes."
+        }
+      }
+    },
+    {
+      "id": "md03_zz_compare_different_chart_scales",
+      "familyId": "md03_zz_compare_different_chart_scales",
+      "domain": "data",
+      "title": {
+        "de": "Zwei Diagramme mit verschiedenen Skalen",
+        "en": "Compare charts with different scales"
+      },
+      "prompt": {
+        "de": "Die Diagramme zeigen Besucherzahlen an Ort A und Ort B für Montag und Dienstag. Jede Säule verwendet die Skala ihres eigenen Diagramms. Vergleiche die Besucherzahlen der beiden Orte.",
+        "en": "The charts show visitor counts at sites A and B on Monday and Tuesday. Each bar uses its own chart's scale. Compare the visitor counts at the two sites."
+      },
+      "level": 3,
+      "use": "check",
+      "parts": [
+        {
+          "id": "monday",
+          "kind": "choice",
+          "prompt": {
+            "de": "Welcher Ort hat am Montag mehr Besucher?",
+            "en": "Which site has more visitors on Monday?"
+          },
+          "competencyIds": [
+            "M-D03"
+          ],
+          "maxPoints": 1,
+          "options": [
+            {
+              "id": "a",
+              "label": {
+                "de": "Ort A",
+                "en": "Site A"
+              }
+            },
+            {
+              "id": "b",
+              "label": {
+                "de": "Ort B",
+                "en": "Site B"
+              }
+            },
+            {
+              "id": "equal",
+              "label": {
+                "de": "Beide gleich viele",
+                "en": "Both have the same number"
+              }
+            }
+          ],
+          "answer": {
+            "type": "choice",
+            "value": "b"
+          },
+          "figure": {
+            "kind": "barChart",
+            "data": {
+              "labels": [
+                {
+                  "de": "Mo",
+                  "en": "Mon"
+                },
+                {
+                  "de": "Di",
+                  "en": "Tue"
+                }
+              ],
+              "values": [
+                15,
+                10
+              ],
+              "max": 30,
+              "step": 5,
+              "yLabel": {
+                "de": "Ort B: Besucher",
+                "en": "Site B: visitors"
+              }
+            },
+            "alt": {
+              "de": "Ort B. Achse 0, 5, 10, 15, 20, 25, 30. Die Montagssäule reicht drei Skalenabstände hoch, die Dienstagssäule zwei.",
+              "en": "Site B. Axis 0, 5, 10, 15, 20, 25, 30. Monday's bar is three scale intervals high and Tuesday's two."
+            }
+          }
+        },
+        {
+          "id": "difference",
+          "kind": "number",
+          "prompt": {
+            "de": "Um wie viele Besucher unterscheiden sich die Orte am Montag?",
+            "en": "By how many visitors do the sites differ on Monday?"
+          },
+          "competencyIds": [
+            "M-D03"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 3
+          }
+        },
+        {
+          "id": "two_days",
+          "kind": "choice",
+          "prompt": {
+            "de": "Welcher Ort hat an beiden Tagen zusammen mehr Besucher?",
+            "en": "Which site has more visitors across both days together?"
+          },
+          "competencyIds": [
+            "M-D03"
+          ],
+          "maxPoints": 1,
+          "options": [
+            {
+              "id": "a",
+              "label": {
+                "de": "Ort A",
+                "en": "Site A"
+              }
+            },
+            {
+              "id": "b",
+              "label": {
+                "de": "Ort B",
+                "en": "Site B"
+              }
+            },
+            {
+              "id": "equal",
+              "label": {
+                "de": "Beide gleich viele",
+                "en": "Both have the same number"
+              }
+            }
+          ],
+          "answer": {
+            "type": "choice",
+            "value": "a"
+          }
+        }
+      ],
+      "hints": [
+        {
+          "de": "Lies die Achsenwerte in jedem Diagramm getrennt ab.",
+          "en": "Read the axis values separately in each chart."
+        },
+        {
+          "de": "Gleich hohe Säulen können bei verschiedenen Skalen verschiedene Zahlen bedeuten.",
+          "en": "Equal bar heights can represent different numbers on different scales."
+        }
+      ],
+      "solution": {
+        "de": "Am Montag hat A 12 und B 15 Besucher. B hat also 3 mehr. Zusammen hat A 12 + 20 = 32 Besucher und B 15 + 10 = 25. Über beide Tage hat A mehr.",
+        "en": "On Monday A has 12 visitors and B has 15, so B has 3 more. Across both days A has 12 + 20 = 32 and B has 15 + 10 = 25. A has more across the two days."
+      },
+      "estimatedSeconds": 150,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-D03"
+        ]
+      },
+      "figure": {
+        "kind": "barChart",
+        "data": {
+          "labels": [
+            {
+              "de": "Mo",
+              "en": "Mon"
+            },
+            {
+              "de": "Di",
+              "en": "Tue"
+            }
+          ],
+          "values": [
+            12,
+            20
+          ],
+          "max": 24,
+          "step": 4,
+          "yLabel": {
+            "de": "Ort A: Besucher",
+            "en": "Site A: visitors"
+          }
+        },
+        "alt": {
+          "de": "Ort A. Achse 0, 4, 8, 12, 16, 20, 24. Die Montagssäule reicht drei Skalenabstände hoch, die Dienstagssäule fünf.",
+          "en": "Site A. Axis 0, 4, 8, 12, 16, 20, 24. Monday's bar is three scale intervals high and Tuesday's five."
+        }
+      }
+    },
+    {
+      "id": "md05_zz_fair_game_with_no_score",
+      "familyId": "md05_zz_fair_game_with_no_score",
+      "domain": "data",
+      "title": {
+        "de": "Auch Runden ohne Punkt berücksichtigen",
+        "en": "Include rounds with no score"
+      },
+      "prompt": {
+        "de": "Zwei faire Glücksräder haben jeweils eine gleich große rote und blaue Hälfte. Sie werden unabhängig voneinander gedreht. Die vier geordneten Farbpaare in der Tabelle sind gleich wahrscheinlich. Ari erhält einen Punkt bei zweimal Rot. Bo erhält einen Punkt bei zweimal Blau. Bei zwei verschiedenen Farben erhält niemand einen Punkt. Vergleiche die Chance, in einer Runde einen Punkt zu erhalten.",
+        "en": "Two fair spinners each have equal red and blue halves. They are spun independently. The four ordered colour pairs in the table are equally likely. Ari scores one point for two reds. Bo scores one point for two blues. If the colours differ, nobody scores. Compare the chances of scoring a point in one round."
+      },
+      "level": 3,
+      "use": "rehearsal",
+      "parts": [
+        {
+          "id": "fair",
+          "kind": "choice",
+          "prompt": {
+            "de": "Haben Ari und Bo die gleiche Chance auf einen Punkt?",
+            "en": "Do Ari and Bo have the same chance of scoring a point?"
+          },
+          "competencyIds": [
+            "M-D05"
+          ],
+          "maxPoints": 1,
+          "options": [
+            {
+              "id": "same",
+              "label": {
+                "de": "Ja, die Chancen sind gleich.",
+                "en": "Yes, their chances are equal."
+              }
+            },
+            {
+              "id": "ari",
+              "label": {
+                "de": "Nein, Aris Chance ist größer.",
+                "en": "No, Ari has a greater chance."
+              }
+            },
+            {
+              "id": "bo",
+              "label": {
+                "de": "Nein, Bos Chance ist größer.",
+                "en": "No, Bo has a greater chance."
+              }
+            }
+          ],
+          "answer": {
+            "type": "choice",
+            "value": "same"
+          }
+        },
+        {
+          "id": "neither",
+          "kind": "number",
+          "prompt": {
+            "de": "Bei wie vielen der vier Farbpaare erhält niemand einen Punkt?",
+            "en": "For how many of the four colour pairs does nobody score?"
+          },
+          "competencyIds": [
+            "M-D05"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "number",
+            "value": 2
+          }
+        },
+        {
+          "id": "reason",
+          "kind": "text",
+          "prompt": {
+            "de": "Begründe die Chancen mithilfe der vier gleich wahrscheinlichen Farbpaare.",
+            "en": "Explain the chances using the four equally likely colour pairs."
+          },
+          "competencyIds": [
+            "M-D05"
+          ],
+          "maxPoints": 1,
+          "answer": {
+            "type": "manual",
+            "criteria": {
+              "de": "1 Punkt: Genau ein Farbpaar bringt Ari einen Punkt und genau eines Bo. Die beiden anderen bringen niemandem einen Punkt und bevorzugen keinen der beiden. Gleichwertige Erklärung zulässig.",
+              "en": "1 point: exactly one colour pair scores for Ari and exactly one for Bo. The other two score for neither and do not favour either player. Accept equivalent explanations."
+            }
+          },
+          "rubric": [
+            {
+              "de": "1 Punkt: Genau ein Farbpaar bringt Ari einen Punkt und genau eines Bo. Die beiden anderen bringen niemandem einen Punkt und bevorzugen keinen der beiden. Gleichwertige Erklärung zulässig.",
+              "en": "1 point: exactly one colour pair scores for Ari and exactly one for Bo. The other two score for neither and do not favour either player. Accept equivalent explanations."
+            }
+          ]
+        }
+      ],
+      "hints": [
+        {
+          "de": "Ordne jedes Farbpaar genau einer Möglichkeit zu: Punkt für Ari, Punkt für Bo oder kein Punkt.",
+          "en": "Assign each colour pair to exactly one outcome: Ari scores, Bo scores, or no score."
+        },
+        {
+          "de": "Gleiche Chancen bedeuten nicht, dass in jeder Runde jemand gewinnen muss.",
+          "en": "Equal chances do not require someone to score in every round."
+        }
+      ],
+      "solution": {
+        "de": "Rot–Rot bringt Ari einen Punkt, Blau–Blau bringt Bo einen Punkt. Beide haben ein günstiges von vier gleich wahrscheinlichen Farbpaaren. Rot–Blau und Blau–Rot bringen keinen Punkt. Die Chancen sind gleich; kurze tatsächliche Spielserien müssen trotzdem nicht gleich viele Punkte liefern.",
+        "en": "Red–red scores for Ari and blue–blue scores for Bo. Each has one favourable pair among four equally likely pairs. Red–blue and blue–red score for nobody. The chances are equal, although actual short games need not produce equal scores."
+      },
+      "estimatedSeconds": 150,
+      "source": {
+        "kind": "original",
+        "license": "AGPL-3.0-only",
+        "referenceCompetencies": [
+          "M-D05"
+        ]
+      },
+      "figure": {
+        "kind": "table",
+        "data": {
+          "headers": [
+            {
+              "de": "Erstes Rad",
+              "en": "First spinner"
+            },
+            {
+              "de": "Zweites Rad",
+              "en": "Second spinner"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "de": "Rot",
+                "en": "Red"
+              },
+              {
+                "de": "Rot",
+                "en": "Red"
+              }
+            ],
+            [
+              {
+                "de": "Rot",
+                "en": "Red"
+              },
+              {
+                "de": "Blau",
+                "en": "Blue"
+              }
+            ],
+            [
+              {
+                "de": "Blau",
+                "en": "Blue"
+              },
+              {
+                "de": "Rot",
+                "en": "Red"
+              }
+            ],
+            [
+              {
+                "de": "Blau",
+                "en": "Blue"
+              },
+              {
+                "de": "Blau",
+                "en": "Blue"
+              }
+            ]
+          ]
+        },
+        "alt": {
+          "de": "Vier geordnete Farbpaare: Rot–Rot, Rot–Blau, Blau–Rot, Blau–Blau.",
+          "en": "Four ordered colour pairs: red–red, red–blue, blue–red, blue–blue."
+        }
       }
     }
   ]

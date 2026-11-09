@@ -30,7 +30,14 @@ class ReasoningLabView extends StatelessWidget {
           'reasoning_max_wall' => _maxWall(),
           'reasoning_machine' => _machine(),
           'reasoning_codes' => _codes(),
-          _ => [Text(_t('Diese Übung ist nicht verfügbar.', 'This activity is unavailable.'))],
+          _ => [
+              Text(
+                _t(
+                  'Diese Übung ist nicht verfügbar.',
+                  'This activity is unavailable.',
+                ),
+              ),
+            ],
         },
       );
 
@@ -49,13 +56,25 @@ class ReasoningLabView extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 12),
-      _field('middle', _t('Rechter Stein in der mittleren Reihe', 'Right brick in the middle row')),
+      _field(
+        'middle',
+        _t(
+          'Rechter Stein in der mittleren Reihe',
+          'Right brick in the middle row',
+        ),
+      ),
       const SizedBox(height: 16),
-      _field('base', _t('Rechter Stein in der unteren Reihe', 'Right brick in the base row')),
+      _field(
+        'base',
+        _t('Rechter Stein in der unteren Reihe', 'Right brick in the base row'),
+      ),
       const SizedBox(height: 20),
       _choices(
         'inverse',
-        _t('Welche Rechenart macht das Addieren rückgängig?', 'Which operation reverses addition?'),
+        _t(
+          'Welche Rechenart macht das Addieren rückgängig?',
+          'Which operation reverses addition?',
+        ),
         [
           ('add', 'Addieren', 'Addition'),
           ('subtract', 'Subtrahieren', 'Subtraction'),
@@ -68,9 +87,8 @@ class ReasoningLabView extends StatelessWidget {
   List<Widget> _maxWall() {
     final cards = (round.config['cards'] as List).cast<int>();
     final order = _list('order');
-    final positions = german
-        ? ['Links', 'Mitte', 'Rechts']
-        : ['Left', 'Middle', 'Right'];
+    final positions =
+        german ? ['Links', 'Mitte', 'Rechts'] : ['Left', 'Middle', 'Right'];
     int? value(String id) => switch (id) {
           'c0' => cards[0],
           'c1' => cards[1],
@@ -80,7 +98,10 @@ class ReasoningLabView extends StatelessWidget {
     return [
       _wall(
         [
-          [for (var i = 0; i < 3; i++) i < order.length ? value(order[i]) : null],
+          [
+            for (var i = 0; i < 3; i++)
+              i < order.length ? value(order[i]) : null,
+          ],
           [null, null],
           [null],
         ],
@@ -89,10 +110,12 @@ class ReasoningLabView extends StatelessWidget {
           'Addition wall with three base positions. Choose cards in left, middle, right order. Calculate the upper values yourself.',
         ),
       ),
-      Text(_t(
-        'Wähle die Karten nacheinander für links, Mitte und rechts. Zum Umordnen kannst du gewählte Karten entfernen.',
-        'Choose cards for left, middle and right in order. Remove selected cards to rearrange them.',
-      )),
+      Text(
+        _t(
+          'Wähle die Karten nacheinander für links, Mitte und rechts. Zum Umordnen kannst du gewählte Karten entfernen.',
+          'Choose cards for left, middle and right in order. Remove selected cards to rearrange them.',
+        ),
+      ),
       const SizedBox(height: 12),
       Wrap(
         spacing: 10,
@@ -101,9 +124,12 @@ class ReasoningLabView extends StatelessWidget {
           for (var i = 0; i < order.length; i++)
             InputChip(
               key: ValueKey('reasoning_order_$i'),
-              label: Text('${i < positions.length ? positions[i] : i + 1}: ${value(order[i]) ?? '?'}'),
+              label: Text(
+                '${i < positions.length ? positions[i] : i + 1}: ${value(order[i]) ?? '?'}',
+              ),
               onDeleted: enabled
-                  ? () => onChanged('order', List<String>.of(order)..removeAt(i))
+                  ? () =>
+                      onChanged('order', List<String>.of(order)..removeAt(i))
                   : null,
               deleteButtonTooltipMessage: _t('Karte entfernen', 'Remove card'),
             ),
@@ -125,15 +151,36 @@ class ReasoningLabView extends StatelessWidget {
         ],
       ),
       const SizedBox(height: 20),
-      _field('top', _t('Größtmögliche Zahl an der Spitze', 'Largest possible number at the top')),
+      _field(
+        'top',
+        _t(
+          'Größtmögliche Zahl an der Spitze',
+          'Largest possible number at the top',
+        ),
+      ),
       const SizedBox(height: 20),
       _choices(
         'reason',
-        _t('Warum ist die mittlere untere Zahl besonders wichtig?', 'Why does the middle base number matter most?'),
+        _t(
+          'Warum ist die mittlere untere Zahl besonders wichtig?',
+          'Why does the middle base number matter most?',
+        ),
         [
-          ('once', 'Alle drei unteren Zahlen zählen oben gleich oft.', 'All three base numbers count equally often at the top.'),
-          ('twice', 'Die mittlere Zahl zählt oben zweimal, die äußeren je einmal.', 'The middle number counts twice at the top; each outer number counts once.'),
-          ('right', 'Die rechte Zahl zählt oben dreimal.', 'The right number counts three times at the top.'),
+          (
+            'once',
+            'Alle drei unteren Zahlen zählen oben gleich oft.',
+            'All three base numbers count equally often at the top.',
+          ),
+          (
+            'twice',
+            'Die mittlere Zahl zählt oben zweimal, die äußeren je einmal.',
+            'The middle number counts twice at the top; each outer number counts once.',
+          ),
+          (
+            'right',
+            'Die rechte Zahl zählt oben dreimal.',
+            'The right number counts three times at the top.',
+          ),
         ],
       ),
     ];
@@ -179,22 +226,21 @@ class ReasoningLabView extends StatelessWidget {
     final draft = '$first$second';
     final duplicate = ready && codes.contains(draft);
     return [
-      _choices(
-        'draftFirst',
-        _t('Erste Stelle', 'First position'),
-        [for (final symbol in symbols) (symbol, symbol, symbol)],
-      ),
+      _choices('draftFirst', _t('Erste Stelle', 'First position'), [
+        for (final symbol in symbols) (symbol, symbol, symbol),
+      ]),
       const SizedBox(height: 16),
-      _choices(
-        'draftSecond',
-        _t('Zweite Stelle', 'Second position'),
-        [for (final symbol in symbols) (symbol, symbol, symbol)],
-      ),
+      _choices('draftSecond', _t('Zweite Stelle', 'Second position'), [
+        for (final symbol in symbols) (symbol, symbol, symbol),
+      ]),
       const SizedBox(height: 12),
       Semantics(
         liveRegion: true,
         child: Text(
-          _t('Dein neuer Code: ${ready ? draft : '…'}', 'Your new code: ${ready ? draft : '…'}'),
+          _t(
+            'Dein neuer Code: ${ready ? draft : '…'}',
+            'Your new code: ${ready ? draft : '…'}',
+          ),
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
       ),
@@ -213,10 +259,18 @@ class ReasoningLabView extends StatelessWidget {
       if (duplicate)
         Padding(
           padding: const EdgeInsets.only(top: 8),
-          child: Text(_t('Dieser Code steht schon in deiner Liste.', 'This code is already in your list.')),
+          child: Text(
+            _t(
+              'Dieser Code steht schon in deiner Liste.',
+              'This code is already in your list.',
+            ),
+          ),
         ),
       const SizedBox(height: 20),
-      Text(_t('Deine Liste', 'Your list'), style: const TextStyle(fontWeight: FontWeight.w600)),
+      Text(
+        _t('Deine Liste', 'Your list'),
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
       const SizedBox(height: 10),
       Wrap(
         spacing: 10,
@@ -228,28 +282,51 @@ class ReasoningLabView extends StatelessWidget {
               label: Text(codes[i].isEmpty ? '?' : codes[i]),
               deleteButtonTooltipMessage: _t('Code entfernen', 'Remove code'),
               onDeleted: enabled
-                  ? () => onChanged('codes', List<String>.of(codes)..removeAt(i))
+                  ? () =>
+                      onChanged('codes', List<String>.of(codes)..removeAt(i))
                   : null,
             ),
         ],
       ),
       const SizedBox(height: 20),
-      _field('count', _t('Anzahl aller erlaubten Codes', 'Number of all allowed codes')),
+      _field(
+        'count',
+        _t('Anzahl aller erlaubten Codes', 'Number of all allowed codes'),
+      ),
       const SizedBox(height: 20),
       _choices(
         'reason',
-        _t('Warum fehlt kein erlaubter Code?', 'Why is no allowed code missing?'),
+        _t(
+          'Warum fehlt kein erlaubter Code?',
+          'Why is no allowed code missing?',
+        ),
         [
-          ('symbols', 'Jedes angebotene Zeichen kommt irgendwo in meiner Liste vor.', 'Every offered symbol appears somewhere in my list.'),
-          ('systematic', 'Für jedes erste Zeichen habe ich alle erlaubten zweiten Zeichen gesammelt.', 'For each first symbol, I collected every allowed second symbol.'),
-          ('reversed', 'Zwei vertauschte Zeichen ergeben denselben Code.', 'Swapping two symbols gives the same code.'),
+          (
+            'symbols',
+            'Jedes angebotene Zeichen kommt irgendwo in meiner Liste vor.',
+            'Every offered symbol appears somewhere in my list.',
+          ),
+          (
+            'systematic',
+            'Für jedes erste Zeichen habe ich alle erlaubten zweiten Zeichen gesammelt.',
+            'For each first symbol, I collected every allowed second symbol.',
+          ),
+          (
+            'reversed',
+            'Zwei vertauschte Zeichen ergeben denselben Code.',
+            'Swapping two symbols gives the same code.',
+          ),
         ],
       ),
     ];
   }
 
   Widget _wall(List<List<Object?>> rows, String alt) => KompassFigureView(
-        figure: {'kind': 'wall', 'data': {'rows': rows}, 'alt': alt},
+        figure: {
+          'kind': 'wall',
+          'data': {'rows': rows},
+          'alt': alt,
+        },
         german: german,
       );
 
@@ -264,7 +341,10 @@ class ReasoningLabView extends StatelessWidget {
               key: ValueKey('reasoning_field_$key'),
               initialValue: response[key]?.toString() ?? '',
               enabled: enabled,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+                signed: true,
+              ),
               decoration: InputDecoration(
                 hintText: _t('Zahl eingeben', 'Enter a number'),
                 border: const OutlineInputBorder(),
@@ -275,7 +355,12 @@ class ReasoningLabView extends StatelessWidget {
         ],
       );
 
-  Widget _choices(String field, String title, List<(String, String, String)> choices) => Column(
+  Widget _choices(
+    String field,
+    String title,
+    List<(String, String, String)> choices,
+  ) =>
+      Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -294,7 +379,9 @@ class ReasoningLabView extends StatelessWidget {
       );
 
   List<String> _list(String key) => response[key] is List
-      ? (response[key] as List).map((value) => value is String ? value : '').toList()
+      ? (response[key] as List)
+          .map((value) => value is String ? value : '')
+          .toList()
       : <String>[];
 
   int? _number(String key) {

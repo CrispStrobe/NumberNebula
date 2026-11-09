@@ -156,6 +156,9 @@ class KompassAttempt {
     final skills = (result['skillIds'] as List).cast<String>();
     final submittedAt = (at ?? DateTime.now()).toUtc();
     final completedCorrect = result['completedCorrect'] == true;
+    final hintsUsed = (result['hintsUsed'] as num? ?? 0).toInt();
+    final hintsBeforeFirstResponse =
+        (result['hintsBeforeFirstResponse'] as num? ?? hintsUsed).toInt();
     final first = KompassScore([
       KompassPartScore(
         partId: 'lab',
@@ -177,14 +180,18 @@ class KompassAttempt {
             'supply_station': 'measurement',
             'data_observatory': 'data',
             'geometry_workshop': 'geometry',
+            'reasoning_workshop': 'numbers',
+            'journey_planner': 'measurement',
+            'area_studio': 'geometry',
+            'chance_detective': 'data',
           }[labId] ??
           '',
       mode: KompassMode.lab,
       contentUse: 'practice',
       firstResponses: {'lab': result['firstResponse'] ?? result['response']},
       responses: {'lab': result['finalResponse'] ?? result['response']},
-      hintsUsed: (result['hintsUsed'] as num? ?? 0).toInt(),
-      hintsBeforeFirstResponse: (result['hintsUsed'] as num? ?? 0).toInt(),
+      hintsUsed: hintsUsed,
+      hintsBeforeFirstResponse: hintsBeforeFirstResponse,
       activeSeconds: (result['activeSeconds'] as num? ?? 0).toInt(),
       at: submittedAt,
       updatedAt: submittedAt,

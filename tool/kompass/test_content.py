@@ -87,9 +87,9 @@ class CourseCase(unittest.TestCase):
 class ContractTests(CourseCase):
     def test_complete_bilingual_coverage_and_authored_asset_reproducibility(self):
         summary = validate_package(self.package)
-        self.assertEqual(summary["tasks"], 128)
-        self.assertEqual(summary["modes"], {"practice": 64, "check": 32, "rehearsal": 32})
-        self.assertEqual(summary["domains"], {"numbers": 48, "geometry": 32, "measurement": 28, "data": 20})
+        self.assertEqual(summary["tasks"], 144)
+        self.assertEqual(summary["modes"], {"practice": 72, "check": 36, "rehearsal": 36})
+        self.assertEqual(summary["domains"], {"numbers": 52, "geometry": 36, "measurement": 32, "data": 24})
         self.assertEqual(ASSET.read_text(encoding="utf-8"), serialized(build_package()))
         self.assertEqual({c["id"] for c in self.package["competencies"]}, SKILLS)
 

@@ -52,7 +52,7 @@ class PrintTests(unittest.TestCase):
         for worksheet in self.manifest["worksheets"]:
             mode = worksheet["mode"]
             task_ids = worksheet["taskIds"]
-            self.assertEqual(len(task_ids), 64 if mode == "practice" else 20)
+            self.assertEqual(len(task_ids), 72 if mode == "practice" else 20)
             self.assertEqual(len(task_ids), len(set(task_ids)))
             self.assertTrue(all(self.tasks[id]["use"] == mode for id in task_ids))
             exposed[mode] = {self.tasks[id]["familyId"] for id in task_ids}
@@ -60,6 +60,9 @@ class PrintTests(unittest.TestCase):
                 self.assertEqual(set(worksheet[category]), {"de", "en"})
                 for filename in worksheet[category].values():
                     visible = re.findall(r'data-task-id="([^"]+)"', self.outputs[filename])
+                    if mode == "practice":
+                        domains = re.findall(r'<h2 class="domain-title" data-domain="([^"]+)"', self.outputs[filename])
+                        self.assertEqual(domains, ["numbers", "geometry", "measurement", "data"])
                     self.assertEqual(visible, task_ids)
         self.assertTrue(exposed["practice"].isdisjoint(exposed["rehearsal"]))
         checked = {item["familyId"] for item in self.package["tasks"] if item["use"] == "check"}

@@ -441,7 +441,8 @@ document.getElementById('domain-filter').addEventListener('change', function () 
 def build_outputs(package):
     validate_package(package)
     catalog = {task["id"]: task for task in package["tasks"]}
-    practice = [task for task in package["tasks"] if task["use"] == "practice"]
+    practice = [task for domain in DOMAINS for task in package["tasks"]
+                if task["use"] == "practice" and task["domain"] == domain]
     rehearsal = [catalog[id] for id in REHEARSAL_IDS]
     if any(task["use"] != "rehearsal" for task in rehearsal):
         raise ValueError("A print rehearsal references a non-rehearsal task")

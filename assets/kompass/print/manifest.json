@@ -29,6 +29,8 @@
         "mz11_near_multiple_estimate",
         "mz12_outfit_table",
         "mz12_two_symbol_codes",
+        "mz07_zz_division_doubling",
+        "mz08_zz_two_direction_number_grid",
         "mr01_rectangle_properties",
         "mr01_tilted_square",
         "mr02_tile_rectangle_factors",
@@ -45,6 +47,8 @@
         "mr07_complete_cross_net",
         "mr08_area_and_boundary",
         "mr08_equal_area_unequal_perimeter",
+        "mr08_zz_joined_and_exposed_edges",
+        "mr02_zz_square_and_corner_piece",
         "mg01_sensible_units",
         "mg01_mass_reference_comparison",
         "mg02_metres_centimetres",
@@ -59,6 +63,8 @@
         "mg06_paper_segment",
         "mg07_fill_to_one_litre",
         "mg07_three_cups",
+        "mg04_zz_deposit_and_refund",
+        "mg07_zz_pour_and_return",
         "md01_table_maximum_total",
         "md01_missing_frequency",
         "md02_build_unit_bars",
@@ -68,7 +74,9 @@
         "md04_bag_event_language",
         "md04_die_event_categories",
         "md05_equal_totals_chance",
-        "md05_make_fair_by_adding"
+        "md05_make_fair_by_adding",
+        "md02_zz_tally_frequency_table",
+        "md03_zz_largest_is_not_majority"
       ],
       "files": {
         "de": "practice_de.html",
