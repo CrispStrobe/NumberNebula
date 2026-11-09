@@ -13,6 +13,10 @@ import 'extensions/journey_view.dart';
 import 'extensions/area_view.dart';
 import 'extensions/chance_view.dart';
 
+/// Version 2 records the round recipe. A version-1 draft predates recipe 2
+/// and replays its round with the frozen recipe-1 generators.
+const _labSchemaVersion = 2;
+
 /// Untimed, locally resumable workshops. Completions report practice only.
 /// The first submitted response and its points never change after a retry.
 class KompassLabScreen extends StatefulWidget {
@@ -52,12 +56,14 @@ class KompassLabScreenState extends State<KompassLabScreen>
   KompassLabRound? _round;
   KompassLabCheck? _feedback;
   String get _storageKey => 'kompass_lab_v1_${widget.labId}';
+  int _recipe = kompassLabRecipe;
   String get _roundId => '$_sessionId:$_index';
   int get _activeMillis => _storedMillis + _clock.elapsedMilliseconds;
   bool get _ownsStorage {
     final prefs = _preferences;
     return prefs != null &&
-        identical(_storageOwners[(prefs.profileId, _storageKey)], _storageOwner);
+        identical(
+            _storageOwners[(prefs.profileId, _storageKey)], _storageOwner);
   }
 
   bool get _editable =>
@@ -133,8 +139,13 @@ class KompassLabScreenState extends State<KompassLabScreen>
       final raw = prefs.getString(_storageKey);
       final saved = raw == null ? null : jsonDecode(raw);
       if (saved is Map &&
-          saved['schemaVersion'] == 1 &&
+          (saved['schemaVersion'] == 1 ||
+              saved['schemaVersion'] == _labSchemaVersion) &&
           saved['labId'] == widget.labId) {
+        final recipe = saved['schemaVersion'] == 1
+            ? 1
+            : (saved['recipe'] as num? ?? kompassLabRecipe).toInt();
+        _recipe = recipe == 1 ? 1 : kompassLabRecipe;
         _seed = (saved['seed'] as num).toInt();
         _sessionId = saved['sessionId'] as String;
         _index = (saved['index'] as num).toInt().clamp(0, 1000000);
@@ -158,6 +169,7 @@ class KompassLabScreenState extends State<KompassLabScreen>
     } catch (_) {
       // A damaged lab save cannot erase any game/profile or course evidence.
       _index = 0;
+      _recipe = kompassLabRecipe;
       _storedMillis = 0;
       _hintsUsed = 0;
       _attempts = 0;
@@ -169,7 +181,8 @@ class KompassLabScreenState extends State<KompassLabScreen>
       _response = {};
       _firstResponse = {};
     }
-    _round = generateKompassLabRound(widget.labId, _index, _seed);
+    _round =
+        generateKompassLabRound(widget.labId, _index, _seed, recipe: _recipe);
     _response = _round!.normalizeResponse(_response);
     if (_attempts > 0) _feedback = _round!.check(_response);
   }
@@ -190,7 +203,8 @@ class KompassLabScreenState extends State<KompassLabScreen>
   /// JSON-compatible snapshot for support, export and deterministic replay.
   /// The saved profile instance owns writes even if the global profile changes.
   Map<String, dynamic> exportState() => _copy({
-        'schemaVersion': 1,
+        'schemaVersion': _labSchemaVersion,
+        'recipe': _recipe,
         'labId': widget.labId,
         'sessionId': _sessionId,
         'seed': _seed,
@@ -335,7 +349,10 @@ class KompassLabScreenState extends State<KompassLabScreen>
     }
     setState(() {
       _index++;
-      _round = generateKompassLabRound(widget.labId, _index, _seed);
+      // A resumed recipe-1 session continues with the current recipe.
+      _recipe = kompassLabRecipe;
+      _round =
+          generateKompassLabRound(widget.labId, _index, _seed, recipe: _recipe);
       _response = _round!.createResponse();
       _firstResponse = {};
       _firstCorrect = null;
@@ -604,6 +621,7 @@ class KompassLabScreenState extends State<KompassLabScreen>
     switch (round.type) {
       case 'buildNumber':
       case 'regroup':
+      case 'regroupWrite':
         final counts = intList(_response['counts']);
         final labels = _german
             ? ['Tausender', 'Hunderter', 'Zehner', 'Einer']
@@ -619,25 +637,22 @@ class KompassLabScreenState extends State<KompassLabScreen>
               },
               _t('Stellenwerte von links nach rechts: ${counts.join(', ')}.',
                   'Place values from left to right: ${counts.join(', ')}.')),
-          Text(
-              _t('Aktueller Wert: ${placeValueTotal(counts)}',
-                  'Current value: ${placeValueTotal(counts)}'),
-              style:
-                  const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
+          // No running total: reading the value off the places is the task.
           Wrap(spacing: 12, runSpacing: 12, children: [
             for (var i = 0; i < 4; i++)
               _counter(context, 'place_$i', labels[i], counts[i], (value) {
                 final next = List<int>.of(counts)..[i] = value;
                 _edit('counts', next);
-              }, max: 29),
+              }, max: labMaxPlaceCount),
           ]),
           const SizedBox(height: 12),
           Wrap(spacing: 10, runSpacing: 10, children: [
             for (var i = 3; i > 0; i--)
               OutlinedButton(
                 key: ValueKey('lab_trade_$i'),
-                onPressed: !_editable || counts[i] < 10
+                onPressed: !_editable ||
+                        counts[i] < 10 ||
+                        counts[i - 1] >= labMaxPlaceCount
                     ? null
                     : () {
                         final next = List<int>.of(counts);
@@ -649,6 +664,10 @@ class KompassLabScreenState extends State<KompassLabScreen>
                     '10 ${labels[i]} → 1 ${labels[i - 1]}')),
               ),
           ]),
+          if (round.type == 'regroupWrite') ...[
+            const SizedBox(height: 16),
+            _numberField('number', _t('Die Zahl', 'The number')),
+          ],
         ];
       case 'numberLine':
         final min = config['min'] as int, max = config['max'] as int;
@@ -683,9 +702,6 @@ class KompassLabScreenState extends State<KompassLabScreen>
           _counter(context, 'marker', _t('Markierung', 'Marker'), value,
               (v) => _edit('value', v),
               min: min, max: max, step: step),
-          Text(_t(
-              'Abstände: ${value - min} nach links, ${max - value} nach rechts.',
-              'Distances: ${value - min} to the left, ${max - value} to the right.')),
         ];
       case 'shopping':
         final prices = intList(config['prices']),
@@ -775,7 +791,7 @@ class KompassLabScreenState extends State<KompassLabScreen>
           Wrap(spacing: 12, runSpacing: 12, children: [
             _counter(context, 'bottles', _t('1-l-Flaschen', '1-litre bottles'),
                 bottles, (v) => _edit('bottles', v),
-                max: 10),
+                max: config['maxBottles'] as int? ?? 10),
             _counter(context, 'cups', _t('250-ml-Becher', '250-ml cups'), cups,
                 (v) => _edit('cups', v),
                 max: 24),
@@ -845,7 +861,9 @@ class KompassLabScreenState extends State<KompassLabScreen>
         final blue = round.type == 'chance'
             ? numberAt(_response, 'blue')
             : config['blue'] as int;
+        final triangles = config['triangles'] as int? ?? 0;
         final draws = stringList(_response['draws']);
+        int drawn(String kind) => draws.where((d) => d == kind).length;
         return [
           _figure(
               'tokenBag',
@@ -853,10 +871,15 @@ class KompassLabScreenState extends State<KompassLabScreen>
                 'tokens': [
                   {'label': _t('★ Stern', '★ Star'), 'count': red},
                   {'label': _t('● Kreis', '● Circle'), 'count': blue},
+                  if (triangles > 0)
+                    {
+                      'label': _t('▲ Dreieck', '▲ Triangle'),
+                      'count': triangles
+                    },
                 ]
               },
-              _t('$red Sterne und $blue Kreise. Alle Steine sind gleich groß.',
-                  '$red stars and $blue circles. All tokens have the same size.')),
+              _t('$red Sterne, $blue Kreise${triangles > 0 ? ' und ${triangles == 1 ? '1 Dreieck' : '$triangles Dreiecke'}' : ''}. Alle Steine sind gleich groß.',
+                  '$red stars, $blue circles${triangles > 0 ? ' and ${triangles == 1 ? '1 triangle' : '$triangles triangles'}' : ''}. All tokens have the same size.')),
           if (round.type == 'chance')
             _counter(context, 'blue', _t('Kreissteine', 'Circle tokens'), blue,
                 (v) {
@@ -890,10 +913,13 @@ class KompassLabScreenState extends State<KompassLabScreen>
                     : () {
                         final random = math.Random(
                             _seed + _index * 7919 + draws.length * 421);
+                        final pick = random.nextInt(red + blue + triangles);
                         final next = List<String>.of(draws)
-                          ..add(random.nextInt(red + blue) < red
+                          ..add(pick < red
                               ? 'star'
-                              : 'circle');
+                              : pick < red + blue
+                                  ? 'circle'
+                                  : 'triangle');
                         _edit('draws', next);
                       },
                 icon: const Icon(Icons.shuffle),
@@ -908,8 +934,8 @@ class KompassLabScreenState extends State<KompassLabScreen>
             Semantics(
                 liveRegion: true,
                 child: Text(_t(
-                    'Probeziehungen: ${draws.length}; Sterne: ${draws.where((d) => d == 'star').length}; Kreise: ${draws.where((d) => d == 'circle').length}.',
-                    'Trial draws: ${draws.length}; stars: ${draws.where((d) => d == 'star').length}; circles: ${draws.where((d) => d == 'circle').length}.'))),
+                    'Probeziehungen: ${draws.length}; Sterne: ${drawn('star')}; Kreise: ${drawn('circle')}${triangles > 0 ? '; Dreiecke: ${drawn('triangle')}' : ''}.',
+                    'Trial draws: ${draws.length}; stars: ${drawn('star')}; circles: ${drawn('circle')}${triangles > 0 ? '; triangles: ${drawn('triangle')}' : ''}.'))),
           ],
         ];
       case 'axes':

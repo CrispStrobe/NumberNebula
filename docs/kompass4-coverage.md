@@ -76,10 +76,10 @@ such as drawing with or without replacement, are not counted as extra types.
 
 | Lab | Round types | Interactions | Mapped competencies |
 | --- | ---: | --- | --- |
-| Place Value Dock / Zahlendock | 3 | Build a number with place values, exchange bundles while preserving value, locate a number-line midpoint. | `M-Z01`, `M-Z03` |
-| Supply Station / Versorgungsstation | 4 | Calculate purchases and construct change, advance a clock, combine capacities, convert length. | `M-G02`, `M-G04`, `M-G05`, `M-G07` |
-| Data Observatory / Datenobservatorium | 3 | Build a chart, adjust a bag to equal chances, classify events and explore draws. | `M-D02`, `M-D03`, `M-D04`, `M-D05` |
-| Geometry Workshop / Geometriewerkstatt | 3 | Select reflection axes, complete a cube net, reconstruct a side view from a building. | `M-R05`, `M-R06`, `M-R07` |
+| Place Value Dock / Zahlendock | 3 | Build a number from a clue (number word, scrambled places with an empty place, un-bundled amount, ±1/10/100 across a boundary); regroup un-bundled material and write its value; locate a midpoint between varied endpoints. | `M-Z01`, `M-Z03` |
+| Supply Station / Versorgungsstation | 4 | Calculate purchases and construct change, advance a clock, measure ¼/½/¾ litre amounts with a limited bottle supply, convert length. | `M-G02`, `M-G04`, `M-G05`, `M-G07` |
+| Data Observatory / Datenobservatorium | 3 | Build a chart, set a bag to a relational chance goal (equal, double, or equal to the complement) with a distractor type, classify composed events and explore draws. | `M-D02`, `M-D03`, `M-D04`, `M-D05` |
+| Geometry Workshop / Geometriewerkstatt | 3 | Select every reflection axis of nine shapes (zero to four axes), complete any of the eleven cube nets, reconstruct a side view from a building. | `M-R05`, `M-R06`, `M-R07` |
 | Reasoning Workshop / Denkwerkstatt | 4 | Work backwards through a number wall, arrange cards to maximise its top, continue alternating calculation rules, construct every allowed two-symbol code and select a completeness explanation. | `M-Z04`, `M-Z08`, `M-Z09`, `M-Z12` |
 | Journey Planner / Reiseplanung | 2 | Plan the latest departure backwards from an arrival deadline; calculate platform arrival and choose the earliest connection allowing the required reserve. | `M-G05`, `M-D01` |
 | Area Studio / Flächenstudio | 2 | Measure area and exposed boundary using the given cell size; build a connected shape without holes that satisfies both area and perimeter. Different valid shapes are accepted. | `M-R02`, `M-R03`, `M-R08` |

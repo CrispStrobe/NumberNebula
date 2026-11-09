@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,15 +12,15 @@ import 'package:space_math_academy/features/kompass/labs/kompass_lab_screen.dart
 const _seed = 417;
 
 Map<String, dynamic> _snapshot(String id, int index,
-        {Map<String, dynamic>? response}) =>
+        {Map<String, dynamic>? response, int seed = _seed}) =>
     {
-      'schemaVersion': 1,
+      'schemaVersion': 2,
       'labId': id,
       'sessionId': 'fixture:$id',
-      'seed': _seed,
+      'seed': seed,
       'index': index,
-      'response': response ??
-          generateKompassLabRound(id, index, _seed).createResponse(),
+      'response':
+          response ?? generateKompassLabRound(id, index, seed).createResponse(),
       'firstResponse': <String, dynamic>{},
       'activeMillis': 0,
       'attempts': 0,
@@ -45,12 +46,13 @@ Future<void> _open(WidgetTester tester, String id, int index,
     {bool german = true,
     double scale = 1,
     Map<String, dynamic>? response,
+    int seed = _seed,
     FutureOr<void> Function(Map<String, dynamic>)? onCompleted}) async {
   await tester.pumpWidget(const SizedBox.shrink());
   await tester.pumpAndSettle();
   final prefs = await ProfilePreferences.getInstance();
   await prefs.setString('kompass_lab_v1_$id',
-      jsonEncode(_snapshot(id, index, response: response)));
+      jsonEncode(_snapshot(id, index, response: response, seed: seed)));
   await tester.pumpWidget(
       _app(id, german: german, scale: scale, onCompleted: onCompleted));
   await tester.pumpAndSettle();
@@ -87,6 +89,131 @@ void main() {
   });
   tearDown(() => ProfilePreferences.activeId = 'default');
 
+  test('number words follow German and English school spelling', () {
+    expect(germanNumberWord(2666), 'zweitausendsechshundertsechsundsechzig');
+    expect(germanNumberWord(1001), 'eintausendeins');
+    expect(germanNumberWord(4017), 'viertausendsiebzehn');
+    expect(germanNumberWord(3100), 'dreitausendeinhundert');
+    expect(germanNumberWord(9031), 'neuntausendeinunddreißig');
+    expect(germanNumberWord(5070), 'fünftausendsiebzig');
+    expect(englishNumberWord(2666), 'two thousand six hundred and sixty-six');
+    expect(englishNumberWord(4006), 'four thousand and six');
+    expect(englishNumberWord(7310), 'seven thousand three hundred and ten');
+    expect(englishNumberWord(8200), 'eight thousand two hundred');
+  });
+
+  test('build-number clues never show the target in digits', () {
+    final kinds = <int>{};
+    for (var seed = 0; seed < 80; seed++) {
+      final round = generateKompassLabRound('number_dock', 0, seed);
+      final target = round.config['target'] as int;
+      kinds.add(round.config['clue'] as int);
+      expect(target, inInclusiveRange(1000, 9999));
+      for (final prompt in [round.promptDe, round.promptEn]) {
+        expect(RegExp('(?<![0-9])$target(?![0-9])').hasMatch(prompt), isFalse,
+            reason: prompt);
+      }
+      expect(round.check({'counts': placeDigits(target)}).correct, isTrue);
+      expect(
+          round.check({'counts': placeDigits((target + 10) % 10000)}).correct,
+          isFalse);
+    }
+    expect(kinds, {0, 1, 2, 3});
+  });
+
+  test('midpoints need a calculation on non-round endpoints', () {
+    for (var seed = 0; seed < 30; seed++) {
+      final config = generateKompassLabRound('number_dock', 2, seed).config;
+      final min = config['min'] as int, max = config['max'] as int;
+      expect(config['target'], (min + max) ~/ 2);
+      expect((config['target'] as int) % (config['step'] as int), 0);
+    }
+  });
+
+  test('chance goals use the whole bag, including the distractor', () {
+    final goals = <int>{};
+    for (var seed = 0; seed < 40; seed++) {
+      final round = generateKompassLabRound('data_observatory', 1, seed);
+      final c = round.config;
+      final stars = c['red'] as int, triangles = c['triangles'] as int;
+      final circles = c['circles'] as int;
+      goals.add(c['goal'] as int);
+      expect(triangles, greaterThan(0));
+      expect(circles, inInclusiveRange(1, 12));
+      switch (c['goal']) {
+        case 0:
+          expect(circles, stars);
+        case 1:
+          expect(circles, 2 * stars);
+        default:
+          expect(circles, stars + triangles);
+      }
+      expect(
+          round.check({'blue': circles, 'draws': <String>[]}).correct, isTrue);
+    }
+    expect(goals, {0, 1, 2});
+  });
+
+  test('event answers follow the actual bag composition', () {
+    final answers = <String>{};
+    for (var seed = 0; seed < 60; seed++) {
+      final round = generateKompassLabRound('data_observatory', 2, seed);
+      answers.add(round.config['answer'] as String);
+      if (round.promptEn.contains('a triangle?') &&
+          !round.promptEn.contains('circle or')) {
+        expect(round.config['answer'],
+            round.config['triangles'] == 0 ? 'impossible' : 'possible');
+      }
+      if (round.promptEn.contains('a star, a circle or a triangle')) {
+        expect(round.config['answer'], 'certain');
+      }
+    }
+    expect(answers, {'certain', 'possible', 'impossible'});
+  });
+
+  test('every symmetry shape lists exactly its bounding-box axes', () {
+    for (final shape in labSymmetryShapes) {
+      final points = shape.points.map((p) => (p[0], p[1])).toSet();
+      final xs = points.map((p) => p.$1), ys = points.map((p) => p.$2);
+      final minX = xs.reduce(math.min), maxX = xs.reduce(math.max);
+      final minY = ys.reduce(math.min), maxY = ys.reduce(math.max);
+      final square = maxX - minX == maxY - minY;
+      final reflections = <String, (int, int) Function((int, int))>{
+        'vertical': (p) => (minX + maxX - p.$1, p.$2),
+        'horizontal': (p) => (p.$1, minY + maxY - p.$2),
+        if (square) ...{
+          'diagonalDown': (p) => (minX + p.$2 - minY, minY + p.$1 - minX),
+          'diagonalUp': (p) => (minX + maxY - p.$2, minY + maxX - p.$1),
+        },
+      };
+      final actual = {
+        for (final entry in reflections.entries)
+          if (points.map(entry.value).toSet().containsAll(points)) entry.key
+      };
+      expect(actual, shape.axes.toSet(), reason: shape.id);
+    }
+  });
+
+  test('cube-net rounds vary and always have a valid completion', () {
+    final shapes = <String>{};
+    for (var seed = 0; seed < 60; seed++) {
+      final fixed = stringList(
+              generateKompassLabRound('geometry_workshop', 1, seed)
+                  .config['cells'])
+          .toSet();
+      expect(fixed, hasLength(5));
+      final completions = [
+        for (var r = 0; r < labNetRows; r++)
+          for (var c = 0; c < labNetCols; c++)
+            if (!fixed.contains('$r,$c') && isCubeNet({...fixed, '$r,$c'}))
+              '$r,$c'
+      ];
+      expect(completions, isNotEmpty);
+      shapes.add((fixed.toList()..sort()).join(' '));
+    }
+    expect(shapes.length, greaterThan(20));
+  });
+
   test(
       'cube folding distinguishes nets from overlapping and disconnected layouts',
       () {
@@ -110,7 +237,22 @@ void main() {
           start[i - 1]++;
         }
       }
-      expect(round.check({'counts': start}).correct, isTrue);
+      expect(round.check({'counts': start}).points, 1);
+      expect(
+          round.check(
+              {'counts': start, 'number': '${round.config['target']}'}).correct,
+          isTrue);
+      expect(
+          round.check({
+            'counts': round.config['start'],
+            'number': '${round.config['target']}'
+          }).points,
+          1);
+      // The value is never stated: the learner reads it after regrouping.
+      expect(round.promptDe.contains('${round.config['target']}'), isFalse);
+      expect(start.where((n) => n > 9), isEmpty);
+      expect(intList(round.config['start']).where((n) => n > 9).length,
+          greaterThanOrEqualTo(2));
       expect(
           generateKompassLabRound('number_dock', 1, seed).config, round.config);
     }
@@ -119,13 +261,20 @@ void main() {
   test(
       'lab evaluation accepts different valid containers and exact decimal commas',
       () {
-    final volume = generateKompassLabRound('supply_station', 2, _seed);
-    final target = volume.config['targetMl'] as int;
-    expect(volume.check({'bottles': 0, 'cups': target ~/ 250}).correct, isTrue);
-    expect(
-        volume.check(
-            {'bottles': target ~/ 1000, 'cups': target % 1000 ~/ 250}).correct,
-        isTrue);
+    var limited = 0;
+    for (var seed = 0; seed < 40; seed++) {
+      final volume = generateKompassLabRound('supply_station', 2, seed);
+      final target = volume.config['targetMl'] as int;
+      final supply = volume.config['maxBottles'] as int;
+      expect(volume.promptDe.contains('$target'), isFalse);
+      expect(
+          volume.check({'bottles': 0, 'cups': target ~/ 250}).correct, isTrue);
+      final full = volume.check(
+          {'bottles': target ~/ 1000, 'cups': target % 1000 ~/ 250}).correct;
+      expect(full, supply >= target ~/ 1000);
+      if (!full) limited++;
+    }
+    expect(limited, greaterThan(0));
     expect(parseLabNumber(' 3,75 € ', unit: '€'), 3.75);
     expect(parseLabNumber('NaN'), isNull);
     expect(parseLabNumber('Infinity'), isNull);
@@ -153,8 +302,84 @@ void main() {
           'counts': [-1, 400, 2, 3]
         }),
         {
-          'counts': [0, 29, 2, 3]
+          'counts': [0, 99, 2, 3]
         });
+  });
+
+  testWidgets('regrouping preserves a valid carry above 29 across reopening',
+      (tester) async {
+    final events = <Map<String, dynamic>>[];
+    await _open(tester, 'number_dock', 1, seed: 46, onCompleted: events.add);
+    expect((_state(tester).exportState()['response'] as Map)['counts'],
+        [5, 29, 10, 5]);
+    await _tap(tester, 'lab_trade_2');
+    final before = _state(tester).exportState();
+    expect((before['response'] as Map)['counts'], [5, 30, 0, 5]);
+    expect(
+        placeValueTotal(intList((before['response'] as Map)['counts'])), 8005);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(_app('number_dock', onCompleted: events.add));
+    await tester.pumpAndSettle();
+    final restored = _state(tester).exportState();
+    expect(restored['roundId'], before['roundId']);
+    expect(restored['seed'], 46);
+    expect((restored['response'] as Map)['counts'], [5, 30, 0, 5]);
+    for (var trade = 0; trade < 3; trade++) {
+      await _tap(tester, 'lab_trade_1');
+    }
+    expect((_state(tester).exportState()['response'] as Map)['counts'],
+        [8, 0, 0, 5]);
+    final number = find.byKey(const ValueKey('lab_field_number'));
+    await tester.ensureVisible(number);
+    await tester.enterText(number, '8005');
+    await _tap(tester, 'lab_check');
+    expect(events, hasLength(1));
+    expect(events.single['firstCorrect'], isTrue);
+    expect(events.single['awardedPoints'], 2);
+    expect(events.single['maxPoints'], 2);
+  });
+
+  testWidgets('place counters and trades keep every reachable count storable',
+      (tester) async {
+    await _open(tester, 'number_dock', 1, response: {
+      'counts': [0, 98, 20, 0],
+      'number': '',
+    });
+    await _tap(tester, 'lab_place_1_plus');
+    expect((_state(tester).exportState()['response'] as Map)['counts'],
+        [0, 99, 20, 0]);
+    expect(
+        tester
+            .widget<IconButton>(find.byKey(const ValueKey('lab_place_1_plus')))
+            .onPressed,
+        isNull);
+    expect(
+        tester
+            .widget<OutlinedButton>(find.byKey(const ValueKey('lab_trade_2')))
+            .onPressed,
+        isNull);
+
+    await _tap(tester, 'lab_place_1_minus');
+    await _tap(tester, 'lab_trade_2');
+    expect((_state(tester).exportState()['response'] as Map)['counts'],
+        [0, 99, 10, 0]);
+    expect(
+        tester
+            .widget<OutlinedButton>(find.byKey(const ValueKey('lab_trade_2')))
+            .onPressed,
+        isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(_app('number_dock'));
+    await tester.pumpAndSettle();
+    expect((_state(tester).exportState()['response'] as Map)['counts'],
+        [0, 99, 10, 0]);
+    await _tap(tester, 'lab_trade_1');
+    await _tap(tester, 'lab_trade_2');
+    expect((_state(tester).exportState()['response'] as Map)['counts'],
+        [1, 90, 0, 0]);
   });
 
   testWidgets(
@@ -208,6 +433,10 @@ void main() {
       }
     }
     expect(placeValueTotal(counts), before);
+    final numberField = find.byKey(const ValueKey('lab_field_number'));
+    await tester.ensureVisible(numberField);
+    await tester.enterText(numberField, '$before');
+    await tester.pumpAndSettle();
     await _tap(tester, 'lab_check');
     expect(events, hasLength(2));
     expect(events.last['firstCorrect'], isTrue);
@@ -418,15 +647,15 @@ void main() {
     await _open(tester, 'data_observatory', 1, onCompleted: events.add);
     await _tap(tester, 'lab_draw');
     final first = _state(tester).exportState()['response'] as Map;
-    expect(first['draws'], ['star']);
+    expect(first['draws'], hasLength(1));
     expect(first['blue'], 0);
     await _tap(tester, 'lab_blue_plus');
     expect((_state(tester).exportState()['response'] as Map)['draws'], isEmpty);
-    final stars = generateKompassLabRound('data_observatory', 1, _seed)
-        .config['red'] as int;
-    await _setCounter(tester, 'blue', stars);
+    final circles = generateKompassLabRound('data_observatory', 1, _seed)
+        .config['circles'] as int;
+    await _setCounter(tester, 'blue', circles);
     await _tap(tester, 'lab_draw');
-    expect((_state(tester).exportState()['response'] as Map)['blue'], stars);
+    expect((_state(tester).exportState()['response'] as Map)['blue'], circles);
     await _tap(tester, 'lab_check');
     expect(events.single['practiceOnly'], isTrue);
     expect(events.single['firstCorrect'], isTrue);
@@ -441,8 +670,11 @@ void main() {
             generateKompassLabRound('geometry_workshop', 1, _seed)
                 .config['cells'])
         .toSet();
-    final full = {'0,1', '1,0', '1,1', '1,2', '2,1', '3,1'};
-    final addition = full.difference(fixed).single;
+    final addition = [
+      for (var r = 0; r < labNetRows; r++)
+        for (var c = 0; c < labNetCols; c++) '$r,$c'
+    ].firstWhere(
+        (cell) => !fixed.contains(cell) && isCubeNet({...fixed, cell}));
     await _tap(tester, 'kompass_cell_${fixed.first}');
     expect((_state(tester).exportState()['response'] as Map)['cells'], isEmpty);
     await _tap(tester, 'kompass_cell_$addition');
@@ -499,9 +731,8 @@ void main() {
     await tester.pumpAndSettle();
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('player_second_kompass_lab_v1_number_dock'), isNull);
-    final saved =
-        jsonDecode(prefs.getString(
-            'player_${originalProfile}_kompass_lab_v1_number_dock')!) as Map;
+    final saved = jsonDecode(prefs.getString(
+        'player_${originalProfile}_kompass_lab_v1_number_dock')!) as Map;
     expect((saved['response'] as Map)['counts'], [1, 0, 0, 0]);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
   });

@@ -187,7 +187,7 @@ void main(List<String> args) {
         ['correct'] == false, 'Baseline changed response must fail for $key');
     final actual = _snapshot(
       labId,
-      generateKompassLabRound(labId, index, seed),
+      generateKompassLabRound(labId, index, seed, recipe: 1),
       probes,
     );
     _compare(expected, actual, key, differences);

@@ -162,8 +162,12 @@ KompassLabRound generateAreaRound(int index, int seed) {
       'perimeterCm': perimeter,
       if (construct) 'exampleCells': cells else 'cells': cells,
     },
-    titleDe: construct ? 'Fläche und Rand selbst bauen' : 'Innenfläche und Außenrand',
-    titleEn: construct ? 'Build an area and its boundary' : 'Inside area and outside boundary',
+    titleDe: construct
+        ? 'Fläche und Rand selbst bauen'
+        : 'Innenfläche und Außenrand',
+    titleEn: construct
+        ? 'Build an area and its boundary'
+        : 'Inside area and outside boundary',
     promptDe: construct
         ? 'Baue aus genau $area Kästchen eine zusammenhängende Figur ohne Löcher. '
             'Jede Kästchenseite ist 1 cm lang. Der Außenrand soll genau '
@@ -293,7 +297,8 @@ KompassLabCheck checkAreaRound(
         (perimeterCorrect ? 1 : 0) +
         (shapeCorrect ? 1 : 0);
     if (!metrics.valid || metrics.cells == 0) {
-      de = 'Markiere Kästchen innerhalb des Gitters. Jedes Kästchen zählt einmal.';
+      de =
+          'Markiere Kästchen innerhalb des Gitters. Jedes Kästchen zählt einmal.';
       en = 'Select cells inside the grid. Each cell counts once.';
     } else if (!metrics.connected) {
       de = 'Die Teile müssen über ganze Kanten zusammenhängen. '
@@ -319,7 +324,8 @@ KompassLabCheck checkAreaRound(
     final areaCorrect =
         parseLabNumber(response['area'], unit: 'cm²') == config['areaCm2'];
     final perimeterCorrect =
-        parseLabNumber(response['perimeter'], unit: 'cm') == config['perimeterCm'];
+        parseLabNumber(response['perimeter'], unit: 'cm') ==
+            config['perimeterCm'];
     points = (areaCorrect ? 1 : 0) + (perimeterCorrect ? 1 : 0);
     de = areaCorrect
         ? 'Die Fläche stimmt. Zähle beim Rand nur freie Kanten; '
