@@ -221,11 +221,16 @@ Two additional lab repairs are saved in **1.6.0+65**:
 
 Three numeric-scoring regressions and two lifecycle widget regressions accompany
 these repairs. They cover actual scoring, delayed completion after reopening and
-advancing, retained input, saved hints and first-response preservation. These
-five new cases have not yet executed: Flutter verification remains pending on
-the required remote gate. The previous checkpoint's 121 passing checks do not
-validate these follow-up changes. The **59 Python tests**, content validator and
-both reproducible builders were rerun successfully during this continuation.
+advancing, retained input, saved hints and first-response preservation. The
+integrated application at
+[`ac504b0`](https://github.com/CrispStrobe/NumberNebula/commit/ac504b09be02f79d7704bd028f4ba284feaf3989)
+passed **126 focused Flutter checks**: all **125 KOMPASS cases**, including the
+five new lab cases, plus the localization guard, with zero failures or skips.
+Targeted strict analysis also found no issues. The subsequent documentation and
+test-formatting update does not change that application code. The **59 Python
+tests**, content validator and both reproducible builders also passed. Full
+remote analysis, the complete app suite, calibration and both browser engines
+remain separate required gates.
 
 The resumed audit also repaired worked-solution and immediate-hint history,
 stale answer overwrites, recovery when a session snapshot lags durable progress,
