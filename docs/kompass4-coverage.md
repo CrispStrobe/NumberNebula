@@ -55,10 +55,10 @@ weighting or an official blueprint.
 
 | Lab | Interactions |
 | --- | --- |
-| Number dock / Zahlendock | Build a number with place values, exchange bundles while preserving value, locate a number-line midpoint. |
-| Supply station / Versorgungsstation | Calculate purchases and construct change, advance a clock, combine capacities, convert length. |
-| Data observatory / Datenobservatorium | Build a chart, adjust a bag to equal chances, classify events and explore draws. |
-| Geometry workshop / Geometriewerkstatt | Select reflection axes, complete a cube net, reconstruct a side view from a building. |
+| Number dock / Zahlendock | Build a number from a clue (number word, scrambled places with an empty place, un-bundled amount, ±1/10/100 across a boundary); regroup un-bundled material and write its value; locate a midpoint between non-round endpoints. |
+| Supply station / Versorgungsstation | Calculate purchases and construct change, advance a clock, measure ¼/½/¾ litre amounts with a limited bottle supply, convert length. |
+| Data observatory / Datenobservatorium | Build a chart, set a bag to a relational chance goal (equal, double, or equal to the complement) with a distractor type, classify composed events and explore draws. |
+| Geometry workshop / Geometriewerkstatt | Select every reflection axis of nine shapes (zero to four axes), complete any of the eleven cube nets, reconstruct a side view from a building. |
 
 Each lab has three stages of help, repeatable seeded rounds, a saved draft and
 keyboard/tap controls. Completion remains practice evidence. The first response,

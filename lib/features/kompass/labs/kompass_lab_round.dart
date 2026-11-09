@@ -50,7 +50,10 @@ class KompassLabRound {
         'buildNumber' => {
             'counts': [0, 0, 0, 0]
           },
-        'regroup' => {'counts': List<int>.from(config['start'] as List)},
+        'regroup' => {
+            'counts': List<int>.from(config['start'] as List),
+            'number': ''
+          },
         'numberLine' => {'value': config['min']},
         'shopping' => {'total': '', 'coins': List<int>.filled(8, 0)},
         'elapsed' => {
@@ -97,7 +100,7 @@ class KompassLabRound {
         final strings = stringList(value);
         result[entry.key] = switch (entry.key) {
           'draws' => strings
-              .where((s) => s == 'star' || s == 'circle')
+              .where(const ['star', 'circle', 'triangle'].contains)
               .take(50)
               .toList(),
           'axes' => strings
@@ -143,13 +146,26 @@ class KompassLabRound {
         final value = placeValueTotal(counts);
         final canonical =
             counts.length == 4 && counts.every((n) => n >= 0 && n <= 9);
-        points = value == config['target'] && canonical ? 1 : 0;
+        final built = value == config['target'] && canonical;
+        points = built ? 1 : 0;
         feedbackDe = value != config['target']
             ? 'Der Wert stimmt noch nicht. Ein Tausender zählt 1000, ein Hunderter 100, ein Zehner 10 und ein Einer 1.'
             : 'Der Wert stimmt. Bündle jetzt so, dass in jeder Stelle höchstens 9 stehen.';
         feedbackEn = value != config['target']
             ? 'The value is not right yet. A thousand is 1000, a hundred 100, a ten 10 and a one 1.'
             : 'The value is right. Regroup until every place contains at most 9.';
+        if (type == 'regroup') {
+          maximum = 2;
+          final written = parseLabNumber(response['number']) ==
+              (config['target'] as int).toDouble();
+          if (written) points++;
+          if (built && !written) {
+            feedbackDe =
+                'Das Bündeln stimmt. Lies jetzt die Stellen ab und schreibe die Zahl auf.';
+            feedbackEn =
+                'The regrouping is right. Now read the places and write down the number.';
+          }
+        }
       case 'numberLine':
         points = response['value'] == config['target'] ? 1 : 0;
         feedbackDe =
@@ -179,15 +195,20 @@ class KompassLabRound {
         feedbackEn =
             'Go to the next full hour, then add the remaining minutes. An hour has 60 minutes.';
       case 'capacity':
-        points = (numberAt(response, 'bottles') * 1000 +
-                    numberAt(response, 'cups') * 250) ==
-                config['targetMl']
+        final withinSupply = numberAt(response, 'bottles') <=
+            (config['maxBottles'] as int? ?? 10);
+        points = withinSupply &&
+                (numberAt(response, 'bottles') * 1000 +
+                        numberAt(response, 'cups') * 250) ==
+                    config['targetMl']
             ? 1
             : 0;
-        feedbackDe =
-            'Eine Flasche enthält 1000 ml, ein Becher 250 ml. Vier Becher ersetzen eine Flasche.';
-        feedbackEn =
-            'A bottle holds 1000 ml and a cup 250 ml. Four cups replace one bottle.';
+        feedbackDe = withinSupply
+            ? 'Eine Flasche enthält 1000 ml, ein Becher 250 ml. Vier Becher ersetzen eine Flasche.'
+            : 'So viele Flaschen sind nicht da. Ersetze fehlende Flaschen durch Becher.';
+        feedbackEn = withinSupply
+            ? 'A bottle holds 1000 ml and a cup 250 ml. Four cups replace one bottle.'
+            : 'There are not that many bottles. Replace missing bottles with cups.';
       case 'length':
         points = parseLabNumber(response['millimetres'], unit: 'mm') ==
                 config['targetMm']
@@ -209,11 +230,14 @@ class KompassLabRound {
         feedbackEn =
             'Compare each bar with its table row. The scale counts in steps of two.';
       case 'chance':
-        points = numberAt(response, 'blue') == config['red'] ? 1 : 0;
+        points = numberAt(response, 'blue') ==
+                (config['circles'] as int? ?? config['red'] as int)
+            ? 1
+            : 0;
         feedbackDe =
-            'Alle Steine werden gleich gut gemischt. Gleiche Anzahlen geben den zwei Sorten die gleiche Chance; einzelne Ziehungen müssen sich nicht abwechseln.';
+            'Alle Steine werden gleich gut gemischt. Jeder Stein hat dieselbe Chance: Vergleiche die Anzahlen der Steine auf beiden Seiten. Einzelne Ziehungen müssen sich nicht abwechseln.';
         feedbackEn =
-            'Every token is equally mixed. Equal counts give both types equal chances; individual draws need not alternate.';
+            'Every token is equally mixed and has the same chance: compare the token counts on both sides. Individual draws need not alternate.';
       case 'event':
         points = response['answer'] == config['answer'] ? 1 : 0;
         feedbackDe =
@@ -298,6 +322,7 @@ List<String> stringList(Object? value) =>
     value is List ? value.map((v) => v.toString()).toList() : <String>[];
 int numberAt(Map<String, dynamic> value, String key) =>
     value[key] is num ? (value[key] as num).toInt() : 0;
+
 /// Bare values use the field's displayed unit; written units must agree.
 double? parseLabNumber(Object? value, {String unit = ''}) =>
     KompassScorer.parseNumber(value, unit: unit);
@@ -325,67 +350,290 @@ KompassLabRound generateKompassLabRound(String labId, int index, int seed) {
 
 KompassLabRound _numberRound(int variant, math.Random random) {
   if (variant == 2) {
-    final min = (2 + random.nextInt(6)) * 100;
-    final max = min + (1 + random.nextInt(4)) * 100;
-    final middle = (min + max) ~/ 2;
+    // Non-round endpoints: the midpoint has to be calculated, not recognised.
+    final min = (10 + random.nextInt(70)) * 10;
+    final span = (6 + random.nextInt(25)) * 20;
+    final max = min + span;
+    final middle = min + span ~/ 2;
     return KompassLabRound(
         type: 'numberLine',
         skillIds: const ['M-Z03'],
-        config: {'min': min, 'max': max, 'target': middle, 'step': 5},
+        config: {'min': min, 'max': max, 'target': middle, 'step': 10},
         titleDe: 'Die Mitte finden',
         titleEn: 'Find the midpoint',
         promptDe:
             'Verschiebe die Markierung genau in die Mitte zwischen $min und $max.',
         promptEn: 'Move the marker exactly halfway between $min and $max.',
         solutionDe:
-            '$middle liegt genau in der Mitte: Beide Abstände sind ${middle - min}.',
+            'Der Abstand ist $max − $min = $span. Die Hälfte davon ist ${span ~/ 2}. $min + ${span ~/ 2} = $middle.',
         solutionEn:
-            '$middle is the midpoint: both distances are ${middle - min}.',
+            'The distance is $max − $min = $span. Half of it is ${span ~/ 2}. $min + ${span ~/ 2} = $middle.',
         hintsDe: [
-          'Vergleiche den Abstand zu beiden Enden.',
-          'Halbiere den Abstand ${max - min} und gehe vom linken Ende aus weiter.',
-          '$min + ${(max - min) ~/ 2} = $middle.'
+          'Die Mitte ist von beiden Enden gleich weit entfernt.',
+          'Berechne zuerst den Abstand $max − $min. Halbiere ihn und gehe vom linken Ende aus weiter.',
+          '$min + ${span ~/ 2} = $middle.'
         ],
         hintsEn: [
-          'Compare the distances to both ends.',
-          'Halve the distance ${max - min} and add it to the left endpoint.',
-          '$min + ${(max - min) ~/ 2} = $middle.'
+          'The midpoint is the same distance from both ends.',
+          'First find the distance $max − $min. Halve it and add it to the left endpoint.',
+          '$min + ${span ~/ 2} = $middle.'
         ]);
   }
-  final digits = [
-    1 + random.nextInt(4),
-    2 + random.nextInt(6),
-    2 + random.nextInt(6),
-    1 + random.nextInt(8)
+  if (variant == 1) return _regroupRound(random);
+  return _buildNumberRound(random);
+}
+
+const _placeNamesDe = ['Tausender', 'Hunderter', 'Zehner', 'Einer'];
+const _placeNamesEn = ['thousands', 'hundreds', 'tens', 'ones'];
+
+List<int> placeDigits(int n) =>
+    [n ~/ 1000, n % 1000 ~/ 100, n % 100 ~/ 10, n % 10];
+
+String _placeList(List<(int, int)> parts, bool german) {
+  final items = [
+    for (final (place, count) in parts)
+      '$count ${german ? _placeNamesDe[place] : _placeNamesEn[place]}'
   ];
+  if (items.length == 1) return items.single;
+  final last = items.removeLast();
+  return '${items.join(', ')} ${german ? 'und' : 'and'} $last';
+}
+
+/// German number word for 1..9999 (school spelling, written as one word).
+String germanNumberWord(int n) {
+  const ones = [
+    '', 'eins', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht',
+    'neun' //
+  ];
+  const teens = [
+    'zehn', 'elf', 'zwölf', 'dreizehn', 'vierzehn', 'fünfzehn', 'sechzehn',
+    'siebzehn', 'achtzehn', 'neunzehn' //
+  ];
+  const tens = [
+    '', '', 'zwanzig', 'dreißig', 'vierzig', 'fünfzig', 'sechzig', 'siebzig',
+    'achtzig', 'neunzig' //
+  ];
+  String prefix(int d) => d == 1 ? 'ein' : ones[d];
+  final [t, h, z, e] = placeDigits(n);
+  final rest = n % 100;
+  final below100 = rest == 0
+      ? ''
+      : rest < 10
+          ? ones[rest]
+          : rest < 20
+              ? teens[rest - 10]
+              : e == 0
+                  ? tens[z]
+                  : '${prefix(e)}und${tens[z]}';
+  return '${t > 0 ? '${prefix(t)}tausend' : ''}'
+      '${h > 0 ? '${prefix(h)}hundert' : ''}$below100';
+}
+
+/// English number word for 1..9999 (British "and" before tens and ones).
+String englishNumberWord(int n) {
+  const ones = [
+    '', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
+    'nine' //
+  ];
+  const teens = [
+    'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen',
+    'seventeen', 'eighteen', 'nineteen' //
+  ];
+  const tens = [
+    '', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy',
+    'eighty', 'ninety' //
+  ];
+  final [t, h, z, e] = placeDigits(n);
+  final rest = n % 100;
+  final parts = <String>[
+    if (t > 0) '${ones[t]} thousand',
+    if (h > 0) '${ones[h]} hundred',
+  ];
+  if (rest > 0) {
+    final words = rest < 10
+        ? ones[rest]
+        : rest < 20
+            ? teens[rest - 10]
+            : e == 0
+                ? tens[z]
+                : '${tens[z]}-${ones[e]}';
+    parts.add(parts.isEmpty ? words : 'and $words');
+  }
+  return parts.join(' ');
+}
+
+/// The target is never shown in digits: the learner has to interpret a
+/// number word, a scrambled place description with an empty place, an
+/// un-bundled amount or a step across a place boundary.
+KompassLabRound _buildNumberRound(math.Random random) {
+  final kind = random.nextInt(4);
+  final digits = [
+    2 + random.nextInt(7),
+    random.nextInt(10),
+    random.nextInt(10),
+    random.nextInt(10)
+  ];
+  // Empty places are the classic error source; most rounds contain one.
+  if (kind == 1 || random.nextInt(3) > 0) digits[1 + random.nextInt(3)] = 0;
+  late final String clueDe, clueEn, hintDe, hintEn;
+  switch (kind) {
+    case 0:
+      final target = placeValueTotal(digits);
+      clueDe = '„${germanNumberWord(target)}“';
+      clueEn = '“${englishNumberWord(target)}”';
+      hintDe = 'Zerlege das Zahlwort: Wie viele Tausender, Hunderter, '
+          'Zehner und Einer werden genannt? Was nicht genannt wird, ist 0.';
+      hintEn = 'Split the number word: how many thousands, hundreds, tens and '
+          'ones does it name? A place that is not named is 0.';
+    case 1:
+      final parts = [
+        for (var i = 0; i < 4; i++)
+          if (digits[i] > 0) (i, digits[i])
+      ]..shuffle(random);
+      clueDe = _placeList(parts, true);
+      clueEn = _placeList(parts, false);
+      hintDe = 'Die Angaben stehen durcheinander. Ordne sie nach Stellen. '
+          'Eine Stelle, die nicht vorkommt, bekommt 0.';
+      hintEn = 'The parts are mixed up. Sort them by place. A place that is '
+          'not mentioned gets 0.';
+    case 2:
+      final counts = List<int>.of(digits);
+      // Un-bundle one or two places so the description has 10 or more.
+      final trades = 1 + random.nextInt(2);
+      for (var n = 0, guard = 0; n < trades && guard < 20; guard++) {
+        final i = random.nextInt(3);
+        if (counts[i] == 0 || counts[i + 1] + 10 > 19) continue;
+        counts[i]--;
+        counts[i + 1] += 10;
+        n++;
+      }
+      if (counts.every((c) => c <= 9)) {
+        counts[0]--;
+        counts[1] += 10;
+      }
+      final parts = [
+        for (var i = 0; i < 4; i++)
+          if (counts[i] > 0) (i, counts[i])
+      ];
+      clueDe = _placeList(parts, true);
+      clueEn = _placeList(parts, false);
+      hintDe = '10 Einer sind 1 Zehner, 10 Zehner sind 1 Hunderter und '
+          '10 Hunderter sind 1 Tausender. Bündle, wo 10 oder mehr stehen.';
+      hintEn = '10 ones make 1 ten, 10 tens make 1 hundred and 10 hundreds '
+          'make 1 thousand. Regroup wherever there are 10 or more.';
+    default:
+      // A step of 1, 10 or 100 that crosses a place boundary.
+      final place = 1 + random.nextInt(3);
+      final delta = [1000, 100, 10, 1][place];
+      final up = random.nextBool();
+      digits[place] = up ? 0 : 9;
+      final target = placeValueTotal(digits);
+      final base = up ? target - delta : target + delta;
+      clueDe = up
+          ? 'die Zahl, die um $delta größer ist als $base'
+          : 'die Zahl, die um $delta kleiner ist als $base';
+      clueEn = up
+          ? 'the number that is $delta more than $base'
+          : 'the number that is $delta less than $base';
+      hintDe = up
+          ? 'Rechne $base + $delta. Achte darauf, ob eine Stelle über 9 '
+              'hinausgeht und gebündelt werden muss.'
+          : 'Rechne $base − $delta. Achte darauf, ob du an einer Stelle '
+              'entbündeln musst.';
+      hintEn = up
+          ? 'Work out $base + $delta. Watch for a place that goes past 9 '
+              'and has to be regrouped.'
+          : 'Work out $base − $delta. Watch for a place that has to be '
+              'un-bundled.';
+  }
   final target = placeValueTotal(digits);
-  final regroup = variant == 1;
-  final start = [digits[0] - 1, digits[1] + 9, digits[2] + 9, digits[3] + 10];
   return KompassLabRound(
-      type: regroup ? 'regroup' : 'buildNumber',
+      type: 'buildNumber',
       skillIds: const ['M-Z01'],
-      config: {'target': target, 'start': start},
-      titleDe: regroup ? 'Bündeln ohne Wertänderung' : 'Eine Zahl bauen',
-      titleEn: regroup ? 'Regroup without changing value' : 'Build a number',
-      promptDe: regroup
-          ? 'Diese Darstellung ist $target wert. Bündle jeweils 10 in die nächstgrößere Stelle. Am Ende stehen in jeder Stelle höchstens 9.'
-          : 'Baue $target mit Tausendern, Hundertern, Zehnern und Einern. In jeder Stelle dürfen am Ende höchstens 9 stehen.',
-      promptEn: regroup
-          ? 'This representation is worth $target. Trade groups of 10 into the next place. Finish with at most 9 in each place.'
-          : 'Build $target from thousands, hundreds, tens and ones. Finish with at most 9 in each place.',
-      solutionDe:
-          '$target = ${digits[0]} T + ${digits[1]} H + ${digits[2]} Z + ${digits[3]} E. Bündeln ändert den Wert nicht.',
-      solutionEn:
-          '$target = ${digits[0]} thousands + ${digits[1]} hundreds + ${digits[2]} tens + ${digits[3]} ones. Regrouping preserves value.',
+      config: {'target': target, 'clue': kind},
+      titleDe: 'Eine Zahl bauen',
+      titleEn: 'Build a number',
+      promptDe:
+          'Lege diese Zahl mit Tausendern, Hundertern, Zehnern und Einern: '
+          '$clueDe. In jeder Stelle dürfen am Ende höchstens 9 stehen.',
+      promptEn: 'Build this number from thousands, hundreds, tens and ones: '
+          '$clueEn. Finish with at most 9 in each place.',
+      solutionDe: '$target = ${digits[0]} T + ${digits[1]} H + ${digits[2]} Z '
+          '+ ${digits[3]} E.',
+      solutionEn: '$target = ${digits[0]} thousands + ${digits[1]} hundreds + '
+          '${digits[2]} tens + ${digits[3]} ones.',
       hintsDe: [
+        hintDe,
         'Jede Stelle ist zehnmal so viel wert wie die rechts daneben.',
-        '10 Einer sind 1 Zehner; 10 Zehner sind 1 Hunderter; 10 Hunderter sind 1 Tausender.',
         'Die Stellen sind ${digits.join(' | ')} von links nach rechts.'
       ],
       hintsEn: [
+        hintEn,
         'Each place is worth ten times the place to its right.',
-        '10 ones make 1 ten; 10 tens make 1 hundred; 10 hundreds make 1 thousand.',
         'The places are ${digits.join(' | ')} from left to right.'
+      ]);
+}
+
+/// The material is un-bundled in several places, sometimes so that one
+/// regrouping causes the next. Its value is not stated: after regrouping the
+/// learner also writes down the number.
+KompassLabRound _regroupRound(math.Random random) {
+  final digits = [
+    2 + random.nextInt(7),
+    random.nextInt(10),
+    random.nextInt(10),
+    random.nextInt(10)
+  ];
+  final target = placeValueTotal(digits);
+  final start = List<int>.of(digits);
+  final trades = 2 + random.nextInt(3);
+  for (var n = 0, guard = 0; n < trades && guard < 40; guard++) {
+    final i = random.nextInt(3);
+    if (start[i] == 0 || start[i + 1] + 10 > 29) continue;
+    start[i]--;
+    start[i + 1] += 10;
+    n++;
+  }
+  if (start.where((c) => c > 9).length < 2) {
+    // Guarantee at least two places that need regrouping.
+    for (var i = 0; i < 3 && start.where((c) => c > 9).length < 2; i++) {
+      if (start[i + 1] <= 9 && start[i] > 0) {
+        start[i]--;
+        start[i + 1] += 10;
+      }
+    }
+  }
+  return KompassLabRound(
+      type: 'regroup',
+      skillIds: const ['M-Z01'],
+      config: {'target': target, 'start': start},
+      titleDe: 'Bündeln ohne Wertänderung',
+      titleEn: 'Regroup without changing value',
+      promptDe: 'Auf dem Brett liegen ${_placeList([
+            for (var i = 0; i < 4; i++)
+              if (start[i] > 0) (i, start[i])
+          ], true)}. '
+          'Bündle jeweils 10 in die nächstgrößere Stelle, bis in jeder Stelle höchstens 9 stehen. '
+          'Schreibe dann die Zahl auf.',
+      promptEn: 'The board holds ${_placeList([
+            for (var i = 0; i < 4; i++)
+              if (start[i] > 0) (i, start[i])
+          ], false)}. '
+          'Trade groups of 10 into the next place until every place has at most 9. '
+          'Then write down the number.',
+      solutionDe: '$target = ${digits[0]} T + ${digits[1]} H + ${digits[2]} Z '
+          '+ ${digits[3]} E. Bündeln ändert den Wert nicht.',
+      solutionEn: '$target = ${digits[0]} thousands + ${digits[1]} hundreds + '
+          '${digits[2]} tens + ${digits[3]} ones. Regrouping preserves value.',
+      hintsDe: [
+        'Beginne bei den Einern. Ein neuer Zehner kann bei den Zehnern wieder 10 voll machen.',
+        '10 Einer sind 1 Zehner; 10 Zehner sind 1 Hunderter; 10 Hunderter sind 1 Tausender.',
+        'Nach dem Bündeln stehen dort ${digits.join(' | ')}.'
+      ],
+      hintsEn: [
+        'Start with the ones. A new ten can fill up the tens to 10 again.',
+        '10 ones make 1 ten; 10 tens make 1 hundred; 10 hundreds make 1 thousand.',
+        'After regrouping the places are ${digits.join(' | ')}.'
       ]);
 }
 
@@ -462,31 +710,55 @@ KompassLabRound _supplyRound(int variant, math.Random random) {
         ]);
   }
   if (variant == 2) {
-    final target =
-        (1 + random.nextInt(4)) * 1000 + (1 + random.nextInt(3)) * 250;
+    // The amount is given as a fraction of a litre, and the bottle supply is
+    // sometimes too small, so cups have to stand in for whole litres.
+    final litres = 1 + random.nextInt(4), quarters = 1 + random.nextInt(3);
+    final target = litres * 1000 + quarters * 250;
+    final maxBottles = random.nextBool() ? 10 : litres - 1;
+    final fraction = ['', '¼', '½', '¾'][quarters];
+    final limitDe = maxBottles >= litres
+        ? ''
+        : maxBottles == 0
+            ? ' Es ist keine Flasche mehr da.'
+            : maxBottles == 1
+                ? ' Es ist nur noch 1 Flasche da.'
+                : ' Es sind nur noch $maxBottles Flaschen da.';
+    final limitEn = maxBottles >= litres
+        ? ''
+        : maxBottles == 0
+            ? ' There are no bottles left.'
+            : maxBottles == 1
+                ? ' Only 1 bottle is left.'
+                : ' Only $maxBottles bottles are left.';
+    final bottles = math.min(litres, maxBottles);
+    final cups = (target - bottles * 1000) ~/ 250;
+    final bottlesDe = bottles == 1 ? '1 Flasche' : '$bottles Flaschen';
+    final bottlesEn = bottles == 1 ? '1 bottle' : '$bottles bottles';
+    final cupsDe = cups == 1 ? '1 Becher' : '$cups Becher';
+    final cupsEn = cups == 1 ? '1 cup' : '$cups cups';
     return KompassLabRound(
         type: 'capacity',
         skillIds: const ['M-G07'],
-        config: {'targetMl': target},
+        config: {'targetMl': target, 'maxBottles': maxBottles},
         titleDe: 'Vorrat abmessen',
         titleEn: 'Measure the supply',
         promptDe:
-            'Fülle genau ${target ~/ 1000} l ${target % 1000} ml ab. Du hast 1-l-Flaschen und 250-ml-Becher. Mehrere Zusammenstellungen sind möglich.',
+            'Fülle genau $litres $fraction l ab. Du hast 1-l-Flaschen und 250-ml-Becher.$limitDe',
         promptEn:
-            'Measure exactly ${target ~/ 1000} l ${target % 1000} ml. Use 1-litre bottles and 250-ml cups. More than one combination works.',
+            'Measure exactly $litres $fraction litres. Use 1-litre bottles and 250-ml cups.$limitEn',
         solutionDe:
-            'Die Gefäße enthalten zusammen $target ml. 1000 ml sind 1 l.',
+            '$litres $fraction l = $target ml. $bottlesDe und $cupsDe ergeben ${bottles * 1000} ml + ${cups * 250} ml = $target ml.',
         solutionEn:
-            'The containers hold $target ml altogether. 1000 ml equals 1 litre.',
+            '$litres $fraction litres = $target ml. $bottlesEn and $cupsEn give ${bottles * 1000} ml + ${cups * 250} ml = $target ml.',
         hintsDe: [
-          'Rechne alles in Millilitern.',
-          '1 l = 1000 ml; vier Becher sind 1 l.',
-          'Eine Möglichkeit: ${target ~/ 1000} Flaschen und ${(target % 1000) ~/ 250} Becher.'
+          '1 l = 1000 ml. Wie viele Milliliter sind $fraction l?',
+          '¼ l = 250 ml, ½ l = 500 ml, ¾ l = 750 ml. Vier Becher ersetzen eine Flasche.',
+          'Eine Möglichkeit: $bottlesDe und $cupsDe.'
         ],
         hintsEn: [
-          'Use millilitres for every container.',
-          '1 litre = 1000 ml; four cups make 1 litre.',
-          'One solution: ${target ~/ 1000} bottles and ${(target % 1000) ~/ 250} cups.'
+          '1 litre = 1000 ml. How many millilitres is $fraction litre?',
+          '¼ l = 250 ml, ½ l = 500 ml, ¾ l = 750 ml. Four cups replace one bottle.',
+          'One solution: $bottlesEn and $cupsEn.'
         ]);
   }
   final start = 2 + random.nextInt(4), length = 4 + random.nextInt(6);
@@ -545,45 +817,110 @@ KompassLabRound _dataRound(int variant, math.Random random) {
         ]);
   }
   if (variant == 1) {
-    final red = 2 + random.nextInt(5);
+    // Relational goals with a distractor type in the bag: "equal to the
+    // stars" alone would only ask for copying a number.
+    final goal = random.nextInt(3);
+    final stars = 2 + random.nextInt(goal == 1 ? 5 : 4);
+    final triangles = 1 + random.nextInt(goal == 2 ? 4 : 3);
+    final circles = switch (goal) {
+      0 => stars,
+      1 => stars * 2,
+      _ => stars + triangles,
+    };
+    final trianglesDe = triangles == 1 ? '1 Dreieck' : '$triangles Dreiecke';
+    final trianglesEn = triangles == 1 ? '1 triangle' : '$triangles triangles';
+    final goalDe = [
+      'ein Kreis genauso wahrscheinlich ist wie ein Stern',
+      'ein Kreis doppelt so wahrscheinlich ist wie ein Stern',
+      'ein Kreis genauso wahrscheinlich ist wie „kein Kreis“',
+    ][goal];
+    final goalEn = [
+      'a circle is exactly as likely as a star',
+      'a circle is twice as likely as a star',
+      'a circle is exactly as likely as “not a circle”',
+    ][goal];
+    final reasonDe = [
+      'Gleich viele Kreise wie Sterne: $circles. ${triangles == 1 ? 'Das Dreieck ändert' : 'Die Dreiecke ändern'} daran nichts.',
+      'Doppelt so viele Kreise wie Sterne: 2 · $stars = $circles.',
+      '„Kein Kreis“ sind alle Sterne und Dreiecke: $stars + $triangles = $circles. So viele Kreise braucht es.',
+    ][goal];
+    final reasonEn = [
+      'As many circles as stars: $circles. The ${triangles == 1 ? 'triangle does' : 'triangles do'} not change that.',
+      'Twice as many circles as stars: 2 · $stars = $circles.',
+      '“Not a circle” means every star and triangle: $stars + $triangles = $circles. That many circles are needed.',
+    ][goal];
     return KompassLabRound(
         type: 'chance',
         skillIds: const ['M-D05'],
-        config: {'red': red},
-        titleDe: 'Gleiche Chancen herstellen',
-        titleEn: 'Make equal chances',
+        config: {
+          'red': stars,
+          'triangles': triangles,
+          'goal': goal,
+          'circles': circles
+        },
+        titleDe: 'Chancen einstellen',
+        titleEn: 'Set the chances',
         promptDe:
-            'Im Beutel liegen $red Sternsteine. Stelle die Anzahl der Kreissteine so ein, dass beide Sorten gleich wahrscheinlich gezogen werden. Jeder Stein ist gleich groß.',
+            'Im Beutel liegen $stars Sterne und $trianglesDe. Lege so viele Kreise dazu, dass beim blinden Ziehen $goalDe. Alle Steine sind gleich groß.',
         promptEn:
-            'The bag holds $red star tokens. Set the circle-token count so either type is equally likely to be drawn. All tokens have the same size.',
+            'The bag holds $stars stars and $trianglesEn. Add circles so that, drawing without looking, $goalEn. All tokens have the same size.',
         solutionDe:
-            '$red Sterne und $red Kreise ergeben gleiche Chancen. Auch dann können mehrere gleiche Sorten hintereinander kommen.',
+            '$reasonDe Auch dann können mehrere gleiche Sorten hintereinander kommen.',
         solutionEn:
-            '$red stars and $red circles give equal chances. Repeated draws of the same type can still happen.',
+            '$reasonEn Repeated draws of the same type can still happen.',
         hintsDe: [
           'Vergleiche die Anzahlen, nicht eine einzelne Probeziehung.',
-          'Jeder Stein hat die gleiche Chance. Beide Sorten brauchen gleich viele Steine.',
-          'Stelle $red Kreissteine ein.'
+          'Jeder Stein hat die gleiche Chance. Welche Steine gehören zu jeder Seite des Vergleichs?',
+          'Stelle $circles Kreise ein.'
         ],
         hintsEn: [
           'Compare the counts, not one trial draw.',
-          'Every token has the same chance. Both types need equal counts.',
-          'Set the circle count to $red.'
+          'Every token has the same chance. Which tokens belong to each side of the comparison?',
+          'Set the circle count to $circles.'
         ]);
   }
-  final event = random.nextInt(3);
-  final answer = ['certain', 'possible', 'impossible'][event];
-  final eventDe =
-      ['einen Stern oder einen Kreis', 'einen Stern', 'ein Dreieck'][event];
-  final eventEn = ['a star or a circle', 'a star', 'a triangle'][event];
-  final nameDe = ['sicher', 'möglich, aber nicht sicher', 'unmöglich'][event];
-  final nameEn = ['certain', 'possible, but not certain', 'impossible'][event];
+  final triangles = random.nextBool() ? 0 : 1 + random.nextInt(3);
+  final present = {'star', 'circle', if (triangles > 0) 'triangle'};
+  const events = [
+    ('einen Stern', 'a star', {'star'}),
+    (
+      'einen Kreis oder ein Dreieck',
+      'a circle or a triangle',
+      {'circle', 'triangle'}
+    ),
+    ('einen Stern oder einen Kreis', 'a star or a circle', {'star', 'circle'}),
+    ('ein Dreieck', 'a triangle', {'triangle'}),
+    ('ein Quadrat', 'a square', <String>{}),
+    ('keinen Kreis', 'anything but a circle', {'star', 'triangle'}),
+    (
+      'einen Stern, einen Kreis oder ein Dreieck',
+      'a star, a circle or a triangle',
+      {'star', 'circle', 'triangle'}
+    ),
+  ];
+  final (eventDe, eventEn, matching) = events[random.nextInt(events.length)];
+  final answer = present.every(matching.contains)
+      ? 'certain'
+      : present.any(matching.contains)
+          ? 'possible'
+          : 'impossible';
+  final nameDe = {
+    'certain': 'sicher',
+    'possible': 'möglich, aber nicht sicher',
+    'impossible': 'unmöglich'
+  }[answer]!;
+  final nameEn = {
+    'certain': 'certain',
+    'possible': 'possible, but not certain',
+    'impossible': 'impossible'
+  }[answer]!;
   return KompassLabRound(
       type: 'event',
       skillIds: const ['M-D04'],
       config: {
         'red': 3 + random.nextInt(3),
         'blue': 2 + random.nextInt(3),
+        'triangles': triangles,
         'answer': answer
       },
       titleDe: 'Sicher, möglich oder unmöglich?',
@@ -610,58 +947,72 @@ KompassLabRound _dataRound(int variant, math.Random random) {
 
 KompassLabRound _geometryRound(int variant, math.Random random) {
   if (variant == 0) {
-    final square = random.nextBool();
-    final points = square
-        ? [
-            [0, 0],
-            [4, 0],
-            [4, 4],
-            [0, 4]
-          ]
-        : [
-            [0, 0],
-            [6, 0],
-            [6, 3],
-            [0, 3]
-          ];
-    final axes = square
-        ? ['vertical', 'horizontal', 'diagonalDown', 'diagonalUp']
-        : ['vertical', 'horizontal'];
+    final shape = labSymmetryShapes[random.nextInt(labSymmetryShapes.length)];
+    final axes = shape.axes;
+    String names(bool german) {
+      final labels = [
+        for (final axis in axes)
+          switch (axis) {
+            'vertical' => german ? 'senkrecht' : 'vertical',
+            'horizontal' => german ? 'waagerecht' : 'horizontal',
+            'diagonalDown' => german
+                ? 'diagonal von links oben nach rechts unten'
+                : 'diagonal from top left to bottom right',
+            _ => german
+                ? 'diagonal von links unten nach rechts oben'
+                : 'diagonal from bottom left to top right',
+          }
+      ];
+      return labels.join(german ? '; ' : '; ');
+    }
+
+    final countDe = switch (axes.length) {
+      0 => 'keine Spiegelachse',
+      1 => 'genau eine Spiegelachse',
+      _ => '${axes.length} Spiegelachsen'
+    };
+    final countEn = switch (axes.length) {
+      0 => 'no line of symmetry',
+      1 => 'exactly one line of symmetry',
+      _ => '${axes.length} lines of symmetry'
+    };
     return KompassLabRound(
         type: 'axes',
         skillIds: const ['M-R05'],
-        config: {'points': points, 'axes': axes},
+        config: {'points': shape.points, 'axes': axes, 'shape': shape.id},
         titleDe: 'Alle Spiegelachsen',
         titleEn: 'Every line of symmetry',
         promptDe:
-            'Wähle alle Spiegelachsen dieser Figur. Eine ausgewählte Linie wird in der Figur eingezeichnet.',
+            'Wähle alle Spiegelachsen dieser Figur. Eine ausgewählte Linie wird in der Figur eingezeichnet. Es kann auch sein, dass keine Linie passt.',
         promptEn:
-            'Select every line of symmetry. Each selected line appears on the shape.',
-        solutionDe: square
-            ? 'Das Quadrat hat vier Spiegelachsen: senkrecht, waagerecht und beide Diagonalen.'
-            : 'Dieses Rechteck hat zwei Spiegelachsen: senkrecht und waagerecht. Seine Diagonalen sind keine Spiegelachsen.',
-        solutionEn: square
-            ? 'The square has four lines of symmetry: vertical, horizontal and both diagonals.'
-            : 'This rectangle has two lines of symmetry: vertical and horizontal. Its diagonals are not lines of symmetry.',
+            'Select every line of symmetry. Each selected line appears on the shape. It is possible that no line works.',
+        solutionDe:
+            'Die Figur (${shape.nameDe}) hat $countDe${axes.isEmpty ? '' : ': ${names(true)}'}.',
+        solutionEn:
+            'The shape (${shape.nameEn}) has $countEn${axes.isEmpty ? '' : ': ${names(false)}'}.',
         hintsDe: [
           'Beide Hälften müssen beim Falten deckungsgleich sein.',
-          'Vergleiche auch die Diagonalen: Passen die Seitenlängen zusammen?',
-          square
-              ? 'Hier passen alle vier Linien.'
-              : 'Hier passen nur die senkrechte und die waagerechte Linie.'
+          'Prüfe jede der vier Linien einzeln: Landet jede Ecke beim Falten wieder auf einer Ecke?',
+          axes.isEmpty
+              ? 'Hier passt keine der Linien.'
+              : 'Hier passen: ${names(true)}.'
         ],
         hintsEn: [
           'Both halves must match when folded.',
-          'Check the diagonals too: do the side lengths match?',
-          square
-              ? 'All four lines work here.'
-              : 'Only the vertical and horizontal lines work here.'
+          'Check each of the four lines separately: does every corner land on a corner when folded?',
+          axes.isEmpty
+              ? 'No line works here.'
+              : 'These work here: ${names(false)}.'
         ]);
   }
   if (variant == 1) {
-    final full = ['0,1', '1,0', '1,1', '1,2', '2,1', '3,1'];
-    final removed = ['0,1', '1,0', '1,2', '3,1'][random.nextInt(4)];
-    final fixed = full.where((c) => c != removed).toList();
+    final net = _randomCubeNet(random);
+    final removable = [
+      for (final cell in net)
+        if (_connected(net.where((c) => c != cell).toSet())) cell
+    ];
+    final removed = removable[random.nextInt(removable.length)];
+    final fixed = net.where((c) => c != removed).toList();
     final pair = parseCell(removed)!;
     return KompassLabRound(
         type: 'cubeNet',
@@ -679,12 +1030,12 @@ KompassLabRound _geometryRound(int variant, math.Random random) {
             'The six squares form six different cube faces. No face overlaps another when folded.',
         hintsDe: [
           'Das neue Quadrat muss an einer Kante eines vorhandenen Quadrats liegen.',
-          'Stelle dir eine Fläche als Boden vor und klappe ihre Nachbarn hoch. Es fehlen insgesamt sechs verschiedene Seiten.',
+          'Stelle dir eine Fläche als Boden vor und klappe ihre Nachbarn hoch. Welche Seite des Würfels fehlt noch?',
           'Eine Möglichkeit ist Zeile ${pair.$1 + 1}, Spalte ${pair.$2 + 1}.'
         ],
         hintsEn: [
           'The new square must share an edge with a given square.',
-          'Imagine one face as the base and fold its neighbours up. You need six different sides.',
+          'Imagine one face as the base and fold its neighbours up. Which side of the cube is still missing?',
           'One solution is row ${pair.$1 + 1}, column ${pair.$2 + 1}.'
         ]);
   }
@@ -724,6 +1075,109 @@ KompassLabRound _geometryRound(int variant, math.Random random) {
         'Stacks behind one another share a column. Use the greatest height on that sightline.',
         'The heights are ${expected.join(', ')}.'
       ]);
+}
+
+class LabSymmetryShape {
+  final String id, nameDe, nameEn;
+  final List<List<int>> points;
+  final List<String> axes;
+  const LabSymmetryShape(
+      this.id, this.nameDe, this.nameEn, this.points, this.axes);
+}
+
+/// Axes are drawn through the bounding box, so every listed axis is either
+/// its vertical/horizontal centre line or one of its corner diagonals. The
+/// lab test reflects each vertex set to verify this list.
+const labSymmetryShapes = <LabSymmetryShape>[
+  LabSymmetryShape('square', 'Quadrat', 'square', [
+    [0, 0], [4, 0], [4, 4], [0, 4] //
+  ], [
+    'vertical', 'horizontal', 'diagonalDown', 'diagonalUp' //
+  ]),
+  LabSymmetryShape('rectangle', 'Rechteck', 'rectangle', [
+    [0, 0], [6, 0], [6, 3], [0, 3] //
+  ], [
+    'vertical', 'horizontal' //
+  ]),
+  LabSymmetryShape('rhombus', 'Raute', 'rhombus', [
+    [3, 0], [6, 2], [3, 4], [0, 2] //
+  ], [
+    'vertical', 'horizontal' //
+  ]),
+  LabSymmetryShape('tiltedRhombus', 'Raute', 'rhombus', [
+    [0, 0], [3, 1], [4, 4], [1, 3] //
+  ], [
+    'diagonalDown', 'diagonalUp' //
+  ]),
+  LabSymmetryShape(
+      'triangle', 'gleichschenkliges Dreieck', 'isosceles triangle', [
+    [2, 0], [4, 4], [0, 4] //
+  ], [
+    'vertical' //
+  ]),
+  LabSymmetryShape('trapezoid', 'Trapez', 'trapezoid', [
+    [1, 0], [5, 0], [6, 3], [0, 3] //
+  ], [
+    'vertical' //
+  ]),
+  LabSymmetryShape('arrow', 'Pfeilspitze', 'arrowhead', [
+    [0, 0], [5, 2], [0, 4], [2, 2] //
+  ], [
+    'horizontal' //
+  ]),
+  LabSymmetryShape('kite', 'Drachenviereck', 'kite', [
+    [0, 0], [4, 1], [4, 4], [1, 4] //
+  ], [
+    'diagonalDown' //
+  ]),
+  LabSymmetryShape('parallelogram', 'Parallelogramm', 'parallelogram', [
+    [2, 0], [6, 0], [4, 3], [0, 3] //
+  ], <String>[]),
+];
+
+const labNetRows = 5, labNetCols = 4;
+
+bool _connected(Set<String> cells) {
+  if (cells.isEmpty) return false;
+  final seen = <String>{cells.first};
+  final queue = [cells.first];
+  for (var i = 0; i < queue.length; i++) {
+    final (r, c) = parseCell(queue[i])!;
+    for (final next in [
+      '${r + 1},$c',
+      '${r - 1},$c',
+      '$r,${c + 1}',
+      '$r,${c - 1}'
+    ]) {
+      if (cells.contains(next) && seen.add(next)) queue.add(next);
+    }
+  }
+  return seen.length == cells.length;
+}
+
+/// Grows random edge-connected hexominoes inside the lab grid until one
+/// folds into a cube, so every one of the eleven nets can occur.
+List<String> _randomCubeNet(math.Random random) {
+  for (var attempt = 0; attempt < 400; attempt++) {
+    final cells = <String>{
+      '${random.nextInt(labNetRows)},${random.nextInt(labNetCols)}'
+    };
+    while (cells.length < 6) {
+      final frontier = <String>{
+        for (final cell in cells)
+          for (final (dr, dc) in const [(1, 0), (-1, 0), (0, 1), (0, -1)])
+            if (parseCell(cell) case (final r, final c)
+                when r + dr >= 0 &&
+                    r + dr < labNetRows &&
+                    c + dc >= 0 &&
+                    c + dc < labNetCols)
+              '${r + dr},${c + dc}'
+      }.difference(cells).toList();
+      cells.add(frontier[random.nextInt(frontier.length)]);
+    }
+    if (isCubeNet(cells)) return cells.toList();
+  }
+  return const ['0,1', '1,0', '1,1', '1,2', '2,1', '3,1'];
 }
 
 (int, int)? parseCell(String value) {

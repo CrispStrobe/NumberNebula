@@ -232,6 +232,31 @@ tests**, content validator and both reproducible builders also passed. Full
 remote analysis, the complete app suite, calibration and both browser engines
 remain separate required gates.
 
+**1.6.1+66 — lab difficulty.** Several lab prompts gave the answer away:
+the build-number round showed its target in digits, the regroup round stated
+the value it was worth, capacity targets read off directly as bottles and cups,
+the chance round only asked for as many circles as stars, and the number line
+showed both distances live. Now:
+
+- Build-number targets come as a number word, as scrambled places that usually
+  include an empty place, as an un-bundled amount, or as a step of 1/10/100
+  across a place boundary. The running value display is gone.
+- Regroup starts from material with at least two over-full places, does not
+  state its value, and scores the regrouping and the written number separately
+  (2 points).
+- Number-line midpoints use non-round endpoints (step 10); the live distance
+  readout is removed.
+- Capacity targets use ¼, ½ and ¾ litre, and about half of the rounds limit the
+  bottle supply so cups must replace litres.
+- Chance rounds include triangles as a distractor and ask for equal, double or
+  complement-equal chances; event rounds classify composed events against the
+  actual bag.
+- Symmetry rounds draw from nine shapes with zero to four axes, verified by
+  reflecting each vertex set; cube-net rounds grow any of the eleven nets.
+
+The lab draft schema is now 2: older drafts would replay as different rounds,
+so they start a fresh lab session. Eight new generator tests cover this.
+
 The resumed audit also repaired worked-solution and immediate-hint history,
 stale answer overwrites, recovery when a session snapshot lags durable progress,
 and retained manual-review controls. A real held-pointer regression passes with
