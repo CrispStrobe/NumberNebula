@@ -12,15 +12,15 @@ import 'package:space_math_academy/features/kompass/labs/kompass_lab_screen.dart
 const _seed = 417;
 
 Map<String, dynamic> _snapshot(String id, int index,
-        {Map<String, dynamic>? response}) =>
+        {Map<String, dynamic>? response, int seed = _seed}) =>
     {
       'schemaVersion': 2,
       'labId': id,
       'sessionId': 'fixture:$id',
-      'seed': _seed,
+      'seed': seed,
       'index': index,
-      'response': response ??
-          generateKompassLabRound(id, index, _seed).createResponse(),
+      'response':
+          response ?? generateKompassLabRound(id, index, seed).createResponse(),
       'firstResponse': <String, dynamic>{},
       'activeMillis': 0,
       'attempts': 0,
@@ -46,12 +46,13 @@ Future<void> _open(WidgetTester tester, String id, int index,
     {bool german = true,
     double scale = 1,
     Map<String, dynamic>? response,
+    int seed = _seed,
     FutureOr<void> Function(Map<String, dynamic>)? onCompleted}) async {
   await tester.pumpWidget(const SizedBox.shrink());
   await tester.pumpAndSettle();
   final prefs = await ProfilePreferences.getInstance();
   await prefs.setString('kompass_lab_v1_$id',
-      jsonEncode(_snapshot(id, index, response: response)));
+      jsonEncode(_snapshot(id, index, response: response, seed: seed)));
   await tester.pumpWidget(
       _app(id, german: german, scale: scale, onCompleted: onCompleted));
   await tester.pumpAndSettle();
@@ -301,8 +302,84 @@ void main() {
           'counts': [-1, 400, 2, 3]
         }),
         {
-          'counts': [0, 29, 2, 3]
+          'counts': [0, 99, 2, 3]
         });
+  });
+
+  testWidgets('regrouping preserves a valid carry above 29 across reopening',
+      (tester) async {
+    final events = <Map<String, dynamic>>[];
+    await _open(tester, 'number_dock', 1, seed: 46, onCompleted: events.add);
+    expect((_state(tester).exportState()['response'] as Map)['counts'],
+        [5, 29, 10, 5]);
+    await _tap(tester, 'lab_trade_2');
+    final before = _state(tester).exportState();
+    expect((before['response'] as Map)['counts'], [5, 30, 0, 5]);
+    expect(
+        placeValueTotal(intList((before['response'] as Map)['counts'])), 8005);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(_app('number_dock', onCompleted: events.add));
+    await tester.pumpAndSettle();
+    final restored = _state(tester).exportState();
+    expect(restored['roundId'], before['roundId']);
+    expect(restored['seed'], 46);
+    expect((restored['response'] as Map)['counts'], [5, 30, 0, 5]);
+    for (var trade = 0; trade < 3; trade++) {
+      await _tap(tester, 'lab_trade_1');
+    }
+    expect((_state(tester).exportState()['response'] as Map)['counts'],
+        [8, 0, 0, 5]);
+    final number = find.byKey(const ValueKey('lab_field_number'));
+    await tester.ensureVisible(number);
+    await tester.enterText(number, '8005');
+    await _tap(tester, 'lab_check');
+    expect(events, hasLength(1));
+    expect(events.single['firstCorrect'], isTrue);
+    expect(events.single['awardedPoints'], 2);
+    expect(events.single['maxPoints'], 2);
+  });
+
+  testWidgets('place counters and trades keep every reachable count storable',
+      (tester) async {
+    await _open(tester, 'number_dock', 1, response: {
+      'counts': [0, 98, 20, 0],
+      'number': '',
+    });
+    await _tap(tester, 'lab_place_1_plus');
+    expect((_state(tester).exportState()['response'] as Map)['counts'],
+        [0, 99, 20, 0]);
+    expect(
+        tester
+            .widget<IconButton>(find.byKey(const ValueKey('lab_place_1_plus')))
+            .onPressed,
+        isNull);
+    expect(
+        tester
+            .widget<OutlinedButton>(find.byKey(const ValueKey('lab_trade_2')))
+            .onPressed,
+        isNull);
+
+    await _tap(tester, 'lab_place_1_minus');
+    await _tap(tester, 'lab_trade_2');
+    expect((_state(tester).exportState()['response'] as Map)['counts'],
+        [0, 99, 10, 0]);
+    expect(
+        tester
+            .widget<OutlinedButton>(find.byKey(const ValueKey('lab_trade_2')))
+            .onPressed,
+        isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(_app('number_dock'));
+    await tester.pumpAndSettle();
+    expect((_state(tester).exportState()['response'] as Map)['counts'],
+        [0, 99, 10, 0]);
+    await _tap(tester, 'lab_trade_1');
+    await _tap(tester, 'lab_trade_2');
+    expect((_state(tester).exportState()['response'] as Map)['counts'],
+        [1, 90, 0, 0]);
   });
 
   testWidgets(

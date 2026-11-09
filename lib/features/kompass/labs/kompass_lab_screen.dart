@@ -566,14 +566,16 @@ class KompassLabScreenState extends State<KompassLabScreen>
               _counter(context, 'place_$i', labels[i], counts[i], (value) {
                 final next = List<int>.of(counts)..[i] = value;
                 _edit('counts', next);
-              }, max: 29),
+              }, max: labMaxPlaceCount),
           ]),
           const SizedBox(height: 12),
           Wrap(spacing: 10, runSpacing: 10, children: [
             for (var i = 3; i > 0; i--)
               OutlinedButton(
                 key: ValueKey('lab_trade_$i'),
-                onPressed: !_editable || counts[i] < 10
+                onPressed: !_editable ||
+                        counts[i] < 10 ||
+                        counts[i - 1] >= labMaxPlaceCount
                     ? null
                     : () {
                         final next = List<int>.of(counts);

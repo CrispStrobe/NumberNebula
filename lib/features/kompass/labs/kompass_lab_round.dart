@@ -9,6 +9,9 @@ const kompassLabIds = <String>[
   'geometry_workshop',
 ];
 
+/// Shared by controls and restored drafts; leaves room for intermediate carries.
+const labMaxPlaceCount = 99;
+
 String kompassLabTitle(String id, bool german) => switch (id) {
       'number_dock' => german ? 'Zahlendock' : 'Place Value Dock',
       'supply_station' => german ? 'Versorgungsstation' : 'Supply Station',
@@ -85,7 +88,7 @@ class KompassLabRound {
       if (entry.value is List<int>) {
         final expected = entry.value as List<int>;
         final maximum = switch (entry.key) {
-          'counts' => 29,
+          'counts' => labMaxPlaceCount,
           'coins' => 30,
           'values' => 12,
           'heights' => 3,

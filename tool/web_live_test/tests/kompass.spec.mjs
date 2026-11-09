@@ -106,6 +106,13 @@ for (const title of ['Number dock', 'Supply station', 'Data observatory', 'Geome
     await openCourse(page);
     const card = page.getByRole('button', { name: new RegExp(`^${title}`) });
     await (await reach(page, card)).click();
+    if (title === 'Geometry workshop') {
+      // A shape with no symmetry axes is correct with nothing selected.
+      // Three axes are incomplete or incorrect for every starting shape.
+      for (const name of ['Vertical', 'Horizontal', 'Diagonal: top left to bottom right']) {
+        await (await reach(page, page.getByRole('checkbox', { name, exact: true }))).check();
+      }
+    }
     await (await reach(page, page.getByRole('button', { name: 'Check', exact: true }))).click();
     await expect(page.getByText(/^Try again(?:\s|$)/).first()).toBeVisible();
     await (await reach(page, page.getByRole('button', { name: 'Hint 1/3', exact: true }))).click();
