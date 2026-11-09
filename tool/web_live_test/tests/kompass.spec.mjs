@@ -34,7 +34,12 @@ test('KOMPASS practice preserves real first input, correction and a resumed draf
   await openCourse(page);
   await page.getByRole('button', { name: 'My next practice', exact: true }).click();
   await expect(page.getByText('Trade bundles', { exact: true })).toBeVisible();
-  const answer = page.getByRole('textbox', { name: 'Your answer', exact: true }).first();
+  // Flutter includes the part prompt in the text field's accessible name.
+  // Match the complete question so the disabled selectable prompt and the
+  // second answer cannot be mistaken for the value being edited.
+  const answer = page.getByRole('textbox', {
+    name: 'What number is represented? Your answer', exact: true,
+  });
   await answer.fill('999999');
   await (await reach(page, page.getByRole('button', { name: 'Check answer', exact: true }))).click();
   await expect.poll(async () => (await records(page))?.attempts?.length).toBe(1);
@@ -54,7 +59,7 @@ test('KOMPASS practice preserves real first input, correction and a resumed draf
   await enableSemantics(page);
   await (await reach(page, page.getByRole('button', { name: /^KOMPASS 4 · Mathematics$/ }), { x: 300 })).click();
   await page.getByRole('button', { name: 'Continue unfinished session', exact: true }).click();
-  await expect(page.getByRole('textbox', { name: 'Your answer', exact: true }).first()).toHaveValue('445');
+  await expect(answer).toHaveValue('445');
   await info.attach('kompass-practice.png', { body: await page.screenshot(), contentType: 'image/png' });
   expect(log.errors).toEqual([]);
   expect(log.failures).toEqual([]);
@@ -68,7 +73,10 @@ test('KOMPASS independent work defers feedback and rehearsal keeps its 45-minute
   await expect(page.getByText('Recognise the same number', { exact: true })).toBeVisible();
   expect(await page.getByRole('button', { name: 'Hint', exact: true }).count()).toBe(0);
   expect(await page.getByRole('button', { name: 'Check answer', exact: true }).count()).toBe(0);
-  await (await reach(page, page.getByRole('textbox', { name: 'Your answer', exact: true }).first())).fill('5142');
+  await (await reach(page, page.getByRole('textbox', {
+    name: 'What number results when exactly one hundred is added to 5042? Your answer',
+    exact: true,
+  }))).fill('5142');
   await (await reach(page, page.getByRole('button', { name: 'Finish session', exact: true }))).click();
   await page.getByRole('button', { name: 'Finish', exact: true }).click();
   await expect.poll(async () => (await records(page))?.session).toBeNull();

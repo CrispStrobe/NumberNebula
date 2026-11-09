@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../generated/l10n.dart';
+
 /// A tap/keyboard grid for missing mirror cells, rotated shapes and cube nets.
 /// Given cells are fixed. [selected] and [onChanged] contain additions only.
 /// Cell IDs are zero-based `row,column`; spoken coordinates start at one.
@@ -23,6 +25,7 @@ class KompassCellInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = lookupS(Locale(german ? 'de' : 'en'));
     final raw = figure['data'];
     final data = raw is Map ? raw : const <String, dynamic>{};
     final givenRaw = data['cells'] ?? data['filled'];
@@ -51,11 +54,7 @@ class KompassCellInput extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          german
-              ? 'Tippe die fehlenden Felder an. Gefüllte Felder sind vorgegeben. Mit Tab und Eingabe geht es auch.'
-              : 'Select the missing cells. Filled cells are given. Tab and Enter work too.',
-        ),
+        Text(strings.kompassGridInstructions),
         const SizedBox(height: 10),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,

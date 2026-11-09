@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../generated/l10n.dart';
+
 /// A native, offline rendering of the original course's JSON figures.
 ///
 /// Coordinates use zero-based rows/columns. Number-line marks expose their
@@ -22,6 +24,7 @@ class KompassFigureView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = lookupS(Locale(german ? 'de' : 'en'));
     final kind = figure['kind'] as String? ?? '';
     final data = _map(figure['data']);
     final alt = figureText(figure['alt'], german);
@@ -110,13 +113,11 @@ class KompassFigureView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              german
-                  ? 'Bauplan · Ansicht von oben'
-                  : 'Building plan · top view',
+              strings.kompassBuildingPlanTopView,
               textAlign: TextAlign.center,
               style: style.copyWith(fontWeight: FontWeight.bold),
             ),
-            Text(german ? 'hinten' : 'back', textAlign: TextAlign.center),
+            Text(strings.kompassFigureBack, textAlign: TextAlign.center),
             _table(
               const [],
               _list(data['heights'])
@@ -126,7 +127,7 @@ class KompassFigureView extends StatelessWidget {
               ink,
               style,
             ),
-            Text(german ? 'vorne' : 'front', textAlign: TextAlign.center),
+            Text(strings.kompassFigureFront, textAlign: TextAlign.center),
             const SizedBox(height: 8),
             _drawing(context, kind, data, ink, accent, scale),
           ],
@@ -147,11 +148,7 @@ class KompassFigureView extends StatelessWidget {
           // Avoid announcing it twice when an unknown figure uses a text fallback.
           excluding: alt.isNotEmpty,
           child: Text(
-            alt.isNotEmpty
-                ? alt
-                : (german
-                    ? 'Abbildung nicht verfügbar.'
-                    : 'Figure unavailable.'),
+            alt.isNotEmpty ? alt : strings.kompassFigureUnavailable,
             style: style,
           ),
         );
@@ -185,7 +182,7 @@ class KompassFigureView extends StatelessWidget {
                     iconColor: ink,
                     collapsedIconColor: ink,
                     title: Text(
-                      german ? 'Abbildung beschreiben' : 'Describe this figure',
+                      strings.kompassDescribeFigure,
                       style: style.copyWith(fontSize: 14),
                     ),
                     children: [

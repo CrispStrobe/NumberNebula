@@ -178,7 +178,7 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
                   child: Text(kc(_german, 'Zurück', 'Back'))),
               FilledButton(
                   onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Start')),
+                  child: Text(S.of(context)!.kompassRehearsalStart)),
             ],
           ),
         );

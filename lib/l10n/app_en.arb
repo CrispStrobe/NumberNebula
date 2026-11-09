@@ -2924,5 +2924,12 @@
   "roundSuggestedChallenge": "Try suggested round",
   "guidedPractice": "Practice",
   "reduceMotion": "Reduce motion",
-  "reduceMotionDesc": "Keep essential gameplay movement; reduce decorative motion and flashes."
+  "reduceMotionDesc": "Keep essential gameplay movement; reduce decorative motion and flashes.",
+  "kompassGridInstructions": "Select the missing cells. Filled cells are given. Tab and Enter work too.",
+  "kompassBuildingPlanTopView": "Building plan · top view",
+  "kompassFigureBack": "back",
+  "kompassFigureFront": "front",
+  "kompassFigureUnavailable": "Figure unavailable.",
+  "kompassDescribeFigure": "Describe this figure",
+  "kompassRehearsalStart": "Start"
 }

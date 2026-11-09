@@ -2814,5 +2814,12 @@
   "roundSuggestedChallenge": "Vorgeschlagene Runde spielen",
   "guidedPractice": "Üben",
   "reduceMotion": "Bewegung reduzieren",
-  "reduceMotionDesc": "Spielbewegungen bleiben erhalten; dekorative Bewegungen und Blitze werden reduziert."
+  "reduceMotionDesc": "Spielbewegungen bleiben erhalten; dekorative Bewegungen und Blitze werden reduziert.",
+  "kompassGridInstructions": "Tippe die fehlenden Felder an. Gefüllte Felder sind vorgegeben. Mit Tab und Eingabe geht es auch.",
+  "kompassBuildingPlanTopView": "Bauplan · Ansicht von oben",
+  "kompassFigureBack": "hinten",
+  "kompassFigureFront": "vorne",
+  "kompassFigureUnavailable": "Abbildung nicht verfügbar.",
+  "kompassDescribeFigure": "Abbildung beschreiben",
+  "kompassRehearsalStart": "Start"
 }

@@ -4771,4 +4771,26 @@ class SEn extends S {
   @override
   String get reduceMotionDesc =>
       'Keep essential gameplay movement; reduce decorative motion and flashes.';
+
+  @override
+  String get kompassGridInstructions =>
+      'Select the missing cells. Filled cells are given. Tab and Enter work too.';
+
+  @override
+  String get kompassBuildingPlanTopView => 'Building plan · top view';
+
+  @override
+  String get kompassFigureBack => 'back';
+
+  @override
+  String get kompassFigureFront => 'front';
+
+  @override
+  String get kompassFigureUnavailable => 'Figure unavailable.';
+
+  @override
+  String get kompassDescribeFigure => 'Describe this figure';
+
+  @override
+  String get kompassRehearsalStart => 'Start';
 }

@@ -101,9 +101,10 @@ jobs:
   live-test:
     needs: build
     runs-on: ubuntu-latest
-    # The preceding46-case job took19m47s without retries. Keep one worker
-    # and unchanged per-test/performance gates for the expanded48-case suite.
-    timeout-minutes: 25
+    # The suite now covers 72 cases across both engines, including KOMPASS.
+    # Run 42517483372 exhausted the old 25-minute job limit before Firefox
+    # finished. Keep one worker and all per-test/performance gates unchanged.
+    timeout-minutes: 40
     defaults:
       run:
         working-directory: tool/web_live_test
@@ -159,7 +160,7 @@ jobs:
     runs-on: ubuntu-latest
     # Includes prebuilt publication and both engines; cloud build-slot waits
     # must not consume the entire browser allowance. No new parallel jobs.
-    timeout-minutes: 35
+    timeout-minutes: 45
     concurrency:
       group: vercel-deploy-${{ github.ref }}
       cancel-in-progress: false
