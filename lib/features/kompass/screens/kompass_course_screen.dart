@@ -41,15 +41,17 @@ class KompassCourseScreen extends StatefulWidget {
     final ids = (session['taskIds'] as List? ?? []).whereType<String>();
     final tasks = ids.map(pack.taskById).whereType<KompassTask>().toList();
     final mode = KompassMode.values.firstWhere(
-        (mode) => mode.name == session['mode'],
-        orElse: () => KompassMode.practice);
+      (mode) => mode.name == session['mode'],
+      orElse: () => KompassMode.practice,
+    );
     return KompassCourseScreen(
-        key: key,
-        pack: pack,
-        store: store,
-        tasks: tasks,
-        mode: mode,
-        initialSession: session);
+      key: key,
+      pack: pack,
+      store: store,
+      tasks: tasks,
+      mode: mode,
+      initialSession: session,
+    );
   }
 
   @override
@@ -62,6 +64,7 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
   final _hints = <String, int>{};
   final _activeMillis = <String, int>{};
   final _feedback = <String>{};
+  final _solutionsSeen = <String>{};
   final _clock = Stopwatch();
   final _scroll = ScrollController();
   Timer? _ticker;
@@ -104,11 +107,13 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
             !['practice', 'check', 'rehearsal'].contains(saved['mode'])) {
           _invalidSession = true;
         }
-        final answers =
-            Map<String, dynamic>.from(saved['responses'] as Map? ?? {});
+        final answers = Map<String, dynamic>.from(
+          saved['responses'] as Map? ?? {},
+        );
         for (final entry in answers.entries) {
           _responses[entry.key] = Map<String, dynamic>.from(
-              jsonDecode(jsonEncode(entry.value)) as Map);
+            jsonDecode(jsonEncode(entry.value)) as Map,
+          );
         }
         for (final entry in (saved['hints'] as Map? ?? {}).entries) {
           _hints[entry.key as String] = (entry.value as num).toInt();
@@ -117,14 +122,20 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
           _activeMillis[entry.key as String] = (entry.value as num).toInt();
         }
         if (widget.tasks.isNotEmpty) {
-          _index = ((saved['index'] as num?)?.toInt() ?? 0)
-              .clamp(0, widget.tasks.length - 1);
+          _index = ((saved['index'] as num?)?.toInt() ?? 0).clamp(
+            0,
+            widget.tasks.length - 1,
+          );
         }
         if (saved['deadline'] != null) {
           _deadline = DateTime.parse(saved['deadline'] as String).toUtc();
         }
-        _feedback
-            .addAll((saved['feedback'] as List? ?? []).whereType<String>());
+        _feedback.addAll(
+          (saved['feedback'] as List? ?? []).whereType<String>(),
+        );
+        _solutionsSeen.addAll(
+          (saved['solutionsSeen'] as List? ?? []).whereType<String>(),
+        );
         if (widget.mode == KompassMode.rehearsal && _deadline == null) {
           _invalidSession = true;
         }
@@ -136,6 +147,24 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
     }
     if (widget.tasks.isEmpty) _invalidSession = true;
     if (!_invalidSession) {
+      // An attempt can reach disk before its following session snapshot. Keep
+      // the draft answers, but never restore support or time below that record.
+      final taskIds = widget.tasks.map((task) => task.id).toSet();
+      for (final attempt in widget.store.attempts) {
+        if (attempt.sessionId != _sessionId ||
+            attempt.packVersion != widget.pack.version ||
+            !taskIds.contains(attempt.taskId)) {
+          continue;
+        }
+        if ((_hints[attempt.taskId] ?? 0) < attempt.hintsUsed) {
+          _hints[attempt.taskId] = attempt.hintsUsed;
+        }
+        final recordedMillis = attempt.activeSeconds * 1000;
+        if ((_activeMillis[attempt.taskId] ?? 0) < recordedMillis) {
+          _activeMillis[attempt.taskId] = recordedMillis;
+        }
+        if (attempt.solutionSeen) _solutionsSeen.add(attempt.taskId);
+      }
       _clock.start();
       _openTask();
       _startTicker();
@@ -182,6 +211,7 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
       'hints': Map<String, int>.from(_hints),
       'activeMillis': times,
       'feedback': _feedback.toList(),
+      'solutionsSeen': _solutionsSeen.toList(),
       if (_deadline != null) 'deadline': _deadline!.toIso8601String(),
     };
   }
@@ -210,10 +240,13 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
 
   void _showSaveError() {
     if (mounted) {
-      setState(() => _saveError = kc(
+      setState(
+        () => _saveError = kc(
           _german,
           'Speichern ist gerade nicht möglich. Bitte versuche es erneut, bevor du die Runde verlässt.',
-          'Saving is currently unavailable. Please retry before leaving this session.'));
+          'Saving is currently unavailable. Please retry before leaving this session.',
+        ),
+      );
     }
   }
 
@@ -245,24 +278,28 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
 
   Future<void> _recordTask(KompassTask task) async {
     final responses = Map<String, dynamic>.from(
-        jsonDecode(jsonEncode(_responses[task.id] ?? {})) as Map);
+      jsonDecode(jsonEncode(_responses[task.id] ?? {})) as Map,
+    );
     final hints = _hints[task.id] ?? 0;
     final milliseconds = (_activeMillis[task.id] ?? 0) +
         (task.id == _task.id ? _clock.elapsedMilliseconds : 0);
     final previous = _existing(task);
     final attempted = KompassScorer.score(task, responses).attempted;
     if (previous == null) {
-      await widget.store.record(KompassAttempt.forTask(
-        id: '$_sessionId:${task.id}',
-        sessionId: _sessionId,
-        task: task,
-        packVersion: widget.pack.version,
-        mode: widget.mode,
-        firstResponses: responses,
-        hintsUsed: hints,
-        activeSeconds: milliseconds ~/ 1000,
-        completed: attempted,
-      ));
+      await widget.store.record(
+        KompassAttempt.forTask(
+          id: '$_sessionId:${task.id}',
+          sessionId: _sessionId,
+          task: task,
+          packVersion: widget.pack.version,
+          mode: widget.mode,
+          firstResponses: responses,
+          hintsUsed: hints,
+          solutionSeen: _solutionsSeen.contains(task.id),
+          activeSeconds: milliseconds ~/ 1000,
+          completed: attempted,
+        ),
+      );
     } else {
       // Keep manually reviewed points when revisiting the same saved response.
       final manualPoints = <String, double>{
@@ -273,13 +310,18 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
                   jsonEncode(responses[part.partId]))
             part.partId: part.awardedPoints,
       };
-      await widget.store.revise(previous.reviseTask(
+      await widget.store.revise(
+        previous.reviseTask(
           task: task,
           responses: responses,
           hintsUsed: hints,
+          solutionSeen:
+              previous.solutionSeen || _solutionsSeen.contains(task.id),
           activeSeconds: milliseconds ~/ 1000,
           completed: previous.completed || attempted,
-          manualPoints: manualPoints));
+          manualPoints: manualPoints,
+        ),
+      );
     }
   }
 
@@ -299,8 +341,42 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
 
   Future<void> _hint() async {
     if (!_practice || _busy || _finished) return;
-    setState(() => _hints[_task.id] = (_hints[_task.id] ?? 0) + 1);
-    await _persist();
+    final task = _task;
+    setState(() {
+      _hints[task.id] = (_hints[task.id] ?? 0) + 1;
+      _busy = true;
+    });
+    await _saveAssistance(task);
+  }
+
+  Future<void> _showSolution(KompassTask task, bool expanded) async {
+    if (!expanded || !_practice || _busy || _finished || task.id != _task.id) {
+      return;
+    }
+    if (!_solutionsSeen.add(task.id)) return;
+    setState(() => _busy = true);
+    await _saveAssistance(task);
+  }
+
+  Future<void> _saveAssistance(KompassTask task) async {
+    try {
+      final previous = _existing(task);
+      if (previous != null) {
+        // Support is recorded immediately, without submitting a draft answer.
+        await widget.store.revise(
+          previous.copyWith(
+            hintsUsed: _hints[task.id] ?? previous.hintsUsed,
+            solutionSeen:
+                previous.solutionSeen || _solutionsSeen.contains(task.id),
+          ),
+        );
+      }
+      await _persist();
+    } catch (_) {
+      _showSaveError();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _finish({bool expired = false}) async {
@@ -318,29 +394,37 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
       _confirming = true;
       final answered = widget.tasks
           .where(
-              (t) => KompassScorer.score(t, _responses[t.id] ?? {}).attempted)
+            (t) => KompassScorer.score(t, _responses[t.id] ?? {}).attempted,
+          )
           .length;
       final confirm = await showDialog<bool>(
-          context: context,
-          builder: (context) {
-            _confirmationContext = context;
-            return AlertDialog(
-              title: Text(
-                  kc(_german, 'Runde abschließen?', 'Finish this session?')),
-              content: Text(kc(
-                  _german,
-                  '$answered von ${widget.tasks.length} Aufgaben sind bearbeitet. Danach kannst du Lösungen und Begründungen ansehen.',
-                  '$answered of ${widget.tasks.length} tasks have responses. You can then review solutions and explanations.')),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: Text(kc(_german, 'Weiterarbeiten', 'Keep working'))),
-                FilledButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: Text(kc(_german, 'Abschließen', 'Finish')))
-              ],
-            );
-          });
+        context: context,
+        builder: (context) {
+          _confirmationContext = context;
+          return AlertDialog(
+            title: Text(
+              kc(_german, 'Runde abschließen?', 'Finish this session?'),
+            ),
+            content: Text(
+              kc(
+                _german,
+                '$answered von ${widget.tasks.length} Aufgaben sind bearbeitet. Danach kannst du Lösungen und Begründungen ansehen.',
+                '$answered of ${widget.tasks.length} tasks have responses. You can then review solutions and explanations.',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(kc(_german, 'Weiterarbeiten', 'Keep working')),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(kc(_german, 'Abschließen', 'Finish')),
+              ),
+            ],
+          );
+        },
+      );
       _confirmationContext = null;
       _confirming = false;
       if (confirm != true || !mounted || _finished || _busy) return;
@@ -359,13 +443,16 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
       _ticker?.cancel();
       await widget.store.clearSession(sessionId: _sessionId);
       if (!mounted) return;
-      await Navigator.of(context).pushReplacement(MaterialPageRoute<void>(
+      await Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
           builder: (_) => KompassReviewScreen(
-              pack: widget.pack,
-              store: widget.store,
-              attemptIds:
-                  widget.tasks.map((t) => '$_sessionId:${t.id}').toList(),
-              expired: expired)));
+            pack: widget.pack,
+            store: widget.store,
+            attemptIds: widget.tasks.map((t) => '$_sessionId:${t.id}').toList(),
+            expired: expired,
+          ),
+        ),
+      );
     } catch (_) {
       _finished = false;
       if (_foreground) _clock.start();
@@ -404,8 +491,11 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
   String get _modeTitle => switch (widget.mode) {
         KompassMode.practice =>
           kc(_german, 'Lernen & Üben', 'Learn and practise'),
-        KompassMode.check =>
-          kc(_german, 'Selbstständig lösen', 'Independent check'),
+        KompassMode.check => kc(
+            _german,
+            'Selbstständig lösen',
+            'Independent check',
+          ),
         KompassMode.rehearsal => kc(_german, 'Probelauf', 'Rehearsal'),
         KompassMode.lab => kc(_german, 'Mathe-Labor', 'Math lab'),
       };
@@ -416,31 +506,41 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
         actions: [
           if (_practice)
             IconButton(
-                tooltip:
-                    kc(_german, 'Mathematische Wörter', 'Mathematical words'),
-                onPressed: () => showKompassGlossary(context, _german),
-                icon: const Icon(Icons.menu_book_outlined)),
+              tooltip:
+                  kc(_german, 'Mathematische Wörter', 'Mathematical words'),
+              onPressed: () => showKompassGlossary(context, _german),
+              icon: const Icon(Icons.menu_book_outlined),
+            ),
           if (_deadline != null && !_invalidSession)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Center(
-                  child: Semantics(
-                      label: kc(_german, 'Verbleibende Zeit', 'Time remaining'),
-                      child: Text(
-                          '${_remaining ~/ 60}:${(_remaining % 60).toString().padLeft(2, '0')}',
-                          key: const ValueKey('kompass-time'),
-                          style: const TextStyle(
-                              fontFeatures: [FontFeature.tabularFigures()])))),
+                child: Semantics(
+                  label: kc(_german, 'Verbleibende Zeit', 'Time remaining'),
+                  child: Text(
+                    '${_remaining ~/ 60}:${(_remaining % 60).toString().padLeft(2, '0')}',
+                    key: const ValueKey('kompass-time'),
+                    style: const TextStyle(
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+              ),
             ),
         ],
         child: _invalidSession
             ? Center(
                 child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(kc(
-                        _german,
-                        'Diese gespeicherte Runde gehört zu einer anderen Inhaltsfassung. Bitte beginne eine neue Runde. Deine abgeschlossenen Aufzeichnungen bleiben erhalten.',
-                        'This saved session uses a different content version. Please start a new session. Your completed records are kept.'))))
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    kc(
+                      _german,
+                      'Diese gespeicherte Runde gehört zu einer anderen Inhaltsfassung. Bitte beginne eine neue Runde. Deine abgeschlossenen Aufzeichnungen bleiben erhalten.',
+                      'This saved session uses a different content version. Please start a new session. Your completed records are kept.',
+                    ),
+                  ),
+                ),
+              )
             : Builder(builder: _body),
       );
 
@@ -454,150 +554,209 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       children: [
         if (_saveError != null)
-          MaterialBanner(content: Text(_saveError!), actions: [
-            TextButton(
+          MaterialBanner(
+            content: Text(_saveError!),
+            actions: [
+              TextButton(
                 onPressed: _persist,
-                child: Text(kc(_german, 'Erneut speichern', 'Retry save')))
-          ]),
-        Wrap(spacing: 6, runSpacing: 6, children: [
-          for (var i = 0; i < widget.tasks.length; i++)
-            ChoiceChip(
+                child: Text(kc(_german, 'Erneut speichern', 'Retry save')),
+              ),
+            ],
+          ),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (var i = 0; i < widget.tasks.length; i++)
+              ChoiceChip(
                 key: ValueKey('kompass-task-nav-$i'),
                 label: Text(
-                    '${i + 1}${(_responses[widget.tasks[i].id]?.isNotEmpty ?? false) ? ' •' : ''}'),
+                  '${i + 1}${(_responses[widget.tasks[i].id]?.isNotEmpty ?? false) ? ' •' : ''}',
+                ),
                 selected: i == _index,
-                onSelected: _busy ? null : (_) => _go(i)),
-        ]),
+                onSelected: _busy ? null : (_) => _go(i),
+              ),
+          ],
+        ),
         const SizedBox(height: 16),
         Text(
-            '${_index + 1} / ${widget.tasks.length} · ${kompassDomainLabel(task.domain, _german)}',
-            style: Theme.of(context).textTheme.labelLarge),
+          '${_index + 1} / ${widget.tasks.length} · ${kompassDomainLabel(task.domain, _german)}',
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
         const SizedBox(height: 8),
-        Text(kompassText(task.title, _german),
-            style: Theme.of(context).textTheme.headlineSmall),
+        Text(
+          kompassText(task.title, _german),
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         const SizedBox(height: 12),
-        SelectableText(kompassText(task.prompt, _german),
-            style: const TextStyle(fontSize: 18, height: 1.5)),
+        SelectableText(
+          kompassText(task.prompt, _german),
+          style: const TextStyle(fontSize: 18, height: 1.5),
+        ),
         if (task.figure != null)
           Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: KompassFigureView(
-                  figure: task.figure!, german: _german, plain: !_practice)),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: KompassFigureView(
+              figure: task.figure!,
+              german: _german,
+              plain: !_practice,
+            ),
+          ),
         const SizedBox(height: 12),
         for (final part in task.parts)
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: KompassPanel(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                  Text(kompassText(part.prompt, _german),
-                      style: const TextStyle(
-                          fontSize: 17, fontWeight: FontWeight.w600)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    kompassText(part.prompt, _german),
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   if (part.figure != null && part.kind != 'cells')
                     Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: KompassFigureView(
-                            figure: part.figure!,
-                            german: _german,
-                            plain: !_practice)),
-                  _input(part),
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: KompassFigureView(
+                        figure: part.figure!,
+                        german: _german,
+                        plain: !_practice,
+                      ),
+                    ),
+                  // A held pointer belongs to this task. Replacing the input
+                  // subtree cancels it before another task reuses the controls.
+                  KeyedSubtree(
+                    key: ValueKey('$_sessionId:${task.id}:${part.id}'),
+                    child: _input(part),
+                  ),
                   if (showingFeedback)
                     if (attempt.score.partById(part.id) case final result?) ...[
                       const SizedBox(height: 12),
                       Semantics(
-                          liveRegion: true,
-                          child: Text(
-                            result.pendingReview
-                                ? kc(
-                                    _german,
-                                    'Deine Begründung wird mit den Kriterien am Ende geprüft.',
-                                    'Review your explanation against the criteria at the end.')
-                                : result.correct
-                                    ? kc(_german, 'Das stimmt.',
-                                        'That is correct.')
-                                    : result.carriedError
-                                        ? kc(
-                                            _german,
-                                            'Dieser Schritt passt zu deinem Zwischenergebnis.',
-                                            'This step follows correctly from your intermediate result.')
-                                        : result.feedback != null
-                                            ? kompassText(
-                                                result.feedback, _german)
-                                            : kc(
-                                                _german,
-                                                'Prüfe deinen Lösungsweg. Ein Hinweis kann helfen.',
-                                                'Check your approach. A hint may help.'),
-                            style: TextStyle(
-                                color: result.correct
-                                    ? const Color(0xFF176746)
-                                    : const Color(0xFF844015)),
-                          )),
+                        liveRegion: true,
+                        child: Text(
+                          result.pendingReview
+                              ? kc(
+                                  _german,
+                                  'Deine Begründung wird mit den Kriterien am Ende geprüft.',
+                                  'Review your explanation against the criteria at the end.',
+                                )
+                              : result.correct
+                                  ? kc(_german, 'Das stimmt.',
+                                      'That is correct.')
+                                  : result.carriedError
+                                      ? kc(
+                                          _german,
+                                          'Dieser Schritt passt zu deinem Zwischenergebnis.',
+                                          'This step follows correctly from your intermediate result.',
+                                        )
+                                      : result.feedback != null
+                                          ? kompassText(
+                                              result.feedback, _german)
+                                          : kc(
+                                              _german,
+                                              'Prüfe deinen Lösungsweg. Ein Hinweis kann helfen.',
+                                              'Check your approach. A hint may help.',
+                                            ),
+                          style: TextStyle(
+                            color: result.correct
+                                ? const Color(0xFF176746)
+                                : const Color(0xFF844015),
+                          ),
+                        ),
+                      ),
                     ],
-                ])),
+                ],
+              ),
+            ),
           ),
         if (_practice) ...[
-          Wrap(spacing: 10, runSpacing: 10, children: [
-            FilledButton.icon(
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              FilledButton.icon(
                 key: const ValueKey('kompass-check-answer'),
                 onPressed: _busy ? null : _submitPractice,
                 icon: const Icon(Icons.check),
-                label: Text(kc(_german, 'Antwort prüfen', 'Check answer'))),
-            if (task.hints.isNotEmpty)
-              OutlinedButton.icon(
+                label: Text(kc(_german, 'Antwort prüfen', 'Check answer')),
+              ),
+              if (task.hints.isNotEmpty)
+                OutlinedButton.icon(
                   key: const ValueKey('kompass-hint'),
                   onPressed:
                       _busy || (_hints[task.id] ?? 0) >= task.hints.length
                           ? null
                           : _hint,
                   icon: const Icon(Icons.lightbulb_outline),
-                  label: Text(kc(_german, 'Hinweis', 'Hint'))),
-          ]),
+                  label: Text(kc(_german, 'Hinweis', 'Hint')),
+                ),
+            ],
+          ),
           for (var i = 0;
               i < (_hints[task.id] ?? 0).clamp(0, task.hints.length);
               i++)
             Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child:
-                    Text('${i + 1}. ${kompassText(task.hints[i], _german)}')),
+              padding: const EdgeInsets.only(top: 12),
+              child: Text('${i + 1}. ${kompassText(task.hints[i], _german)}'),
+            ),
           if (showingFeedback)
             ExpansionTile(
               key: ValueKey('solution-${task.id}'),
-              title: Text(kc(
-                  _german, 'Lösungsweg ansehen', 'View the worked solution')),
+              enabled: !_busy,
+              onExpansionChanged: (expanded) => _showSolution(task, expanded),
+              title: Text(
+                kc(_german, 'Lösungsweg ansehen', 'View the worked solution'),
+              ),
               children: [
                 Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: SelectableText(kompassText(task.solution, _german)))
+                  padding: const EdgeInsets.all(16),
+                  child: SelectableText(kompassText(task.solution, _german)),
+                ),
               ],
             ),
         ] else
-          Text(kc(
+          Text(
+            kc(
               _german,
               'Du kannst Antworten ändern und später zu dieser Aufgabe zurückkehren. Rückmeldung gibt es nach dem Abschließen.',
-              'You can edit answers and return to this task. Feedback appears after finishing.')),
+              'You can edit answers and return to this task. Feedback appears after finishing.',
+            ),
+          ),
         const SizedBox(height: 24),
-        Wrap(spacing: 10, runSpacing: 10, children: [
-          if (_index > 0)
-            OutlinedButton(
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            if (_index > 0)
+              OutlinedButton(
                 onPressed: _busy ? null : () => _go(_index - 1),
-                child: Text(kc(_german, 'Vorherige Aufgabe', 'Previous task'))),
-          if (_index < widget.tasks.length - 1)
-            FilledButton.tonal(
+                child: Text(kc(_german, 'Vorherige Aufgabe', 'Previous task')),
+              ),
+            if (_index < widget.tasks.length - 1)
+              FilledButton.tonal(
                 key: const ValueKey('kompass-next-task'),
                 onPressed: _busy ? null : () => _go(_index + 1),
-                child:
-                    Text(kc(_german, 'Weiter / überspringen', 'Next / skip'))),
-          OutlinedButton(
+                child: Text(
+                  kc(_german, 'Weiter / überspringen', 'Next / skip'),
+                ),
+              ),
+            OutlinedButton(
               key: const ValueKey('kompass-finish'),
               onPressed: _busy ? null : _finish,
-              child: Text(kc(_german, 'Runde abschließen', 'Finish session'))),
-        ]),
+              child: Text(kc(_german, 'Runde abschließen', 'Finish session')),
+            ),
+          ],
+        ),
         if (_busy)
           const Padding(
-              padding: EdgeInsets.only(top: 16),
-              child: LinearProgressIndicator()),
+            padding: EdgeInsets.only(top: 16),
+            child: LinearProgressIndicator(),
+          ),
       ],
     );
   }
@@ -606,20 +765,28 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
     final value = _answers[part.id];
     switch (part.kind) {
       case 'choice':
-        return Wrap(spacing: 8, runSpacing: 8, children: [
-          for (final option in part.options)
-            ChoiceChip(
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final option in part.options)
+              ChoiceChip(
                 key: ValueKey('answer-${_task.id}-${part.id}-${option['id']}'),
                 label: Text(kompassText(option['label'], _german)),
                 selected: value == option['id'],
                 onSelected:
-                    _busy ? null : (_) => _change(part.id, option['id'])),
-        ]);
+                    _busy ? null : (_) => _change(part.id, option['id']),
+              ),
+          ],
+        );
       case 'multiChoice':
         final selected = (value as List? ?? []).whereType<String>().toSet();
-        return Wrap(spacing: 8, runSpacing: 8, children: [
-          for (final option in part.options)
-            FilterChip(
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final option in part.options)
+              FilterChip(
                 label: Text(kompassText(option['label'], _german)),
                 selected: selected.contains(option['id']),
                 onSelected: _busy
@@ -632,55 +799,80 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
                           next.remove(option['id']);
                         }
                         _change(part.id, next.toList());
-                      }),
-        ]);
+                      },
+              ),
+          ],
+        );
       case 'cells':
         return KompassCellInput(
-            figure: part.figure ??
-                _task.figure ??
-                const {
-                  'kind': 'grid',
-                  'data': {'rows': 5, 'cols': 5},
-                  'alt': {'de': 'Raster', 'en': 'Grid'}
-                },
-            selected: (value as List? ?? []).whereType<String>().toSet(),
-            german: _german,
-            enabled: !_busy,
-            onChanged: (selection) => _change(part.id, selection.toList()));
+          figure: part.figure ??
+              _task.figure ??
+              const {
+                'kind': 'grid',
+                'data': {'rows': 5, 'cols': 5},
+                'alt': {'de': 'Raster', 'en': 'Grid'},
+              },
+          selected: (value as List? ?? []).whereType<String>().toSet(),
+          german: _german,
+          enabled: !_busy,
+          onChanged: (selection) => _change(part.id, selection.toList()),
+        );
       case 'order':
         final sequence = (value as List? ?? []).whereType<String>().toList();
         String label(String id) => kompassText(
-            part.options.firstWhere((o) => o['id'] == id,
-                orElse: () => {'label': id})['label'],
-            _german);
-        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(kc(
+              part.options.firstWhere(
+                (o) => o['id'] == id,
+                orElse: () => {'label': id},
+              )['label'],
               _german,
-              'Wähle die Einträge nacheinander. Du kannst einen gewählten Eintrag wieder entfernen.',
-              'Choose entries in order. You can remove a selected entry.')),
-          const SizedBox(height: 8),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            for (var i = 0; i < sequence.length; i++)
-              InputChip(
-                  label: Text('${i + 1}. ${label(sequence[i])}'),
-                  onDeleted: _busy
-                      ? null
-                      : () {
-                          final next = List<String>.from(sequence)..removeAt(i);
-                          _change(part.id, next);
-                        }),
-          ]),
-          const SizedBox(height: 8),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final option in part.options)
-              OutlinedButton(
-                  onPressed: _busy || sequence.contains(option['id'])
-                      ? null
-                      : () => _change(
-                          part.id, [...sequence, option['id'] as String]),
-                  child: Text(kompassText(option['label'], _german))),
-          ]),
-        ]);
+            );
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              kc(
+                _german,
+                'Wähle die Einträge nacheinander. Du kannst einen gewählten Eintrag wieder entfernen.',
+                'Choose entries in order. You can remove a selected entry.',
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (var i = 0; i < sequence.length; i++)
+                  InputChip(
+                    label: Text('${i + 1}. ${label(sequence[i])}'),
+                    onDeleted: _busy
+                        ? null
+                        : () {
+                            final next = List<String>.from(sequence)
+                              ..removeAt(i);
+                            _change(part.id, next);
+                          },
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final option in part.options)
+                  OutlinedButton(
+                    onPressed: _busy || sequence.contains(option['id'])
+                        ? null
+                        : () => _change(part.id, [
+                              ...sequence,
+                              option['id'] as String,
+                            ]),
+                    child: Text(kompassText(option['label'], _german)),
+                  ),
+              ],
+            ),
+          ],
+        );
       default:
         return TextFormField(
           key: ValueKey('answer-${_task.id}-${part.id}'),
@@ -688,7 +880,9 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
           enabled: !_busy,
           keyboardType: part.kind == 'number'
               ? const TextInputType.numberWithOptions(
-                  decimal: true, signed: true)
+                  decimal: true,
+                  signed: true,
+                )
               : TextInputType.multiline,
           minLines: part.kind == 'text' ? 2 : 1,
           maxLines: part.kind == 'text' ? 5 : 1,
@@ -699,7 +893,8 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
                 ? kc(
                     _german,
                     'Du kannst deine Erklärung auch auf Papier notieren und hier „auf Papier“ eintragen.',
-                    'You may write your explanation on paper and enter “on paper” here.')
+                    'You may write your explanation on paper and enter “on paper” here.',
+                  )
                 : null,
             helperMaxLines: 4,
           ),
