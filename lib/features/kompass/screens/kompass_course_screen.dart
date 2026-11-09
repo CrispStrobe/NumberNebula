@@ -102,7 +102,8 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
       try {
         _revision = (saved['revision'] as num?)?.toInt() ?? 0;
         if (saved['schemaVersion'] != 1 ||
-            saved['packVersion'] != widget.pack.version ||
+            !widget.pack.isSessionCompatible(saved['packVersion'] as String?,
+                widget.tasks.map((task) => task.id)) ||
             (saved['taskIds'] as List).length != widget.tasks.length ||
             !['practice', 'check', 'rehearsal'].contains(saved['mode'])) {
           _invalidSession = true;
@@ -152,7 +153,7 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
       final taskIds = widget.tasks.map((task) => task.id).toSet();
       for (final attempt in widget.store.attempts) {
         if (attempt.sessionId != _sessionId ||
-            attempt.packVersion != widget.pack.version ||
+            !widget.pack.isTaskCompatible(attempt.taskId, attempt.packVersion) ||
             !taskIds.contains(attempt.taskId)) {
           continue;
         }

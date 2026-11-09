@@ -29,6 +29,8 @@ class KompassReviewScreen extends StatefulWidget {
 class _KompassReviewScreenState extends State<KompassReviewScreen> {
   bool _busy = false;
   bool get _german => Localizations.localeOf(context).languageCode == 'de';
+  bool _compatible(KompassAttempt attempt) =>
+      widget.pack.isTaskCompatible(attempt.taskId, attempt.packVersion);
   List<KompassAttempt> get _attempts => [
         for (final id in widget.attemptIds)
           for (final attempt in widget.store.attempts)
@@ -86,7 +88,7 @@ class _KompassReviewScreenState extends State<KompassReviewScreen> {
       }
     }
     if (latest == null ||
-        latest.packVersion != widget.pack.version ||
+        !_compatible(latest) ||
         latest.taskId != task.id) {
       return;
     }
@@ -140,7 +142,7 @@ class _KompassReviewScreenState extends State<KompassReviewScreen> {
     );
     for (final attempt in _attempts) {
       final task = widget.pack.taskById(attempt.taskId);
-      if (task == null || attempt.packVersion != widget.pack.version) {
+      if (task == null || !_compatible(attempt)) {
         report.writeln(kc(_german, 'Frühere Aufzeichnung', 'Earlier record'));
         report.writeln(
           '${attempt.score.awardedPoints} / ${attempt.score.maxPoints}',
@@ -365,7 +367,7 @@ class _KompassReviewScreenState extends State<KompassReviewScreen> {
         ),
         const SizedBox(height: 16),
         for (final attempt in attempts)
-          if (attempt.packVersion != widget.pack.version ||
+          if (!_compatible(attempt) ||
               widget.pack.taskById(attempt.taskId) == null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -517,9 +519,7 @@ class _KompassReviewScreenState extends State<KompassReviewScreen> {
                                                   .partById(part.id)
                                                   ?.awardedPoints ==
                                               points,
-                                      onSelected: _busy ||
-                                              attempt.packVersion !=
-                                                  widget.pack.version
+                                      onSelected: _busy || !_compatible(attempt)
                                           ? null
                                           : (_) => _review(
                                                 attempt,
@@ -530,7 +530,7 @@ class _KompassReviewScreenState extends State<KompassReviewScreen> {
                                     ),
                                 ],
                               ),
-                              if (attempt.packVersion != widget.pack.version)
+                              if (!_compatible(attempt))
                                 Text(
                                   kc(
                                     _german,

@@ -338,9 +338,11 @@ class KompassPack {
   final List<KompassTask> tasks;
   final Map<String, KompassTask> _taskIndex;
   final Map<String, KompassCompetency> _competencyIndex;
+  final Map<String, Set<String>> _compatibleTaskIds;
 
   KompassPack._(this.schemaVersion, this.id, this.version, this.source,
-      this.competencies, this.tasks, this._taskIndex, this._competencyIndex);
+      this.competencies, this.tasks, this._taskIndex, this._competencyIndex,
+      this._compatibleTaskIds);
 
   factory KompassPack.fromJson(Map<String, dynamic> json) {
     if (json['schemaVersion'] != 2) {
@@ -379,6 +381,17 @@ class KompassPack {
     if (version == null || version.isEmpty) {
       throw const FormatException('A pack requires a version.');
     }
+    final compatible = <String, Set<String>>{};
+    for (final entry in kompassMap(json['compatibleTaskIds'] ?? const {},
+        'compatibleTaskIds').entries) {
+      final ids = _strings(entry.value, 'compatibleTaskIds.${entry.key}');
+      if (entry.key.isEmpty || entry.key == version ||
+          ids.toSet().length != ids.length ||
+          ids.any((id) => !taskIndex.containsKey(id))) {
+        throw const FormatException('Invalid historical task compatibility.');
+      }
+      compatible[entry.key] = Set.unmodifiable(ids);
+    }
     return KompassPack._(
       2,
       _requiredString(json, 'id'),
@@ -389,9 +402,23 @@ class KompassPack {
       List.unmodifiable(tasks),
       Map.unmodifiable(taskIndex),
       Map.unmodifiable(competencyIndex),
+      Map.unmodifiable(compatible),
     );
   }
 
   KompassTask? taskById(String id) => _taskIndex[id];
   KompassCompetency? competencyById(String id) => _competencyIndex[id];
+
+  /// The build verifies whole task objects against an immutable prior pack.
+  /// Unknown or changed task versions never inherit a current answer key.
+  bool isTaskCompatible(String taskId, String? savedPackVersion) =>
+      _taskIndex.containsKey(taskId) &&
+      (savedPackVersion == version ||
+          (_compatibleTaskIds[savedPackVersion]?.contains(taskId) ?? false));
+
+  bool isSessionCompatible(String? savedPackVersion, Iterable<String> taskIds) {
+    final ids = taskIds.toList();
+    return ids.isNotEmpty && ids.toSet().length == ids.length &&
+        ids.every((id) => isTaskCompatible(id, savedPackVersion));
+  }
 }
