@@ -120,9 +120,10 @@ test('KOMPASS practice preserves real first input, correction and a resumed draf
   await expect(page.getByText('Trade bundles', { exact: true })).toBeVisible();
   // Flutter includes the part prompt in the text field's accessible name.
   // Match the complete question so the disabled selectable prompt and the
-  // second answer cannot be mistaken for the value being edited.
+  // second answer cannot be mistaken for the value being edited. After a
+  // check, Flutter appends the feedback text to that name, so match its start.
   const answer = page.getByRole('textbox', {
-    name: 'What number is represented? Your answer', exact: true,
+    name: /^What number is represented\? Your answer(?:\s|$)/,
   });
   const draft = async () =>
     (await records(page))?.session?.responses?.mz01_bundle_exchange?.value;
