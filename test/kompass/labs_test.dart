@@ -123,7 +123,7 @@ void main() {
         volume.check(
             {'bottles': target ~/ 1000, 'cups': target % 1000 ~/ 250}).correct,
         isTrue);
-    expect(parseLabNumber(' 3,75 € '), 3.75);
+    expect(parseLabNumber(' 3,75 € ', unit: '€'), 3.75);
     expect(parseLabNumber('NaN'), isNull);
     expect(parseLabNumber('Infinity'), isNull);
   });

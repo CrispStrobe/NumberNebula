@@ -12,7 +12,7 @@ The authoring reference is CrispStrobe/kompass4 at
 are project-owned identifiers, not official IBBW assessment codes. Published
 official papers remain linked references and are not embedded or adapted.
 
-The resumed implementation uses app version **1.6.0+64** and content version
+The resumed implementation uses app version **1.6.0+65** and content version
 **2.0.1**. kompass4 supplies a deterministic, pinned competency metadata export;
 the interactive exercises remain original NumberNebula content. The mapping
 includes exact curriculum references and estimated time bounds in seconds.

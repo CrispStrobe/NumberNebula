@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import '../services/kompass_scorer.dart';
+
 const kompassLabIds = <String>[
   'number_dock',
   'supply_station',
@@ -156,7 +158,7 @@ class KompassLabRound {
             'The midpoint is the same distance from both ends. Compare the two distances.';
       case 'shopping':
         maximum = 2;
-        final total = parseLabNumber(response['total']);
+        final total = parseLabNumber(response['total'], unit: '€');
         final billCorrect = total != null &&
             (total * 100 - (config['totalCents'] as int)).abs() < 0.001;
         final coinsCorrect =
@@ -187,7 +189,8 @@ class KompassLabRound {
         feedbackEn =
             'A bottle holds 1000 ml and a cup 250 ml. Four cups replace one bottle.';
       case 'length':
-        points = parseLabNumber(response['millimetres']) == config['targetMm']
+        points = parseLabNumber(response['millimetres'], unit: 'mm') ==
+                config['targetMm']
             ? 1
             : 0;
         feedbackDe =
@@ -295,15 +298,9 @@ List<String> stringList(Object? value) =>
     value is List ? value.map((v) => v.toString()).toList() : <String>[];
 int numberAt(Map<String, dynamic> value, String key) =>
     value[key] is num ? (value[key] as num).toInt() : 0;
-double? parseLabNumber(Object? value) {
-  final parsed = double.tryParse(value
-      .toString()
-      .trim()
-      .replaceAll('€', '')
-      .replaceAll(' ', '')
-      .replaceAll(',', '.'));
-  return parsed != null && parsed.isFinite ? parsed : null;
-}
+/// Bare values use the field's displayed unit; written units must agree.
+double? parseLabNumber(Object? value, {String unit = ''}) =>
+    KompassScorer.parseNumber(value, unit: unit);
 
 bool _sameSet(Iterable<String> a, Iterable<String> b) {
   final aa = a.toSet(), bb = b.toSet();

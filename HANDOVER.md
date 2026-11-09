@@ -8,7 +8,7 @@ Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 The owner requested the complete optional KOMPASS 4 mathematics pathway, including
 new minigames, with incremental remote checkpoints. Work is on
 [`codex/kompass4-learning-path`](https://github.com/CrispStrobe/NumberNebula/tree/codex/kompass4-learning-path),
-version **1.6.0+64** (resumed 2026-11-09). The implementation covers all 32 project competency IDs,
+version **1.6.0+65** (resumed 2026-11-09). The implementation covers all 32 project competency IDs,
 128 original bilingual tasks, four interactive labs, independent checks, a
 resumable 45-minute rehearsal, local learning evidence and printable booklets.
 See [implementation and validation](docs/kompass4-implementation.md),
