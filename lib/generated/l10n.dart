@@ -8086,6 +8086,7 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Keep essential gameplay movement; reduce decorative motion and flashes.'**
   String get reduceMotionDesc;
+
   /// No description provided for @kompassGridInstructions.
   ///
   /// In en, this message translates to:

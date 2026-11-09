@@ -1,7 +1,7 @@
 # KOMPASS 4 mathematics coverage
 
 This is the coverage of content package `numbernebula_kompass_math` version
-`2.0.0`, schema 2. The 32 identifiers come from the project-owned `kompass4`
+`2.0.1`, schema 2. The 32 identifiers come from the project-owned `kompass4`
 competency matrix. They are not official IBBW item or proficiency codes.
 
 The package contains 128 original bilingual tasks: 64 practice, 32 independent

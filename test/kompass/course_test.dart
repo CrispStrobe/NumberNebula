@@ -328,7 +328,8 @@ void main() {
     expect(find.text('Task 1'), findsOneWidget);
     await held.up();
     await tester.pump(const Duration(milliseconds: 350));
-    expect((store.session!['responses']['task1'] as Map)['a'], isNull);
+    final nextResponses = store.session!['responses']['task1'] as Map?;
+    expect(nextResponses?['a'], isNull);
     expect(
       tester
           .widget<FilterChip>(find.widgetWithText(FilterChip, 'One'))

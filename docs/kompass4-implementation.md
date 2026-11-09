@@ -32,8 +32,8 @@ task order or curriculum identifiers.
 - [x] Interactive activities for place value/number lines, everyday quantities,
   data/probability and geometry; keep learning untimed and support accessible input.
 - [x] Matching printable practice and review output from the content package.
-- [ ] Content validation, focused scorer/planner/persistence/widget tests and
-  exact-branch remote CI/build/browser checks, with evidence recorded honestly.
+- [x] Content validation and focused scorer/planner/persistence/widget tests.
+- [ ] Exact-branch remote CI/build/browser checks, with evidence recorded honestly.
 
 ## Content contract (schema version 2)
 
@@ -196,10 +196,28 @@ bank's difficulty labels or time estimates. Any outcome claim needs that evidenc
 
 ## Validation evidence
 
-Local focused verification covers 111 Flutter cases across engine/scoring,
-storage, figures, labs, home entry, course interactions, paper mode and versioned
-review. The independent Python content/print tests and reproducibility gates run
-in CI. The checked package contains 128 tasks and 257 separately scored parts.
+Local focused verification on 2026-11-09 passed **120 KOMPASS Flutter cases**
+across engine/scoring, storage, figures, labs, home entry, course interactions,
+paper mode and versioned review, plus the existing localization guard
+(**121 passing cases, zero failures or skips**). Targeted strict analysis found
+no issues. **59 Python content/print/source-mapping tests** and both reproducible
+builders passed. The checked package contains 128 tasks and 257 separately
+scored parts. kompass4's independent export comparison matches all 32 mappings
+against this generated asset.
+
+The resumed audit also repaired worked-solution and immediate-hint history,
+stale answer overwrites, recovery when a session snapshot lags durable progress,
+and retained manual-review controls. A real held-pointer regression passes with
+task-specific input identity and fails when that protection is removed: releasing
+the old pointer otherwise answers the next task. This negative control is a
+behavioral check, not a text-presence assertion.
+
+The previous full-suite failure was the localization guard; it now passes.
+Previous browser failures used incomplete accessible names for answer fields;
+the selectors now match the actual question labels. The expanded browser job
+retains its one-worker and per-test limits, with enough overall time for both
+engines. Full remote results remain a separate gate; local results do not imply
+that queued hosted checks have passed.
 
 Exact integrated-head full-suite, calibration, wasm/JavaScript browser and preview
 results are recorded in the branch pull request. Use its current checks rather

@@ -1,6 +1,6 @@
 # NumberNebula: current state and agent handover
 
-Updated 2026-11-08. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
+Updated 2026-11-09. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
 ## KOMPASS mathematics pathway branch (2026-11-08)
