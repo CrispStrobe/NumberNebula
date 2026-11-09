@@ -11,6 +11,36 @@ async function reach(page, locator, { x = 900, direction = 1 } = {}) {
   return locator.first();
 }
 
+// Saved scores keep one entry per part; the total is their sum.
+function points(score) {
+  return (score?.parts ?? []).reduce((sum, part) => sum + part.awardedPoints, 0);
+}
+
+// Flutter web rebuilds its semantics tree while a route settles, so a value
+// typed into a just-opened field can land in a replaced DOM input. Type until
+// the app has saved the value itself, which is the evidence the tests use.
+async function type(page, locator, value, saved) {
+  for (let tries = 0; tries < 4; tries++) {
+    const field = await reach(page, locator);
+    await field.click();
+    await field.fill(value);
+    try {
+      await expect.poll(saved, { timeout: 4_000 }).toBe(value);
+      return;
+    } catch (_) {
+      await page.waitForTimeout(300);
+    }
+  }
+  await expect.poll(saved).toBe(value);
+}
+
+// The semantic input mirrors the restored text once Flutter's editor owns it.
+async function expectRestored(page, locator, value) {
+  const field = await reach(page, locator);
+  await field.click();
+  await expect(field).toHaveValue(value);
+}
+
 async function openCourse(page) {
   await openApp(page);
   await enableSemantics(page);
@@ -94,26 +124,29 @@ test('KOMPASS practice preserves real first input, correction and a resumed draf
   const answer = page.getByRole('textbox', {
     name: 'What number is represented? Your answer', exact: true,
   });
-  await answer.fill('999999');
+  const draft = async () =>
+    (await records(page))?.session?.responses?.mz01_bundle_exchange?.value;
+  await type(page, answer, '999999', draft);
   await (await reach(page, page.getByRole('button', { name: 'Check answer', exact: true }))).click();
   await expect.poll(async () => (await records(page))?.attempts?.length).toBe(1);
   let evidence = (await records(page)).attempts[0];
   expect(evidence.firstResponses.value).toBe('999999');
-  expect(evidence.firstScore.awardedPoints).toBe(0);
+  expect(points(evidence.firstScore)).toBe(0);
   await (await reach(page, page.getByRole('button', { name: 'Hint', exact: true }))).click();
-  await (await reach(page, answer, { direction: -1 })).fill('445');
+  await reach(page, answer, { direction: -1 });
+  await type(page, answer, '445', draft);
   await (await reach(page, page.getByRole('button', { name: 'Check answer', exact: true }))).click();
   await expect.poll(async () => (await records(page))?.attempts?.[0]?.responses?.value).toBe('445');
   evidence = (await records(page)).attempts[0];
   expect(evidence.firstResponses.value).toBe('999999');
   expect(evidence.hintsUsed).toBe(1);
-  expect(evidence.score.awardedPoints).toBeGreaterThan(evidence.firstScore.awardedPoints);
+  expect(points(evidence.score)).toBeGreaterThan(points(evidence.firstScore));
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#splash')).toHaveCount(0);
   await enableSemantics(page);
   await (await reach(page, page.getByRole('button', { name: /^KOMPASS 4 · Mathematics$/ }), { x: 300 })).click();
   await page.getByRole('button', { name: 'Continue unfinished session', exact: true }).click();
-  await expect(answer).toHaveValue('445');
+  await expectRestored(page, answer, '445');
   await info.attach('kompass-practice.png', { body: await page.screenshot(), contentType: 'image/png' });
   expect(log.errors).toEqual([]);
   expect(log.failures).toEqual([]);
@@ -163,8 +196,12 @@ for (const title of ['Number dock', 'Supply station', 'Data observatory', 'Geome
     if (title === 'Geometry workshop') {
       // A shape with no symmetry axes is correct with nothing selected.
       // Three axes are incomplete or incorrect for every starting shape.
+      // Flutter publishes the checked state a frame after the tap, so
+      // Playwright's synchronous check() verification would race it.
       for (const name of ['Vertical', 'Horizontal', 'Diagonal: top left to bottom right']) {
-        await (await reach(page, page.getByRole('checkbox', { name, exact: true }))).check();
+        const axis = page.getByRole('checkbox', { name, exact: true });
+        await (await reach(page, axis)).click();
+        await expect(axis.first()).toBeChecked();
       }
     }
     await (await reach(page, page.getByRole('button', { name: 'Check', exact: true }))).click();
@@ -237,8 +274,8 @@ test('KOMPASS chance lab restores a wrong first response and later help before c
   expect(evidence.isNovel).toBe(false);
   expect(evidence.firstResponses.lab).toEqual(firstResponse);
   expect(evidence.responses.lab).toEqual({ first: 'circle', second: 'circle', reason: 'exception' });
-  expect(evidence.firstScore.awardedPoints).toBe(2);
-  expect(evidence.score.awardedPoints).toBe(3);
+  expect(points(evidence.firstScore)).toBe(2);
+  expect(points(evidence.score)).toBe(3);
   expect(evidence.hintsBeforeFirstResponse).toBe(0);
   expect(evidence.hintsUsed).toBe(1);
   await info.attach('kompass-chance-restored.png', {
@@ -259,8 +296,9 @@ test('KOMPASS reasoning lab restores actual numeric inputs without replacing fir
   // append the input hint to that name, so match the unique authored question.
   const middle = page.getByRole('textbox', { name: /Right brick in the middle row/ });
   const base = page.getByRole('textbox', { name: /Right brick in the base row/ });
-  await (await reach(page, middle)).fill('1234');
-  await (await reach(page, base)).fill('567');
+  const draft = (key) => async () => (await labState(page, labId))?.response?.[key];
+  await type(page, middle, '1234', draft('middle'));
+  await type(page, base, '567', draft('base'));
   const subtraction = page.getByRole('checkbox', { name: 'Subtraction', exact: true });
   await (await reach(page, subtraction)).click();
   await (await reach(page, page.getByRole('button', { name: 'Hint 1/3', exact: true }))).click();
@@ -276,14 +314,14 @@ test('KOMPASS reasoning lab restores actual numeric inputs without replacing fir
   expect(first.hintsBeforeFirstResponse).toBe(1);
 
   await reloadLab(page, 'Reasoning workshop');
-  await expect(await reach(page, middle)).toHaveValue('1234');
-  await expect(await reach(page, base)).toHaveValue('567');
+  await expectRestored(page, middle, '1234');
+  await expectRestored(page, base, '567');
   expect((await labState(page, labId)).roundId).toBe(first.roundId);
   expect((await labState(page, labId)).response.inverse).toBe('subtract');
   expect((await labState(page, labId)).hintsUsed).toBe(1);
   await expect(await reach(page, subtraction)).toBeChecked();
   await reach(page, base, { direction: -1 });
-  await base.fill('568');
+  await type(page, base, '568', draft('base'));
   await (await reach(page, page.getByRole('button', { name: 'Check', exact: true }))).click();
   await expect.poll(async () => (await labState(page, labId))?.attempts).toBe(2);
   const revised = await labState(page, labId);
