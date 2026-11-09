@@ -25,6 +25,7 @@ class KompassAttempt {
   final DateTime updatedAt;
   final bool completed;
   final bool solutionSeenBeforeFirstResponse;
+  final bool solutionSeen;
   final bool isNovel;
   final KompassScore firstScore;
   final KompassScore score;
@@ -48,6 +49,7 @@ class KompassAttempt {
     required this.updatedAt,
     required this.completed,
     required this.solutionSeenBeforeFirstResponse,
+    required this.solutionSeen,
     required this.isNovel,
     required this.firstScore,
     required this.score,
@@ -60,7 +62,8 @@ class KompassAttempt {
         hintsUsed < 0 ||
         hintsBeforeFirstResponse < 0 ||
         hintsUsed < hintsBeforeFirstResponse ||
-        activeSeconds < 0) {
+        activeSeconds < 0 ||
+        (solutionSeenBeforeFirstResponse && !solutionSeen)) {
       throw const FormatException('Invalid attempt evidence.');
     }
   }
@@ -75,7 +78,7 @@ class KompassAttempt {
       !solutionSeenBeforeFirstResponse &&
       firstScore.parts.any((part) => !part.manual && part.attempted);
 
-  bool get assisted => hintsUsed > 0 || solutionSeenBeforeFirstResponse;
+  bool get assisted => hintsUsed > 0 || solutionSeen;
   bool get pendingReview => score.pendingReview;
   List<String> get competencyIds => List.unmodifiable(
       firstScore.parts.expand((part) => part.competencyIds).toSet());
@@ -95,6 +98,7 @@ class KompassAttempt {
     Map<String, double> manualPoints = const {},
     bool completed = true,
     bool solutionSeenBeforeFirstResponse = false,
+    bool solutionSeen = false,
     bool isNovel = true,
   }) {
     final submittedAt = (at ?? DateTime.now()).toUtc();
@@ -118,6 +122,7 @@ class KompassAttempt {
       updatedAt: submittedAt,
       completed: completed,
       solutionSeenBeforeFirstResponse: solutionSeenBeforeFirstResponse,
+      solutionSeen: solutionSeen || solutionSeenBeforeFirstResponse,
       isNovel: isNovel,
       firstScore: KompassScorer.score(task, firstResponses),
       score: KompassScorer.score(task, currentResponses,
@@ -175,6 +180,7 @@ class KompassAttempt {
       updatedAt: submittedAt,
       completed: true,
       solutionSeenBeforeFirstResponse: false,
+      solutionSeen: result['solutionSeen'] == true,
       isNovel: false,
       firstScore: first,
       score: KompassScore([
@@ -196,6 +202,7 @@ class KompassAttempt {
     int? hintsUsed,
     int? activeSeconds,
     bool? completed,
+    bool? solutionSeen,
     bool? isNovel,
     DateTime? updatedAt,
   }) {
@@ -222,6 +229,7 @@ class KompassAttempt {
       updatedAt: (updatedAt ?? DateTime.now()).toUtc(),
       completed: completed ?? this.completed,
       solutionSeenBeforeFirstResponse: solutionSeenBeforeFirstResponse,
+      solutionSeen: solutionSeen ?? this.solutionSeen,
       isNovel: isNovel ?? this.isNovel,
       firstScore: firstScore,
       score: score ?? this.score,
@@ -235,6 +243,7 @@ class KompassAttempt {
     int? hintsUsed,
     int? activeSeconds,
     bool? completed,
+    bool? solutionSeen,
   }) {
     if (task.id != taskId || task.familyId != familyId) {
       throw ArgumentError('A revision must use the original task.');
@@ -245,6 +254,7 @@ class KompassAttempt {
       hintsUsed: hintsUsed,
       activeSeconds: activeSeconds,
       completed: completed,
+      solutionSeen: solutionSeen,
     );
   }
 
@@ -268,6 +278,7 @@ class KompassAttempt {
         'updatedAt': updatedAt.toIso8601String(),
         'completed': completed,
         'solutionSeenBeforeFirstResponse': solutionSeenBeforeFirstResponse,
+        'solutionSeen': solutionSeen,
         'isNovel': isNovel,
         'firstScore': firstScore.toJson(),
         'score': score.toJson(),
@@ -297,6 +308,8 @@ class KompassAttempt {
       updatedAt: DateTime.parse(json['updatedAt'] as String).toUtc(),
       completed: json['completed'] as bool,
       solutionSeenBeforeFirstResponse:
+          json['solutionSeenBeforeFirstResponse'] as bool,
+      solutionSeen: json['solutionSeen'] as bool? ??
           json['solutionSeenBeforeFirstResponse'] as bool,
       isNovel: json['isNovel'] as bool,
       firstScore: KompassScore.fromJson(kompassMap(json['firstScore'])),

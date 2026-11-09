@@ -1,7 +1,7 @@
 name: space_math_academy
 description: A space-themed math puzzle app
 publish_to: 'none'
-version: 1.6.0+63
+version: 1.6.0+64
 
 environment:
   sdk: '>=3.3.0 <4.0.0'

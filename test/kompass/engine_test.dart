@@ -400,6 +400,38 @@ void main() {
       expect(revised.hintsBeforeFirstResponse, 0);
     });
 
+    test('a worked solution supports corrections without rewriting first work',
+        () {
+      final task = _task(use: 'check');
+      final first = _attempt(task, responses: {'a': '11'});
+      final revised = first.reviseTask(
+          task: task, responses: {'a': '12'}, solutionSeen: true);
+      final restored = KompassAttempt.fromJson(
+          jsonDecode(jsonEncode(revised.toJson())));
+      expect(restored.firstResponses['a'], '11');
+      expect(restored.firstScore.fullyCorrect, isFalse);
+      expect(restored.score.fullyCorrect, isTrue);
+      expect(restored.solutionSeen, isTrue);
+      expect(restored.assisted, isTrue);
+      expect(restored.solutionSeenBeforeFirstResponse, isFalse);
+      expect(restored.verified, isTrue);
+
+      final earlier = KompassAttempt.forTask(
+          id: 'earlier-solution',
+          sessionId: 'earlier',
+          task: task,
+          packVersion: '2.0.0',
+          mode: KompassMode.check,
+          firstResponses: {'a': '12'},
+          solutionSeenBeforeFirstResponse: true);
+      final legacyJson = Map<String, dynamic>.from(earlier.toJson())
+        ..remove('solutionSeen');
+      final legacy = KompassAttempt.fromJson(legacyJson);
+      expect(legacy.solutionSeen, isTrue);
+      expect(legacy.assisted, isTrue);
+      expect(legacy.verified, isFalse);
+    });
+
     test(
         'assisted checks and all lab outcomes cannot become independent evidence',
         () {

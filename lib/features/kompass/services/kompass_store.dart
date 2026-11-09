@@ -171,6 +171,7 @@ class KompassStore {
         }
         if (revised.hintsUsed < saved.hintsUsed ||
             revised.activeSeconds < saved.activeSeconds ||
+            (saved.solutionSeen && !revised.solutionSeen) ||
             (saved.completed && !revised.completed)) {
           throw ArgumentError(
               'A revision cannot erase support, elapsed work or completion.');

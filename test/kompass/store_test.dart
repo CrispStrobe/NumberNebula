@@ -169,6 +169,24 @@ void main() {
     expect(store.session!['responses']['a'], '12');
   });
 
+  test('worked-solution exposure survives reload and cannot be erased',
+      () async {
+    final store = await KompassStore.open();
+    final initial = _attempt('solution', answer: '11');
+    await store.record(initial);
+    final supported = initial.reviseTask(
+        task: _task(), responses: {'a': '12'}, solutionSeen: true);
+    await store.revise(supported);
+    final restored = await KompassStore.open();
+    expect(restored.attempts.single.solutionSeen, isTrue);
+    expect(restored.attempts.single.assisted, isTrue);
+    expect(restored.attempts.single.firstResponses['a'], '11');
+    await expectLater(
+        restored.revise(supported.copyWith(solutionSeen: false)),
+        throwsArgumentError);
+    expect((await KompassStore.open()).attempts.single.solutionSeen, isTrue);
+  });
+
   test(
       'late callbacks cannot restore completed sessions or erase a newer session',
       () async {
