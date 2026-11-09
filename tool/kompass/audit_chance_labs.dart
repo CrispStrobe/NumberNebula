@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../../lib/features/kompass/labs/kompass_lab_round.dart';
 
 void main() {
@@ -68,5 +70,5 @@ void main() {
     }
   }
   verify(replacements.length == 2, 'both replacement policies');
-  print('Chance lab audit passed: $checks checks across 64 seeds.');
+  stdout.writeln('Chance lab audit passed: $checks checks across 64 seeds.');
 }

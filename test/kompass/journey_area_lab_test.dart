@@ -61,7 +61,7 @@ Future<void> _open(
   void Function(Map<String, dynamic>)? onCompleted,
 }) async {
   final round = generateKompassLabRound(labId, index, _seed);
-  final preferences = await SharedPreferences.getInstance();
+  final preferences = await ProfilePreferences.getInstance();
   await preferences.setString(
     'kompass_lab_v1_$labId',
     jsonEncode({
@@ -113,9 +113,10 @@ void _compact(WidgetTester tester) {
 }
 
 void main() {
+  var profileNumber = 0;
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    ProfilePreferences.activeId = 'default';
+    ProfilePreferences.activeId = 'journey-area-${profileNumber++}';
   });
   tearDown(() => ProfilePreferences.activeId = 'default');
 

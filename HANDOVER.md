@@ -3,7 +3,31 @@
 Updated 2026-11-09. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
-## KOMPASS mathematics pathway branch (2026-11-08)
+## Current KOMPASS reasoning expansion (2026-11-09)
+
+The owner requested more suitable minigames and content after reviewing the
+latest kompass4 mathematics bank. The integrated expansion is checkpointed on
+[`codex/kompass4-reasoning-expansion-20261109`](https://github.com/CrispStrobe/NumberNebula/tree/codex/kompass4-reasoning-expansion-20261109),
+in [draft PR #70](https://github.com/CrispStrobe/NumberNebula/pull/70), based on
+the pathway's `8971225`. It includes PR #69's unmerged foundation and targets
+main so the existing validation workflows run.
+
+App **1.6.0+66**, content **2.1.0**: eight labs / 22 activity types, 144 bilingual
+tasks / 298 scored parts, 72 practice / 36 check / 36 rehearsal tasks. The four
+added labs cover reasoning and complete combinations, journeys, area/perimeter
+construction and chance counterexamples. All 128 older tasks are unchanged;
+the original lab recipes and 48 free-play games remain stable. Compatibility
+gates allow historical sessions/reviews only for explicitly verified tasks.
+
+The expansion passes 83 Python content/print/compatibility cases, reproducible
+builders, 4,068 standalone Dart mathematical checks and the frozen legacy audit
+(53 rounds, 281 scoring results). New Flutter widget and browser regressions are
+authored; exact-head remote analysis, native tests, calibration and browser jobs
+remain required. Do not substitute earlier foundation results for this source.
+See [the expansion record](docs/kompass4-reasoning-expansion.md) for contracts and
+validation details. This branch has not been merged or published.
+
+## KOMPASS foundation branch (2026-11-08)
 
 The owner requested the complete optional KOMPASS 4 mathematics pathway, including
 new minigames, with incremental remote checkpoints. Work is on

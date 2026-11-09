@@ -5,15 +5,21 @@
 Implement the complete optional mathematics pathway across numbers and operations,
 space and shape, quantities and measurement, and data and chance. Keep free play,
 all existing games, local profiles, saved progress, and the all-ages positioning.
-This work is being checkpointed on `codex/kompass4-learning-path`.
+The foundation is checkpointed on `codex/kompass4-learning-path` (PR #69).
+The integrated extension is on `codex/kompass4-reasoning-expansion-20261109`
+([PR #70](https://github.com/CrispStrobe/NumberNebula/pull/70)); it includes the
+foundation so the existing main-targeted validation workflows run.
 
 The authoring reference is CrispStrobe/kompass4 at
 `9a0b25a6b0706b7c7944836e00f163bcbfd46676`. Its 32 mathematics competency IDs
 are project-owned identifiers, not official IBBW assessment codes. Published
 official papers remain linked references and are not embedded or adapted.
 
-The resumed implementation uses app version **1.6.0+65** and content version
-**2.0.1**. kompass4 supplies a deterministic, pinned competency metadata export;
+The current implementation uses app version **1.6.0+66** and content version
+**2.1.0**: 144 original bilingual tasks, 298 scored parts and eight labs with
+22 activity types. See [the reasoning expansion](kompass4-reasoning-expansion.md)
+for the four added labs, 16 added tasks and their validation status.
+kompass4 supplies a deterministic, pinned competency metadata export;
 the interactive exercises remain original NumberNebula content. The mapping
 includes exact curriculum references and estimated time bounds in seconds.
 The source matrix does not author a prerequisite graph; none is inferred from
@@ -38,7 +44,7 @@ task order or curriculum identifiers.
 ## Content contract (schema version 2)
 
 The bundled asset `assets/kompass/math_v2.json` contains `schemaVersion`, `id`,
-`version`, `source`, `competencies`, and `tasks`. Localized strings are maps with
+`version`, `source`, `competencies`, `tasks`, and `compatibleTaskIds`. Localized strings are maps with
 `de` and `en`. Competencies contain `id`, `domain`, `title`, `goal`, `evidence`
 (`published2025` or `curriculum`), `curriculumUrl`, and `gameKeys`.
 
@@ -109,7 +115,7 @@ available; a compact home screen scrolls to keep its actions reachable.
   the hub can export the underlying local records as JSON via the clipboard.
 
 See [the complete coverage map](kompass4-coverage.md) for all 32 competencies and
-the four labs. Learners do not need an account, a cloud model or a network call
+the eight labs. Learners do not need an account, a cloud model or a network call
 for the bundled content and saved learning path. Downloading/installing the app,
 loading a deferred web module for the first time, and following official external
 links still require the relevant resources to be available.
@@ -122,6 +128,13 @@ responses/scores are immutable. Later edits, manual review, support and active
 work time are monotonic revisions. A family first exposed in the current saved
 session can still be new; abandoning it, seeing a paper copy or solving an earlier
 item in that family makes later attempts previously seen.
+
+Opening journey planning or chance counterexamples also records the specific
+course families whose procedure the lab teaches, before navigation. Leaving
+without a submission cannot later turn those items into unseen checks. This is
+an explicit family mapping, not a claim that every related competency is now
+exposed. Lab results remain practice only. First-response hint counts are frozen
+separately from hints used during later corrections and survive reopening.
 
 Opening a worked solution or requesting a hint updates assistance immediately,
 without submitting a draft response. Solution exposure remains visible after a
@@ -149,9 +162,13 @@ Unreadable course records are preserved; explicit local recovery backs them up b
 resetting only this feature. No existing game score, game key, wallet or SRI
 record is reused for course evidence.
 
-The content package and attempt schema are versioned separately. A saved session
-from another content version is rejected without deleting completed history.
-Historical manual work cannot be rescored against a changed content version.
+The content package and attempt schema are versioned separately. Version 2.1.0
+compares all 128 earlier task objects with the immutable 2.0.1 baseline and
+declares only those exact identities compatible. A saved session may resume only
+when every selected task passes this check; review may reuse a rubric only for a
+compatible task. Unknown versions, changed tasks and invalid task lists still
+fail closed without deleting completed history. Existing attempts retain their
+original content version when revised.
 Export records before intentionally clearing browser or application storage;
 remote source checkpoints do not back up a learner's device-local progress.
 
@@ -183,9 +200,11 @@ self-declared expected values alone. The matrix distinguishes `published2025`
 coverage from curriculum supplements; it does not copy an official paper.
 
 The focused Flutter gate is `flutter test test/kompass --concurrency=1`. Browser
-tests in `tool/web_live_test/tests/kompass.spec.mjs` exercise real controls,
-corrections, reload/restoration, independent mode, rehearsal deadlines, all four
-labs and printable downloads in the wasm and JavaScript builds. The repository's
+tests in `tool/web_live_test/tests/kompass.spec.mjs` cover real controls,
+corrections, reload/restoration, independent mode, rehearsal deadlines, the
+original labs and printable downloads in the wasm and JavaScript builds. New
+reasoning/chance flows add persisted-input and first-response assistance checks.
+The repository's
 full analysis, native suite, calibration and web checks still run remotely.
 
 ## Human evaluation still to collect
@@ -199,6 +218,12 @@ wrong-answer patterns and completion times with a teacher before changing the
 bank's difficulty labels or time estimates. Any outcome claim needs that evidence.
 
 ## Validation evidence
+
+The expansion's local content and mathematical checks are recorded separately in
+[its validation table](kompass4-reasoning-expansion.md#validation). They do not
+inherit the foundation's earlier Flutter result below. New widget and browser
+tests must pass on the exact expanded head before merge; a queued workflow is
+not a passing result.
 
 The preceding checkpoint
 [`bc12371`](https://github.com/CrispStrobe/NumberNebula/commit/bc12371e969cb0ef8cac9e8765b9b920a55d11d7)

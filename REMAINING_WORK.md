@@ -1,17 +1,22 @@
 # Executable next-work lanes
 
-Updated 2026-11-05. Read [HANDOVER.md](HANDOVER.md) first for the current state,
+Updated 2026-11-09. Read [HANDOVER.md](HANDOVER.md) first for the current state,
 the shipping baseline and completed audits. These are scoped next steps, not claims
 that the named games are broken. Each round-audit batch below is independent;
 implement one game per PR rather than combining an entire batch.
 
 ## Active owner-requested KOMPASS pathway
 
-The full mathematics pathway is implemented on
-[`codex/kompass4-learning-path`](https://github.com/CrispStrobe/NumberNebula/tree/codex/kompass4-learning-path).
+The full mathematics pathway and its reasoning expansion are integrated on
+[`codex/kompass4-reasoning-expansion-20261109`](https://github.com/CrispStrobe/NumberNebula/tree/codex/kompass4-reasoning-expansion-20261109),
+in [draft PR #70](https://github.com/CrispStrobe/NumberNebula/pull/70). This includes
+the foundation from PR #69; coordinate its review to avoid merging the same
+foundation twice. The extension adds four labs and 16 written tasks, retaining
+the original lab recipes and task identities.
 Use [the feature handoff](docs/kompass4-implementation.md) for source contracts,
 validation commands and known limits, and [the coverage map](docs/kompass4-coverage.md)
-for the 32 competencies. Complete exact-head remote CI and review before merging;
+for the 32 competencies. Read [the expansion record](docs/kompass4-reasoning-expansion.md)
+for the latest local evidence and pending gates. Complete exact-head remote CI and review before merging;
 then verify merged-main publication through the existing workflows. Learner and
 teacher pilots remain necessary before any learning-outcome or test-readiness
 claim. Existing release and unrelated game-audit lanes below remain separate.

@@ -3,28 +3,41 @@
 This directory contains the original interactive tasks for NumberNebula's optional
 KOMPASS 4 mathematics pathway. It produces one bilingual content package and
 standalone paper worksheets from the same reviewed tasks. Canonical competency
-metadata is imported from a pinned kompass4 export. All tools use the Python
-standard library; run them from the repository root.
+metadata is imported from a pinned kompass4 export. The content authoring tools
+use Python's standard library; the lab recipe audits use the standalone
+Dart VM. Run the commands below from the repository root.
 
 ## Current content
 
-The package contains **128 original tasks and 257 separately scored parts** across
-all 32 project-owned competency identifiers. Each competency has two practice
-tasks, one independent check task and one rehearsal task: 64 practice, 32 check
-and 32 rehearsal tasks.
+Content package **2.1.0** contains **144 original tasks and 298 separately scored
+parts** across all 32 project-owned competency identifiers: **72 practice,
+36 check and 36 rehearsal tasks**. The expansion adds 16 tasks and 41 parts while
+preserving all 128 task objects from package 2.0.1. Every competency retains at
+least two practice tasks and one task in each independent mode; the exact counts
+now vary. See [the coverage table](../../docs/kompass4-coverage.md) for counts
+derived from each task's part-level competency mappings.
 
 | Domain | IDs | Competencies | Tasks |
 | --- | --- | ---: | ---: |
-| Numbers and operations | `M-Z01`–`M-Z12` | 12 | 48 |
-| Space and shape | `M-R01`–`M-R08` | 8 | 32 |
-| Quantities and measurement | `M-G01`–`M-G07` | 7 | 28 |
-| Data and chance | `M-D01`–`M-D05` | 5 | 20 |
+| Numbers and operations | `M-Z01`–`M-Z12` | 12 | 52 |
+| Space and shape | `M-R01`–`M-R08` | 8 | 36 |
+| Quantities and measurement | `M-G01`–`M-G07` | 7 | 32 |
+| Data and chance | `M-D01`–`M-D05` | 5 | 24 |
 
 Tasks include conventional four-digit arithmetic, place-value regrouping, number
 walls, inverse relationships, constrained problems, explanations, units and money,
 clocks and timetables, measured paper constructions, rotations, reflections,
 cube plans and nets, chart construction and criticism, and qualitative probability.
+The added tasks include two-direction number grids, constrained routes, exposed
+and shared edges, overlapping areas and times, deposits and refunds, fixed
+charges, tallies, unequal chart scales, and chance games with no-score outcomes.
 This is a mathematics pathway, not a German-language test preparation course.
+
+The optional course also contains **eight interactive labs with 22 round types**.
+The four added labs are Reasoning Workshop, Journey Planner, Area Studio and
+Chance Detectives; together they add nine types. Their generated rounds are
+separate from the 144 authored course tasks and are always practice evidence.
+The existing free-play game registry and its scoring are unchanged.
 
 `published2025` means the project's competency mapping identifies a related task
 type in the published 2025/26 mathematics paper. It is not an official competency
@@ -45,11 +58,17 @@ eight broader curriculum entries are `M-Z11`, `M-Z12`, `M-R01`, `M-R08`, `M-G06`
 | `content_geometry.py` | Space and shape tasks |
 | `content_measurement.py` | Measurement and applied quantity tasks |
 | `content_data.py` | Tables, charts and chance tasks |
+| `content_extension.py` | The 16 additional tasks in package 2.1.0 |
+| `content_compatibility.py`, `baselines/math_v2_0_1.json` | Frozen previous pack and whole-task compatibility verification |
 | `build_content.py` | Deterministic JSON export |
 | `validate_content.py` | Schema, localization, coverage, partition and figure checks |
 | `build_print.py` | Learner worksheets, separate keys and exposure manifest |
 | `test_content.py` | Independent mathematical and contract regressions |
 | `test_print.py` | Print isolation, manifest and precise figure regressions |
+| `test_extension.py` | Independent mathematical checks for the additional tasks |
+| `test_compatibility.py` | Previous task preservation and explicit compatibility declarations |
+| `baselines/lab_recipes_v1.json`, `audit_legacy_lab_recipes.dart` | Frozen original lab recipes and standalone compatibility audit |
+| `audit_reasoning_labs.dart`, `audit_journey_area_labs.dart`, `audit_chance_labs.dart` | Bounded standalone mathematical audits for the added labs |
 
 Edit the authoring sources rather than generated JSON or HTML. Then run:
 
@@ -117,6 +136,11 @@ metadata, `competencies` and `tasks`. Every task has stable `id` and `familyId`,
 bilingual `title` and `prompt`, progressive `hints`, a worked `solution`,
 explicit `parts`, optional `figure`, author-estimated `estimatedSeconds` and
 original-work provenance.
+
+The package also carries `compatibleTaskIds`, an explicit mapping from a previous
+package version to task IDs whose entire objects remain identical. It is generated
+from the frozen baseline, rather than inferred from matching IDs alone. See
+[Saved progress and compatibility](#saved-progress-and-compatibility).
 
 All user-facing text maps have nonempty `de` and `en` values, including error
 feedback, criteria, rubrics, descriptions and table/chart labels. Language-neutral
@@ -220,11 +244,45 @@ A later numeric variant of an exposed family is not fresh independent evidence.
 Save learner events with package version and stable identifiers so content
 changes do not silently reinterpret historical evidence.
 
-Practice printing includes all 64 practice tasks and no check/rehearsal items.
+Practice printing includes all **72 practice tasks**, covering **71 distinct
+families**, and no check/rehearsal items. The two rectangle-completion practice
+tasks share the family `mr02_complete_tile_rectangle`; they are not two independent
+families merely because their task IDs differ.
 The rehearsal form contains 20 tasks in `REHEARSAL_IDS`, with their exact IDs
-emitted in the manifest; the other 12 rehearsal tasks remain available in the
-app. This is an authored cross-domain form, not an official distribution of
-competencies, points or difficulty.
+emitted in the manifest. That fixed form is unchanged from 2.0.1; the other
+16 rehearsal tasks remain available in the app. This is an authored cross-domain
+form, not an official distribution of competencies, points or difficulty.
+
+Opening Journey Planner or Chance Detectives records exposure to the named
+course families whose procedures those labs explicitly rehearse, even without
+a submitted round. These families cannot subsequently count as unseen independent
+evidence. Task and family totals describe the content pool, not the amount of
+fresh evidence remaining for an individual learner.
+
+## Saved progress and compatibility
+
+`baselines/math_v2_0_1.json` freezes the preceding 128-task package.
+`content_compatibility.py` verifies its SHA-256 and compares every historical
+task object in full, including wording, figures, parts, answers, rubrics and
+family IDs. Building or validating 2.1.0 fails if an old task changes or
+disappears. The resulting `compatibleTaskIds["2.0.1"]` lists exactly those
+128 unchanged tasks; the 16 additions are not claimed to exist in the older pack.
+
+The app checks both package version and task identity before restoring a session
+or using a current rubric to review an older attempt. A session must contain
+nonempty, unique, compatible task IDs. Records from unknown or changed versions
+remain historical records; the current answer key, worked solution and manual
+review controls are not applied to them. Resuming a verified session preserves
+the original first-attempt evidence and recorded assistance while allowing
+later corrections to be recorded separately.
+
+The original four labs retain their seeded recipes and variant cycles.
+`baselines/lab_recipes_v1.json` freezes 53 representative recipes from public
+NumberNebula commit `8971225b9c435867fa5f8fa4e20e98e3baa24fce`, covering all
+13 original types, early and later indices, and their structural alternatives.
+The standalone audit compares full bilingual round content, configuration,
+default and normalized responses, and 281 scoring results. Keep this fixture
+frozen; a deliberate incompatible change needs an explicit migration decision.
 
 ## Paper use and review
 
@@ -258,6 +316,21 @@ and check table/chart/probability invariants. Negative contract tests reject
 bad options, cells, localization, carry rules and partitions. Print tests inspect
 geometry, preserve givens, verify exact manifest exposure and prevent answer
 payloads in learner output.
+
+When changing lab generators or scoring, run the bounded standalone Dart audits:
+
+```sh
+dart --disable-dart-dev tool/kompass/audit_legacy_lab_recipes.dart
+dart --disable-dart-dev tool/kompass/audit_reasoning_labs.dart
+dart --disable-dart-dev tool/kompass/audit_journey_area_labs.dart
+dart --disable-dart-dev tool/kompass/audit_chance_labs.dart
+```
+
+These scripts require no Flutter engine. They check legacy recipe compatibility,
+independent arithmetic and timetable feasibility, connectedness and holes,
+alternative constructions, and legal probability counterexamples. Widget and
+browser tests separately exercise actual controls, persistence, review gates
+and layout; mathematical audits do not substitute for those checks.
 
 These checks complement editorial mathematical review of all authored tasks.
 They do not mechanically prove every natural-language interpretation, calibrate

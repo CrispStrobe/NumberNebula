@@ -1587,7 +1587,7 @@
           {
             "label": "wrong_unit",
             "response": {
-              "total": "490 mm",
+              "total": "4,90 mm",
               "coins": [
                 2,
                 1,
@@ -1600,7 +1600,7 @@
               ]
             },
             "normalizedResponse": {
-              "total": "490 mm",
+              "total": "4,90 mm",
               "coins": [
                 2,
                 1,
@@ -2115,7 +2115,7 @@
           {
             "label": "wrong_unit",
             "response": {
-              "total": "570 mm",
+              "total": "5,70 mm",
               "coins": [
                 2,
                 0,
@@ -2128,7 +2128,7 @@
               ]
             },
             "normalizedResponse": {
-              "total": "570 mm",
+              "total": "5,70 mm",
               "coins": [
                 2,
                 0,
@@ -2643,7 +2643,7 @@
           {
             "label": "wrong_unit",
             "response": {
-              "total": "510 mm",
+              "total": "5,10 mm",
               "coins": [
                 2,
                 0,
@@ -2656,7 +2656,7 @@
               ]
             },
             "normalizedResponse": {
-              "total": "510 mm",
+              "total": "5,10 mm",
               "coins": [
                 2,
                 0,
@@ -3171,7 +3171,7 @@
           {
             "label": "wrong_unit",
             "response": {
-              "total": "540 mm",
+              "total": "5,40 mm",
               "coins": [
                 2,
                 0,
@@ -3184,7 +3184,7 @@
               ]
             },
             "normalizedResponse": {
-              "total": "540 mm",
+              "total": "5,40 mm",
               "coins": [
                 2,
                 0,

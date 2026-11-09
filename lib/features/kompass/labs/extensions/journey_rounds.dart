@@ -39,7 +39,8 @@ KompassLabRound generateJourneyRound(int index, int seed) {
       },
       titleDe: 'Vom Ziel rückwärts planen',
       titleEn: 'Plan backwards from the destination',
-      promptDe: 'Der Werkstattkurs beginnt um ${journeyTime(deadline)} Uhr. '
+      promptDe:
+          'Der Werkstattkurs beginnt um ${journeyTime(deadline)} Uhr. '
           'Die Fahrt zum Zielhalt dauert $ride Minuten, der anschließende '
           'Fußweg $walk Minuten. Du möchtest mindestens $reserve Minuten '
           'vor Kursbeginn dort sein. Die Fahrt beginnt direkt beim Losfahren; '
@@ -114,16 +115,19 @@ KompassLabRound generateJourneyRound(int index, int seed) {
         'Vor der Abfahrt des Anschlusses musst du mindestens $reserve Minuten '
         'am Bahnsteig sein. Die Tabelle zeigt alle Anschlüsse. '
         'Wähle den frühesten erreichbaren. Alle Zeiten gelten am selben Tag.',
-    promptEn: 'Your feeder service leaves at ${journeyTime(start)} and takes '
+    promptEn:
+        'Your feeder service leaves at ${journeyTime(start)} and takes '
         '$ride minutes. Then you walk $walk minutes to the platform. '
         'You must be there at least $reserve minutes before the connection '
         'departs. The table lists all connections. Choose the earliest one '
         'you can catch. All times are on the same day.',
-    solutionDe: 'Du erreichst den Bahnsteig um ${journeyTime(platform)} Uhr. '
+    solutionDe:
+        'Du erreichst den Bahnsteig um ${journeyTime(platform)} Uhr. '
         'Mit $reserve Minuten Reserve darf der Anschluss frühestens um '
         '${journeyTime(ready)} Uhr abfahren. ${best['id']} um '
         '${journeyTime(best['departure'] as int)} Uhr ist der erste passende.',
-    solutionEn: 'You reach the platform at ${journeyTime(platform)}. With the '
+    solutionEn:
+        'You reach the platform at ${journeyTime(platform)}. With the '
         '$reserve-minute reserve, a connection must leave at '
         '${journeyTime(ready)} or later. ${best['id']} at '
         '${journeyTime(best['departure'] as int)} is the first suitable one.',
@@ -159,9 +163,8 @@ Map<String, dynamic> normalizeJourneyResponse(
     if (value is String && value.length <= 40) result[key] = value;
   }
   if (result.containsKey('service')) {
-    final services = (round.config['services'] as List).map(
-      (service) => (service as Map)['id'],
-    );
+    final services = (round.config['services'] as List)
+        .map((service) => (service as Map)['id']);
     if (!services.contains(result['service'])) result['service'] = '';
   }
   return result;
