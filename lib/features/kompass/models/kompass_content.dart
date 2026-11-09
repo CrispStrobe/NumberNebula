@@ -144,6 +144,27 @@ class KompassPart {
       isManual ||
       (answer['type'] == 'text' && answer['reviewOnMismatch'] == true);
 
+  /// Explicit rubric steps take precedence over the course's half-point UI.
+  List<double> get reviewPointOptions {
+    final declared = answer['creditSteps'];
+    if (declared is List) {
+      final points = declared.map((value) => (value as num).toDouble()).toList()
+        ..sort();
+      return List.unmodifiable(points);
+    }
+    return List.unmodifiable([
+      for (double points = 0; points <= maxPoints; points += .5) points,
+    ]);
+  }
+
+  /// Parts without explicit steps retain their existing finite-range contract.
+  bool acceptsManualPoints(double points) {
+    if (!points.isFinite || points < 0 || points > maxPoints) return false;
+    final declared = answer['creditSteps'];
+    return declared is! List ||
+        declared.any((value) => (value as num).toDouble() == points);
+  }
+
   factory KompassPart.fromJson(Map<String, dynamic> json) {
     final kind = _requiredString(json, 'kind');
     if (!['number', 'choice', 'multiChoice', 'text', 'cells', 'order']
@@ -185,6 +206,23 @@ class KompassPart {
     final points = json['maxPoints'];
     if (points is! num || !points.isFinite || points <= 0) {
       throw const FormatException('Every part needs positive finite points.');
+    }
+    if (answer.containsKey('creditSteps')) {
+      final steps = answer['creditSteps'];
+      if (steps is! List ||
+          steps.isEmpty ||
+          steps.any((step) =>
+              step is! num || !step.isFinite || step < 0 || step > points)) {
+        throw const FormatException(
+            'Review steps must be finite values within the part maximum.');
+      }
+      final values = steps.map((step) => (step as num).toDouble()).toSet();
+      if (values.length != steps.length ||
+          !values.contains(0) ||
+          !values.contains(points.toDouble())) {
+        throw const FormatException(
+            'Review steps must be distinct and include zero and full points.');
+      }
     }
     final skills = _strings(json['competencyIds'], 'competencyIds');
     if (skills.isEmpty || skills.toSet().length != skills.length) {

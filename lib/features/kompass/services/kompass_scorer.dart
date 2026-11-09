@@ -319,12 +319,8 @@ class KompassScorer {
             } else if (part.answer['reviewOnMismatch'] == true) {
               // Another wording may be right: a person decides, never a
               // fuzzy string match.
-              final review = manualPoints[part.id];
+              final review = _reviewPoints(part, manualPoints);
               if (review != null) {
-                if (!review.isFinite || review < 0 || review > part.maxPoints) {
-                  throw ArgumentError.value(review, 'manualPoints',
-                      'Review points must be between zero and the part maximum.');
-                }
                 points = review;
                 reviewed = true;
                 correct = review == part.maxPoints;
@@ -333,12 +329,8 @@ class KompassScorer {
               }
             }
           case 'manual':
-            final review = manualPoints[part.id];
+            final review = _reviewPoints(part, manualPoints);
             if (review != null) {
-              if (!review.isFinite || review < 0 || review > part.maxPoints) {
-                throw ArgumentError.value(review, 'manualPoints',
-                    'Review points must be between zero and the part maximum.');
-              }
               points = review;
               reviewed = true;
               correct = review == part.maxPoints;
@@ -355,12 +347,8 @@ class KompassScorer {
               source.attempted &&
               !source.correct &&
               !source.pendingReview) {
-            final review = manualPoints[part.id];
+            final review = _reviewPoints(part, manualPoints);
             if (review != null) {
-              if (!review.isFinite || review < 0 || review > part.maxPoints) {
-                throw ArgumentError.value(review, 'manualPoints',
-                    'Review points must be between zero and the part maximum.');
-              }
               points = review;
               reviewed = true;
               correct = review == part.maxPoints;
@@ -405,6 +393,64 @@ class KompassScorer {
       ));
     }
     return KompassScore(scores);
+  }
+
+  /// Applies one new review without migrating other historical review values.
+  /// Untouched values outside a declared step set remain recorded until the
+  /// learner explicitly reviews those parts again.
+  static KompassScore reviewPart(
+    KompassTask task,
+    Map<String, dynamic> responses, {
+    required KompassScore previousScore,
+    required String partId,
+    required double points,
+  }) {
+    final parts = {for (final part in task.parts) part.id: part};
+    final part = parts[partId];
+    if (part == null ||
+        (!part.isManual && previousScore.partById(partId)?.manual != true)) {
+      throw ArgumentError.value(partId, 'partId', 'Part is not under review.');
+    }
+    _reviewPoints(part, {partId: points});
+    final manual = <String, double>{partId: points};
+    final historical = <String, KompassPartScore>{};
+    for (final previous in previousScore.parts) {
+      if (previous.partId == partId || !previous.manual || !previous.reviewed) {
+        continue;
+      }
+      final previousPart = parts[previous.partId];
+      if (previousPart == null) continue;
+      if (previousPart.acceptsManualPoints(previous.awardedPoints)) {
+        manual[previous.partId] = previous.awardedPoints;
+      } else if (previousPart.answer.containsKey('creditSteps') &&
+          previous.maxPoints == previousPart.maxPoints &&
+          previous.awardedPoints.isFinite &&
+          previous.awardedPoints >= 0 &&
+          previous.awardedPoints <= previousPart.maxPoints) {
+        historical[previous.partId] = previous;
+      } else {
+        throw ArgumentError.value(previous.awardedPoints, 'manualPoints',
+            'Historical review does not match the current rubric scale.');
+      }
+    }
+    final updated = score(task, responses, manualPoints: manual);
+    return KompassScore([
+      for (final result in updated.parts) historical[result.partId] ?? result,
+    ]);
+  }
+
+  static double? _reviewPoints(
+      KompassPart part, Map<String, double> manualPoints) {
+    final review = manualPoints[part.id];
+    if (review != null && !part.acceptsManualPoints(review)) {
+      throw ArgumentError.value(
+          review,
+          'manualPoints',
+          part.answer.containsKey('creditSteps')
+              ? 'Review points must match a declared rubric step.'
+              : 'Review points must be between zero and the part maximum.');
+    }
+    return review;
   }
 
   static List<String>? _stringList(dynamic value) {

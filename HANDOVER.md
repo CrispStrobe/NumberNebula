@@ -11,7 +11,7 @@ the foundation and harder labs from #69, the reasoning expansion from #70, and
 the six original kompass4 practice papers. PRs #69 and #70 are earlier component
 branches; do not treat their older heads as the active integrated application.
 
-App **1.6.2+68** contains the main **144-task / 298-part bilingual bank** plus
+App **1.6.3+69** contains the main **144-task / 298-part bilingual bank** plus
 **120 original German paper tasks / 249 parts / 240 points**, grouped into six
 20-task papers. The combined loader version is **2.1.0+k4.1.0.0**. The original
 papers use their own selection and preserve `contentUse: original`; they do not
@@ -31,6 +31,11 @@ was attempt 3 and passed **60,400 generation cases across 48 games**. The
 built WASM/JavaScript and completed capture/replay; live browser tests were still
 queued when checked. Later commits need their own required checks.
 
+The follow-up enforces declared manual-credit steps in original-paper rubrics,
+including the review controls and scorer. Existing saved reviews remain intact
+until explicitly changed; correcting one part preserves another part's prior
+review. Course rubrics without declared steps keep their existing behavior.
+CI now checks reproducibility of the original-paper import and its figure set.
 The follow-up browser regression verifies that the independent-check answer
 actually reaches the saved draft and immutable first response. Earlier fixes
 for saved score parts, text editing and restored fields are already integrated.

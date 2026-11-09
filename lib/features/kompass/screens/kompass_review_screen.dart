@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../models/kompass_attempt.dart';
 import '../models/kompass_content.dart';
+import '../services/kompass_scorer.dart';
 import '../services/kompass_store.dart';
 import '../services/kompass_planner.dart';
 import '../widgets/kompass_figure_view.dart';
@@ -87,21 +88,23 @@ class _KompassReviewScreenState extends State<KompassReviewScreen> {
         break;
       }
     }
-    if (latest == null || !_compatible(latest) || latest.taskId != task.id) {
+    if (latest == null ||
+        !_compatible(latest) ||
+        latest.taskId != task.id ||
+        latest.familyId != task.familyId) {
       return;
     }
     setState(() => _busy = true);
     try {
-      final manual = <String, double>{
-        for (final score in latest.score.parts)
-          if (score.manual && score.reviewed) score.partId: score.awardedPoints,
-        part.id: points,
-      };
       await widget.store.revise(
-        latest.reviseTask(
-          task: task,
-          responses: latest.responses,
-          manualPoints: manual,
+        latest.copyWith(
+          score: KompassScorer.reviewPart(
+            task,
+            latest.responses,
+            previousScore: latest.score,
+            partId: part.id,
+            points: points,
+          ),
         ),
       );
     } catch (_) {
@@ -500,13 +503,30 @@ class _KompassReviewScreenState extends State<KompassReviewScreen> {
                                 ),
                               ),
                               const SizedBox(height: 8),
+                              if (attempt.score.partById(part.id)
+                                  case final previous?
+                                      when previous.reviewed &&
+                                          !part.acceptsManualPoints(
+                                              previous.awardedPoints))
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Text(
+                                    kc(
+                                      _german,
+                                      'Frühere Bewertung: ${previous.awardedPoints} Punkte. Wähle einen erlaubten Wert, um sie zu ändern.',
+                                      'Earlier review: ${previous.awardedPoints} points. Choose an allowed value to update.',
+                                    ),
+                                    key: ValueKey(
+                                        'review-legacy-points-${attempt.id}-${part.id}'),
+                                  ),
+                                ),
                               Wrap(
+                                key: ValueKey(
+                                    'manual-review-${attempt.id}-${part.id}'),
                                 spacing: 8,
                                 runSpacing: 8,
                                 children: [
-                                  for (double points = 0;
-                                      points <= part.maxPoints;
-                                      points += .5)
+                                  for (final points in part.reviewPointOptions)
                                     ChoiceChip(
                                       label: Text(
                                         '$points / ${part.maxPoints}',

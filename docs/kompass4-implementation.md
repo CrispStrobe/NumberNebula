@@ -17,7 +17,7 @@ The authoring reference is CrispStrobe/kompass4 at
 are project-owned identifiers, not official IBBW assessment codes. Published
 official papers remain linked references and are not embedded or adapted.
 
-The current implementation uses app version **1.6.2+68** and content version
+The current implementation uses app version **1.6.3+69** and content version
 **2.1.0**: 144 original bilingual tasks, 298 scored parts and eight labs with
 22 activity types. See [the reasoning expansion](kompass4-reasoning-expansion.md)
 for the four added labs and 16 added tasks. A separate original-paper package
@@ -206,6 +206,12 @@ kompass4 commit, not bundled.
   drawings and explanations. Where a rubric credits a correct continuation of
   a wrong earlier step (`followOnFrom`), the later answer goes to rubric
   review instead of scoring zero.
+- Declared `creditSteps` govern the available manual-review values and scorer
+  acceptance. Parts without that field retain their established review options.
+  Earlier saved scores remain readable; an out-of-step historical review is
+  identified in the review screen and changes only when explicitly reviewed.
+  Updating one part preserves other parts' historical reviews and never changes
+  the immutable first response or score.
 
 ## Lab recipes
 
@@ -236,10 +242,12 @@ Rebuild and validate with Python's standard library:
 python3 -B tool/kompass/build_content.py
 python3 -B tool/kompass/validate_content.py
 python3 -B tool/kompass/build_print.py
+python3 -B tool/kompass/import_kompass4_math.py --check
 python3 -B -m unittest discover -s tool/kompass -p 'test_*.py' -v
 ```
 
-CI uses `--check` on both builders to reject stale generated files. The content
+CI uses `--check` on the content/print builders and original-paper importer to
+reject stale generated files or a mismatched imported figure set. The content
 validator checks localized fields, competency and option references, numeric and
 set answers, figures, family separation and mathematical invariants. Independent
 content tests recompute answers and inspect transfer cases rather than accepting

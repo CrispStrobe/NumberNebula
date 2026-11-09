@@ -28,6 +28,7 @@ jobs:
           python3 -B tool/kompass/build_content.py --check
           python3 -B tool/kompass/validate_content.py
           python3 -B tool/kompass/build_print.py --check
+          python3 -B tool/kompass/import_kompass4_math.py --check
           python3 -B -m unittest discover -s tool/kompass -p 'test_*.py' -v
 
       - name: Read Flutter SDK pin
