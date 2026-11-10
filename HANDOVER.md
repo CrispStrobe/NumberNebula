@@ -1,15 +1,15 @@
 # NumberNebula: current state and agent handover
 
-Updated 2026-11-09. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
+Updated 2026-11-10. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
-## Active KOMPASS integration: PR #71 (2026-11-09)
+## KOMPASS integration: PR #71, merged 2026-11-10
 
-Continue on [`integrate/kompass4-all`](https://github.com/CrispStrobe/NumberNebula/tree/integrate/kompass4-all),
-in [draft PR #71](https://github.com/CrispStrobe/NumberNebula/pull/71). It combines
+[PR #71](https://github.com/CrispStrobe/NumberNebula/pull/71) is merged into `main`
+as `55eda35` (1.6.3+69). It combines
 the foundation and harder labs from #69, the reasoning expansion from #70, and
-the six original kompass4 practice papers. PRs #69 and #70 are earlier component
-branches; do not treat their older heads as the active integrated application.
+the six original kompass4 practice papers. #69 is marked merged and #70 is closed
+as included; continue from `main`, not from their branches.
 
 App **1.6.3+69** contains the main **144-task / 298-part bilingual bank** plus
 **120 original German paper tasks / 249 parts / 240 points**, grouped into six
@@ -39,8 +39,13 @@ CI now checks reproducibility of the original-paper import and its figure set.
 The follow-up browser regression verifies that the independent-check answer
 actually reaches the saved draft and immutable first response. Earlier fixes
 for saved score parts, text editing and restored fields are already integrated.
-Use PR #71 checks for the latest head. This integration has not been merged or
-published.
+Verified on the exact PR head `3c7c362`: [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/42700806533),
+[calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/42700806431) and
+[web build and browser tests](https://github.com/CrispStrobe/NumberNebula/actions/runs/42700806387).
+Verified again on merged `main` `55eda35`: [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/42715596423),
+[calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/42715596890) and
+[web build, browser tests and deployment](https://github.com/CrispStrobe/NumberNebula/actions/runs/42715596406).
+Both the live app and the GitHub Pages copy serve 1.6.3 (69).
 
 ## Earlier KOMPASS reasoning expansion (2026-11-09)
 
