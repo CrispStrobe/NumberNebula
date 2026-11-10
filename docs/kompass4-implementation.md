@@ -17,7 +17,7 @@ The authoring reference is CrispStrobe/kompass4 at
 are project-owned identifiers, not official IBBW assessment codes. Published
 official papers remain linked references and are not embedded or adapted.
 
-The current implementation uses app version **1.6.3+69** and content version
+The current implementation uses app version **1.6.4+70** and content version
 **2.1.0**: 144 original bilingual tasks, 298 scored parts and eight labs with
 22 activity types. See [the reasoning expansion](kompass4-reasoning-expansion.md)
 for the four added labs and 16 added tasks. A separate original-paper package
@@ -190,6 +190,15 @@ export in `tool/kompass/kompass4_math_source.json` and converts it with
 `assets/kompass/kompass4/math_original.json` plus 63 PNG diagrams rendered
 by the print renderer (316 KB). The PDF booklets are linked at the pinned
 kompass4 commit, not bundled.
+
+All 249 answer parts were reviewed on 2026-11-10 against each task's printed
+text, official solution and rubric. No keyed answer was wrong; the review
+restored printed prompt wording, removed hints and prompts that gave results
+away, completed rubric lines and accepted spellings, and added count-word
+aliases (`labelAliases`, imported as `answer.unitAliases`). Numbers accept the
+unit word as well as the symbol ("18 Minuten"), and short text answers ignore
+number/unit spacing and a closing full stop. A teacher's sign-off is still
+advisable before the papers are used for grading.
 
 - Tasks use `use: original`; practice, check and rehearsal selection never
   draws them. The hub lists each paper with *Als Test* (timed rehearsal mode,

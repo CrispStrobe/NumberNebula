@@ -263,6 +263,41 @@ void main() {
     }
   });
 
+  test('unit words, count-word aliases and answer spacing match kompass4', () {
+    expect(KompassScorer.parseNumber('18 Minuten', unit: 'min'), 18);
+    expect(KompassScorer.parseNumber('11 Euro', unit: '€'), 11);
+    expect(KompassScorer.parseNumber('18 Stunden', unit: 'min'), isNull);
+    final pack = _pack();
+    final squares = pack.taskById('k4_m5_10')!.parts.first;
+    expect(squares.unit, 'Quadraten');
+    for (final written in ['9', '9 Quadraten', '9 Quadrate', '9  quadrate']) {
+      expect(
+          KompassScorer.score(pack.taskById('k4_m5_10')!, {squares.id: written})
+              .partById(squares.id)!
+              .correct,
+          isTrue,
+          reason: written);
+    }
+    expect(
+        KompassScorer.score(pack.taskById('k4_m5_10')!, {squares.id: '9 cm'})
+            .partById(squares.id)!
+            .correct,
+        isFalse);
+    final tall = pack.taskById('k4_m4_12')!;
+    final view = tall.parts.firstWhere((p) => p.id == 'b');
+    for (final written in ['2 Würfel hoch', '2 Würfel', '2']) {
+      expect(KompassScorer.score(tall, {view.id: written}).partById('b')!.correct,
+          isTrue,
+          reason: written);
+    }
+    final rope = pack.taskById('k4_m6_15')!;
+    for (final written in ['1m50cm', '1 m 50 cm.', '1 M 50 CM']) {
+      expect(KompassScorer.score(rope, {'a': '150', 'b': written})
+          .partById('b')!
+          .correct, isTrue, reason: written);
+    }
+  });
+
   test('every referenced diagram is bundled', () {
     final assets = <String>{};
     void collect(dynamic value) {
@@ -283,14 +318,24 @@ void main() {
 
   testWidgets('an original task stem renders its text, table and diagram',
       (tester) async {
-    final task = _pack().taskById('k4_m4_14')!;
-    await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-            body: SingleChildScrollView(
-                child: KompassFigureView(
-                    figure: task.figure!, german: true, plain: true)))));
-    expect(find.byKey(const ValueKey('kompass_figure_stack')), findsOneWidget);
+    Future<void> show(Map<String, dynamic> figure) => tester.pumpWidget(
+        MaterialApp(
+            home: Scaffold(
+                body: SingleChildScrollView(
+                    child: KompassFigureView(
+                        figure: figure, german: true, plain: true)))));
+    // m4_14: the intro is the prompt, the price table is the figure, and
+    // part b's question lives only in its part prompt (not twice).
+    final prices = _pack().taskById('k4_m4_14')!;
+    expect(prices.prompt['de'], startsWith('Sam braucht genau sechs Hefte.'));
+    expect(prices.figure!['kind'], 'table');
+    await show(prices.figure!);
     expect(find.text('Eine Packung mit 3 Heften'), findsOneWidget);
+    final stacked = _pack()
+        .tasks
+        .firstWhere((t) => t.use == 'original' && t.figure?['kind'] == 'stack');
+    await show(stacked.figure!);
+    expect(find.byKey(const ValueKey('kompass_figure_stack')), findsOneWidget);
     final image = _pack()
         .tasks
         .firstWhere((t) => t.use == 'original' && t.figure?['kind'] == 'image');
