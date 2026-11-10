@@ -141,14 +141,17 @@ class KompassScorer {
   /// `acceptCents` lets a euro part also read "345 ct" or "3 € 45 ct"; it is
   /// set only where the task's rubric accepts cent amounts.
   static double? parseNumber(dynamic value,
-      {String unit = '', bool acceptCents = false}) {
+      {String unit = '',
+      bool acceptCents = false,
+      List<String> aliases = const []}) {
     if (value is num) return value.isFinite ? value.toDouble() : null;
     if (value is! String) return null;
     var text = value
         .trim()
         .replaceAll('\u2212', '-')
         .replaceAll('\u00a0', ' ')
-        .replaceAll('\u202f', ' ');
+        .replaceAll('\u202f', ' ')
+        .replaceAll(RegExp(r'\s+'), ' ');
     if (text.isEmpty) return null;
     final expectedUnit = unit.trim().toLowerCase();
     if (expectedUnit == '€' && acceptCents) {
@@ -162,10 +165,15 @@ class KompassScorer {
       }
     }
     if (expectedUnit.isNotEmpty) {
-      final aliases = [...?_unitAliases[expectedUnit], expectedUnit]
-        ..sort((a, b) => b.length.compareTo(a.length));
+      // A part may also name further count words ("Quadrate" beside
+      // "Quadraten"); only those words, never an arbitrary suffix.
+      final suffixes = [
+        ...?_unitAliases[expectedUnit],
+        expectedUnit,
+        for (final alias in aliases) alias.trim().toLowerCase(),
+      ]..sort((a, b) => b.length.compareTo(a.length));
       final lower = text.toLowerCase();
-      for (final alias in aliases) {
+      for (final alias in suffixes) {
         if (lower.endsWith(alias)) {
           text = text.substring(0, text.length - alias.length).trim();
           break;
@@ -210,7 +218,8 @@ class KompassScorer {
           case 'number':
             final number = parseNumber(response,
                 unit: part.unit,
-                acceptCents: part.answer['acceptCents'] == true);
+                acceptCents: part.answer['acceptCents'] == true,
+                aliases: _unitAliasesOf(part));
             final expected = (part.answer['value'] as num).toDouble();
             final tolerance =
                 (part.answer['tolerance'] as num?)?.toDouble() ?? 1e-9;
@@ -225,8 +234,8 @@ class KompassScorer {
               points = part.maxPoints;
             } else if (number != null && part.carryFrom != null) {
               final source = byId[part.carryFrom]!;
-              final previous =
-                  parseNumber(responses[source.id], unit: source.unit);
+              final previous = parseNumber(responses[source.id],
+                  unit: source.unit, aliases: _unitAliasesOf(source));
               final previousExpected =
                   (source.answer['value'] as num).toDouble();
               // A whole-euro canonical answer can follow a valid cents error.
@@ -304,8 +313,18 @@ class KompassScorer {
             if (correct) points = part.maxPoints;
           case 'text':
             String normal(Object? value) {
-              var text =
-                  value.toString().trim().replaceAll(RegExp(r'\s+'), ' ');
+              // Spacing between numbers and units and a closing full stop do
+              // not change a short answer: "1m50cm" equals "1 m 50 cm.".
+              var text = value
+                  .toString()
+                  .replaceAll(
+                      RegExp(r'(?<=\d)(?=\p{L})|(?<=\p{L})(?=\d)',
+                          unicode: true),
+                      ' ')
+                  .trim()
+                  .replaceAll(RegExp(r'\s+'), ' ')
+                  .replaceAll(RegExp(r'[.!]+$'), '')
+                  .trim();
               if (part.answer['caseSensitive'] != true) {
                 text = text.toLowerCase();
               }
@@ -452,6 +471,11 @@ class KompassScorer {
     }
     return review;
   }
+
+  static List<String> _unitAliasesOf(KompassPart part) => [
+        for (final alias in part.answer['unitAliases'] as List? ?? const [])
+          if (alias is String) alias,
+      ];
 
   static List<String>? _stringList(dynamic value) {
     if (value is! List || value.any((item) => item is! String)) return null;

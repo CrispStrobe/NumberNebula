@@ -207,6 +207,16 @@ class KompassPart {
     if (points is! num || !points.isFinite || points <= 0) {
       throw const FormatException('Every part needs positive finite points.');
     }
+    if (answer.containsKey('unitAliases')) {
+      final aliases = answer['unitAliases'];
+      if (aliases is! List ||
+          aliases.isEmpty ||
+          aliases.any((alias) => alias is! String || alias.trim().isEmpty) ||
+          (json['unit'] as String? ?? '').isEmpty) {
+        throw const FormatException(
+            'Unit aliases must be nonempty words beside a part unit.');
+      }
+    }
     if (answer.containsKey('creditSteps')) {
       final steps = answer['creditSteps'];
       if (steps is! List ||

@@ -5,7 +5,7 @@
  "language": "de",
  "source": {
   "repository": "https://github.com/CrispStrobe/kompass4",
-  "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+  "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
   "originalTaskCount": 120,
   "reviewStatus": "draft",
   "official": false,
@@ -16,7 +16,7 @@
    "Punkte und Zeiten sind nicht empirisch kalibriert.",
    "Digitale Antwortfelder sind Entwürfe. Zeichnungen und Begründungen werden anhand der Rubrik selbst oder gemeinsam geprüft."
   ],
-  "sourceSha256": "1542f1d7b5e1fc6f7f5b7cd60387ac7d003fbd6358c8648d62d2474127b6daeb"
+  "sourceSha256": "26f30043a8737b999843cde42866d3ff434e6deeb85883cf082ce622107686b7"
  },
  "tasks": [
   {
@@ -102,7 +102,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_01.json",
     "sha256": "4d197e8c1b13ff7bc9517f051a078d965d3ae9554f4d34e090d2637f79a279f3",
     "companionPath": "content/interactive/mathe1.json",
@@ -258,7 +258,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_02.json",
     "sha256": "8463404ba8c848e4b2ad332d334de65b8fd2770588a45bdfbaeddd301c5162a2",
     "companionPath": "content/interactive/mathe1.json",
@@ -330,8 +330,8 @@
     {
      "id": "b1",
      "prompt": {
-      "de": "b) Nach dem Tauschen liegen dort ___ Hunderterplatten.",
-      "en": "b) Nach dem Tauschen liegen dort ___ Hunderterplatten."
+      "de": "b) Danach liegen dort ___ Hunderterplatten …",
+      "en": "b) Danach liegen dort ___ Hunderterplatten …"
      },
      "competencyIds": [
       "M-Z01"
@@ -344,7 +344,7 @@
       }
      ],
      "kind": "number",
-     "unit": "",
+     "unit": "Hunderterplatten",
      "answer": {
       "type": "number",
       "value": 3,
@@ -368,7 +368,7 @@
       }
      ],
      "kind": "number",
-     "unit": "",
+     "unit": "Zehnerstreifen",
      "answer": {
       "type": "number",
       "value": 15,
@@ -394,7 +394,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_03.json",
     "sha256": "db3ba9b3997b7958a4fc37d2edfe1ebe7ba1cc0231d5cef9ed3ac3aabc7005c3",
     "companionPath": "content/interactive/mathe1.json",
@@ -558,7 +558,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_04.json",
     "sha256": "6670e3c5909e587a5dfc7eca814c75d63325122f3cfada0bf6fa3cc0fbcdcd7c",
     "companionPath": "content/interactive/mathe1.json",
@@ -673,7 +673,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_05.json",
     "sha256": "0d5812d6eb726c2d73dae29c4e6ae7895ae2a7c079302f58bb45deee056d3c91",
     "companionPath": "content/interactive/mathe1.json",
@@ -778,7 +778,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_06.json",
     "sha256": "6f124c860c3ba1005a92c4d9e5484ed957c7f6da1b5ccf957b3cdb77ad815b0d",
     "companionPath": "content/interactive/mathe1.json",
@@ -897,7 +897,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_07.json",
     "sha256": "6c98c2b19f4bf52e6c611ea618a09d9c7e9745f0452e36a9d23e5673c2aab699",
     "companionPath": "content/interactive/mathe1.json",
@@ -966,7 +966,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_08.json",
     "sha256": "d4f658dc4ea7b50cc7728bfcaaa2dd2b527f88dd73773944987c776c4d74bcd8",
     "companionPath": "content/interactive/mathe1.json",
@@ -1117,7 +1117,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_09.json",
     "sha256": "c109a214e06277b7cc761fb9cdcbda770da70e149963e2503ea02792e80f31e7",
     "companionPath": "content/interactive/mathe1.json",
@@ -1222,7 +1222,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_10.json",
     "sha256": "cfaf131d1ee2f30db04b7ba64f0ac674cb6f62bf7e7b83b5895d3f011400f78b",
     "companionPath": "content/interactive/mathe1.json",
@@ -1281,7 +1281,10 @@
      "answer": {
       "type": "number",
       "value": 2,
-      "accepted": []
+      "accepted": [],
+      "unitAliases": [
+       "Achsen"
+      ]
      }
     },
     {
@@ -1336,7 +1339,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_11.json",
     "sha256": "794c83956698365b033fd90a8ad5f46ac98089c986ea323b3c701aa0a0b4d892",
     "companionPath": "content/interactive/mathe1.json",
@@ -1475,7 +1478,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_12.json",
     "sha256": "eae5d90b1af93ce0603b77d28951db6c5a83292d27647331e48af24a6bf97677",
     "companionPath": "content/interactive/mathe1.json",
@@ -1563,7 +1566,8 @@
      "answer": {
       "type": "text",
       "values": [
-       "D"
+       "D",
+       "Fläche D"
       ],
       "caseSensitive": false,
       "reviewOnMismatch": false,
@@ -1593,7 +1597,8 @@
      "answer": {
       "type": "text",
       "values": [
-       "F"
+       "F",
+       "Fläche F"
       ],
       "caseSensitive": false,
       "reviewOnMismatch": false,
@@ -1622,7 +1627,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_13.json",
     "sha256": "689c3f7c888302433001e14c64001085bc0cfeabdd7ea59d94a2aa221bc1fc93",
     "companionPath": "content/interactive/mathe1.json",
@@ -1688,8 +1693,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Material für 16 €, bezahlt mit einem 20-€-Schein. Wie viel Geld bekommt die Gruppe zurück?",
-      "en": "b) Material für 16 €, bezahlt mit einem 20-€-Schein. Wie viel Geld bekommt die Gruppe zurück?"
+      "de": "b) Eine Gruppe kauft Material für 16 €. Sie bezahlt mit einem 20-€-Schein. Wie viel Geld bekommt sie zurück?",
+      "en": "b) Eine Gruppe kauft Material für 16 €. Sie bezahlt mit einem 20-€-Schein. Wie viel Geld bekommt sie zurück?"
      },
      "competencyIds": [
       "M-G04"
@@ -1729,7 +1734,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_14.json",
     "sha256": "6c38c8487221b6c81d8dc02cae4c189de1c6d4c2f1e082e6ec5cb1672cf227ba",
     "companionPath": "content/interactive/mathe1.json",
@@ -1738,34 +1743,21 @@
     "taskId": "m1_14"
    },
    "figure": {
-    "kind": "stack",
+    "kind": "table",
     "data": {
-     "items": [
-      {
-       "kind": "table",
-       "data": {
-        "headers": [
-         "Ware",
-         "Preis"
-        ],
-        "rows": [
-         [
-          "Heft",
-          "3 €"
-         ],
-         [
-          "Schere",
-          "5 €"
-         ]
-        ]
-       }
-      },
-      {
-       "kind": "text",
-       "data": {
-        "text": "b) Eine Gruppe kauft Material für 16 €. Sie bezahlt mit einem 20-€-Schein. Wie viel Geld bekommt sie zurück?"
-       }
-      }
+     "headers": [
+      "Ware",
+      "Preis"
+     ],
+     "rows": [
+      [
+       "Heft",
+       "3 €"
+      ],
+      [
+       "Schere",
+       "5 €"
+      ]
      ]
     },
     "alt": {
@@ -1868,7 +1860,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_15.json",
     "sha256": "4e47f0e557f84812dada154f4eed2e70ac6292b9e37a64df124fe91039592cd5",
     "companionPath": "content/interactive/mathe1.json",
@@ -2148,7 +2140,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_16.json",
     "sha256": "2486ef91cf59cbd85bdc9391bc52ff2b892536491781fa6c536415d840d64880",
     "companionPath": "content/interactive/mathe1.json",
@@ -2245,7 +2237,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_17.json",
     "sha256": "7234a99b0ab2e8133bce4607a84130f6f34fc5e5ec15afbc14fe08c0ab7a42c9",
     "companionPath": "content/interactive/mathe1.json",
@@ -2373,7 +2365,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_18.json",
     "sha256": "172d3f33b12e56a70e862fe5cbf6a348f93f23f45f30cf6355664ed51b55679c",
     "companionPath": "content/interactive/mathe1.json",
@@ -2496,7 +2488,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_19.json",
     "sha256": "10e369ef1b227cdfed6efade5866999210671a5c35ed94e12843932c959eab9b",
     "companionPath": "content/interactive/mathe1.json",
@@ -2733,7 +2725,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe1/m1_20.json",
     "sha256": "8380ffec1f2b4c610bd8d236bb49bdffdd0ec5773fd7702c44e30d7fa9cb550b",
     "companionPath": "content/interactive/mathe1.json",
@@ -2886,7 +2878,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_01.json",
     "sha256": "abf85fb79700bb4922c629b416d24af4e9f5cb2e5aa1a071fa84be1636600585",
     "companionPath": "content/interactive/mathe2.json",
@@ -3042,7 +3034,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_02.json",
     "sha256": "e55717d539fe94127ea6a2cde4862c99a92403874b667543903be06ebff0f003",
     "companionPath": "content/interactive/mathe2.json",
@@ -3114,8 +3106,8 @@
     {
      "id": "b1",
      "prompt": {
-      "de": "b) Danach liegen dort ___ Zehnerstreifen.",
-      "en": "b) Danach liegen dort ___ Zehnerstreifen."
+      "de": "b) Tausche genau einen Zehnerstreifen gegen zehn Einerplättchen. Wie viele Zehnerstreifen und Einerplättchen liegen danach dort? __________ Zehnerstreifen",
+      "en": "b) Tausche genau einen Zehnerstreifen gegen zehn Einerplättchen. Wie viele Zehnerstreifen und Einerplättchen liegen danach dort? __________ Zehnerstreifen"
      },
      "competencyIds": [
       "M-Z01"
@@ -3128,7 +3120,7 @@
       }
      ],
      "kind": "number",
-     "unit": "",
+     "unit": "Zehnerstreifen",
      "answer": {
       "type": "number",
       "value": 2,
@@ -3138,8 +3130,8 @@
     {
      "id": "b2",
      "prompt": {
-      "de": "b) … und ___ Einerplättchen.",
-      "en": "b) … und ___ Einerplättchen."
+      "de": "b) … und __________ Einerplättchen.",
+      "en": "b) … und __________ Einerplättchen."
      },
      "competencyIds": [
       "M-Z01"
@@ -3152,7 +3144,7 @@
       }
      ],
      "kind": "number",
-     "unit": "",
+     "unit": "Einerplättchen",
      "answer": {
       "type": "number",
       "value": 12,
@@ -3178,7 +3170,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_03.json",
     "sha256": "de0a002e7a4e837ead93f60074f6c8d304489f8678a278a98a8ebd57b804a469",
     "companionPath": "content/interactive/mathe2.json",
@@ -3194,12 +3186,6 @@
        "kind": "text",
        "data": {
         "text": "b) Die Zahl 632 ist mit 6 Hunderterplatten, 3 Zehnerstreifen und 2 Einerplättchen gelegt. Tausche genau einen Zehnerstreifen gegen zehn Einerplättchen. Wie viele Zehnerstreifen und Einerplättchen liegen danach dort?"
-       }
-      },
-      {
-       "kind": "text",
-       "data": {
-        "text": "__________ Zehnerstreifen und __________ Einerplättchen."
        }
       }
      ]
@@ -3289,7 +3275,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_04.json",
     "sha256": "03309e52d7ba75ccc9aa5194aeed260b59ccfa490de397d4c8c3ac2e5837c249",
     "companionPath": "content/interactive/mathe2.json",
@@ -3394,7 +3380,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_05.json",
     "sha256": "ff51054c7adf6644aab2c2f1207460f61bed0e3a3075b8298d0e420f8083c013",
     "companionPath": "content/interactive/mathe2.json",
@@ -3509,7 +3495,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_06.json",
     "sha256": "0cd8115bc048c77a732d93f09153a54f7399489c1366d84290cc4d772684d036",
     "companionPath": "content/interactive/mathe2.json",
@@ -3645,7 +3631,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_07.json",
     "sha256": "146cb70fbf99a00483c72ed23632d32e75975eb13d4c4ea5564fdb7712bccf5d",
     "companionPath": "content/interactive/mathe2.json",
@@ -3696,8 +3682,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "Trage alle verschiedenen Türme aus zwei Würfeln (oben/unten, hell H oder dunkel D) in die Tabelle ein.",
-      "en": "Trage alle verschiedenen Türme aus zwei Würfeln (oben/unten, hell H oder dunkel D) in die Tabelle ein."
+      "de": "Trage alle verschiedenen Möglichkeiten in die Tabelle ein. Jede Zeile steht für einen Turm (oben/unten, hell H oder dunkel D).",
+      "en": "Trage alle verschiedenen Möglichkeiten in die Tabelle ein. Jede Zeile steht für einen Turm (oben/unten, hell H oder dunkel D)."
      },
      "competencyIds": [
       "M-Z12"
@@ -3736,8 +3722,8 @@
      "en": "Lege zuerst die obere Farbe fest und probiere dann beide Möglichkeiten für unten."
     },
     {
-     "de": "H oben und D unten ist ein anderer Turm als D oben und H unten.",
-     "en": "H oben und D unten ist ein anderer Turm als D oben und H unten."
+     "de": "Überlege bei jedem Turm genau, welcher Würfel oben und welcher unten ist.",
+     "en": "Überlege bei jedem Turm genau, welcher Würfel oben und welcher unten ist."
     }
    ],
    "solution": {
@@ -3748,7 +3734,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_08.json",
     "sha256": "8661783adb7e3035355518d3a504a013ce040865119e0f45f6a5d6c709cd82c4",
     "companionPath": "content/interactive/mathe2.json",
@@ -3892,7 +3878,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_09.json",
     "sha256": "f8d6d4d3dbbd31f247636aea954eca252b224ad57366ed2150588d6c4943edb1",
     "companionPath": "content/interactive/mathe2.json",
@@ -4001,7 +3987,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_10.json",
     "sha256": "defb3a5f5b6791eada978ece0ef2c222e85b149f88f985d07d101b40e10bb07e",
     "companionPath": "content/interactive/mathe2.json",
@@ -4077,14 +4063,18 @@
       {
        "de": "1 Punkt für den richtig liegenden Spiegelpunkt A' (drei Kästchen rechts der Achse, gleiche Höhe wie A). Abweichungen bis etwa 2 mm vom Gitterkreuz tolerieren; keine konkurrierenden ungestrichenen Punkte.",
        "en": "1 Punkt für den richtig liegenden Spiegelpunkt A' (drei Kästchen rechts der Achse, gleiche Höhe wie A). Abweichungen bis etwa 2 mm vom Gitterkreuz tolerieren; keine konkurrierenden ungestrichenen Punkte."
+      },
+      {
+       "de": "Ohne Beschriftung ist ein eindeutig auf gleicher Höhe zu A zugeordneter Punkt ebenfalls richtig; keine zusätzlichen Punkte für die Beschriftung.",
+       "en": "Ohne Beschriftung ist ein eindeutig auf gleicher Höhe zu A zugeordneter Punkt ebenfalls richtig; keine zusätzlichen Punkte für die Beschriftung."
       }
      ],
      "kind": "text",
      "answer": {
       "type": "manual",
       "criteria": {
-       "de": "1 Punkt für den richtig liegenden Spiegelpunkt A' (drei Kästchen rechts der Achse, gleiche Höhe wie A). Abweichungen bis etwa 2 mm vom Gitterkreuz tolerieren; keine konkurrierenden ungestrichenen Punkte.",
-       "en": "1 Punkt für den richtig liegenden Spiegelpunkt A' (drei Kästchen rechts der Achse, gleiche Höhe wie A). Abweichungen bis etwa 2 mm vom Gitterkreuz tolerieren; keine konkurrierenden ungestrichenen Punkte."
+       "de": "1 Punkt für den richtig liegenden Spiegelpunkt A' (drei Kästchen rechts der Achse, gleiche Höhe wie A). Abweichungen bis etwa 2 mm vom Gitterkreuz tolerieren; keine konkurrierenden ungestrichenen Punkte.\nOhne Beschriftung ist ein eindeutig auf gleicher Höhe zu A zugeordneter Punkt ebenfalls richtig; keine zusätzlichen Punkte für die Beschriftung.",
+       "en": "1 Punkt für den richtig liegenden Spiegelpunkt A' (drei Kästchen rechts der Achse, gleiche Höhe wie A). Abweichungen bis etwa 2 mm vom Gitterkreuz tolerieren; keine konkurrierenden ungestrichenen Punkte.\nOhne Beschriftung ist ein eindeutig auf gleicher Höhe zu A zugeordneter Punkt ebenfalls richtig; keine zusätzlichen Punkte für die Beschriftung."
       },
       "creditSteps": [
        0,
@@ -4106,14 +4096,18 @@
       {
        "de": "1 Punkt für den richtig liegenden Spiegelpunkt B' (ein Kästchen rechts der Achse, gleiche Höhe wie B). Abweichungen bis etwa 2 mm tolerieren; keine konkurrierenden ungestrichenen Punkte.",
        "en": "1 Punkt für den richtig liegenden Spiegelpunkt B' (ein Kästchen rechts der Achse, gleiche Höhe wie B). Abweichungen bis etwa 2 mm tolerieren; keine konkurrierenden ungestrichenen Punkte."
+      },
+      {
+       "de": "Ohne Beschriftung ist ein eindeutig auf gleicher Höhe zu B zugeordneter Punkt ebenfalls richtig; keine zusätzlichen Punkte für die Beschriftung.",
+       "en": "Ohne Beschriftung ist ein eindeutig auf gleicher Höhe zu B zugeordneter Punkt ebenfalls richtig; keine zusätzlichen Punkte für die Beschriftung."
       }
      ],
      "kind": "text",
      "answer": {
       "type": "manual",
       "criteria": {
-       "de": "1 Punkt für den richtig liegenden Spiegelpunkt B' (ein Kästchen rechts der Achse, gleiche Höhe wie B). Abweichungen bis etwa 2 mm tolerieren; keine konkurrierenden ungestrichenen Punkte.",
-       "en": "1 Punkt für den richtig liegenden Spiegelpunkt B' (ein Kästchen rechts der Achse, gleiche Höhe wie B). Abweichungen bis etwa 2 mm tolerieren; keine konkurrierenden ungestrichenen Punkte."
+       "de": "1 Punkt für den richtig liegenden Spiegelpunkt B' (ein Kästchen rechts der Achse, gleiche Höhe wie B). Abweichungen bis etwa 2 mm tolerieren; keine konkurrierenden ungestrichenen Punkte.\nOhne Beschriftung ist ein eindeutig auf gleicher Höhe zu B zugeordneter Punkt ebenfalls richtig; keine zusätzlichen Punkte für die Beschriftung.",
+       "en": "1 Punkt für den richtig liegenden Spiegelpunkt B' (ein Kästchen rechts der Achse, gleiche Höhe wie B). Abweichungen bis etwa 2 mm tolerieren; keine konkurrierenden ungestrichenen Punkte.\nOhne Beschriftung ist ein eindeutig auf gleicher Höhe zu B zugeordneter Punkt ebenfalls richtig; keine zusätzlichen Punkte für die Beschriftung."
       },
       "creditSteps": [
        0,
@@ -4140,7 +4134,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_11.json",
     "sha256": "4be547c72873e8636fea14be82972146a2d917e6f9f751f2ced3bb4190dc5652",
     "companionPath": "content/interactive/mathe2.json",
@@ -4279,7 +4273,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_12.json",
     "sha256": "02f55bc1940da11502781d24174abb5e7c0d0bb23c8d4b8ee7ac22a1c29ce7e2",
     "companionPath": "content/interactive/mathe2.json",
@@ -4374,8 +4368,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Wie viele Quadrate mit 1 cm Seitenlänge passen ohne Lücken und Überlappungen in das Rechteck?",
-      "en": "b) Wie viele Quadrate mit 1 cm Seitenlänge passen ohne Lücken und Überlappungen in das Rechteck?"
+      "de": "b) Wie viele Quadrate mit jeweils 1 cm Seitenlänge passen ohne Lücken und Überlappungen in das Rechteck?",
+      "en": "b) Wie viele Quadrate mit jeweils 1 cm Seitenlänge passen ohne Lücken und Überlappungen in das Rechteck?"
      },
      "competencyIds": [
       "M-R08"
@@ -4414,7 +4408,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_13.json",
     "sha256": "03ff1403e76b710e927a7b76a1a675c379022175c17b1c1cb3ccc5ae81081db2",
     "companionPath": "content/interactive/mathe2.json",
@@ -4423,33 +4417,16 @@
     "taskId": "m2_13"
    },
    "figure": {
-    "kind": "stack",
-    "data": {
-     "items": [
-      {
-       "kind": "image",
-       "alt": {
-        "de": "Rechteck mit den Seitenangaben 5 Zentimeter und 3 Zentimeter",
-        "en": "Rechteck mit den Seitenangaben 5 Zentimeter und 3 Zentimeter"
-       },
-       "data": {
-        "asset": "assets/kompass/kompass4/figures/rectangles-c95297351b3afc21.png",
-        "width": 645,
-        "height": 411,
-        "widthCm": 6.5
-       }
-      },
-      {
-       "kind": "text",
-       "data": {
-        "text": "b) Wie viele Quadrate mit jeweils 1 cm Seitenlänge passen ohne Lücken und Überlappungen in das Rechteck?"
-       }
-      }
-     ]
-    },
+    "kind": "image",
     "alt": {
      "de": "Rechteck mit den Seitenangaben 5 Zentimeter und 3 Zentimeter",
      "en": "Rechteck mit den Seitenangaben 5 Zentimeter und 3 Zentimeter"
+    },
+    "data": {
+     "asset": "assets/kompass/kompass4/figures/rectangles-c95297351b3afc21.png",
+     "width": 645,
+     "height": 411,
+     "widthCm": 6.5
     }
    }
   },
@@ -4538,7 +4515,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_14.json",
     "sha256": "aa6ebc936c5454ee26cd0ff14b6b447013c1cb0fcd71b98ab59cc8c7833af589",
     "companionPath": "content/interactive/mathe2.json",
@@ -4647,7 +4624,6 @@
        "8:45 Uhr",
        "8.45 Uhr",
        "8 Uhr 45",
-       "8 Uhr 45",
        "08:45"
       ],
       "caseSensitive": false,
@@ -4678,7 +4654,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_15.json",
     "sha256": "9ad1b51d5b597000a4b1f1864e2ba3a9da96f30629719c4e1e3d44f516ff5580",
     "companionPath": "content/interactive/mathe2.json",
@@ -4771,7 +4747,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_16.json",
     "sha256": "67b5dff74a1c0486c0b590409a263f21c6fa25008cf847352692f54017573ce4",
     "companionPath": "content/interactive/mathe2.json",
@@ -4864,7 +4840,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_17.json",
     "sha256": "6f8a0af4e9ae76ea19e3153ed84f77bf179329748534163dd61dec8c41751f5f",
     "companionPath": "content/interactive/mathe2.json",
@@ -4962,7 +4938,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_18.json",
     "sha256": "8d5e31ca8a830e79455c0fd607f4f80d64ea68f24cb989c46c7b165df39f1056",
     "companionPath": "content/interactive/mathe2.json",
@@ -5107,7 +5083,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_19.json",
     "sha256": "df0d2ef01c6408fc696a2a9e63acf3fb227c4e6fda6b08676510b8afac9875fa",
     "companionPath": "content/interactive/mathe2.json",
@@ -5374,7 +5350,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe2/m2_20.json",
     "sha256": "190d769e8d9015920ba00d01a494faa410553991704b822051966ff98a86af1f",
     "companionPath": "content/interactive/mathe2.json",
@@ -5528,7 +5504,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_01.json",
     "sha256": "6229637fd8c26ebe2680394d8963fa8a3b16a292534a793879152ca471d7b5f0",
     "companionPath": "content/interactive/mathe3.json",
@@ -5694,7 +5670,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_02.json",
     "sha256": "bb6fdf390262a90b3d94077dc2dbda4b17e5a5c00ffa1f0f1912e8ab58065b78",
     "companionPath": "content/interactive/mathe3.json",
@@ -5808,7 +5784,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_03.json",
     "sha256": "c7866db6e0215147d2351324e774bd7ff8ad302eee5ae4814644ba141298bcc3",
     "companionPath": "content/interactive/mathe3.json",
@@ -5917,7 +5893,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_04.json",
     "sha256": "3c1cc38a7444667bc77d4fb43bbbd5ff2e1fc31d570ca9883fa0056e0a09e08d",
     "companionPath": "content/interactive/mathe3.json",
@@ -6010,16 +5986,16 @@
        "en": "0,5 Punkte für die beiden richtig beschriebenen Veränderungen ohne klaren Zusammenhang mit dem Ergebnis."
       },
       {
-       "de": "Bloßes Wiederholen 'Die Ergebnisse werden um 10 größer' gibt keinen Punkt.",
-       "en": "Bloßes Wiederholen 'Die Ergebnisse werden um 10 größer' gibt keinen Punkt."
+       "de": "Bloßes Wiederholen 'Die Ergebnisse werden um 10 größer' gibt keinen Erklärungspunkt.",
+       "en": "Bloßes Wiederholen 'Die Ergebnisse werden um 10 größer' gibt keinen Erklärungspunkt."
       }
      ],
      "kind": "text",
      "answer": {
       "type": "manual",
       "criteria": {
-       "de": "1 Punkt für den Zusammenhang: erste Zahl +10, zweite Zahl unverändert, daher Ergebnis +10.\n0,5 Punkte für die beiden richtig beschriebenen Veränderungen ohne klaren Zusammenhang mit dem Ergebnis.\nBloßes Wiederholen 'Die Ergebnisse werden um 10 größer' gibt keinen Punkt.",
-       "en": "1 Punkt für den Zusammenhang: erste Zahl +10, zweite Zahl unverändert, daher Ergebnis +10.\n0,5 Punkte für die beiden richtig beschriebenen Veränderungen ohne klaren Zusammenhang mit dem Ergebnis.\nBloßes Wiederholen 'Die Ergebnisse werden um 10 größer' gibt keinen Punkt."
+       "de": "1 Punkt für den Zusammenhang: erste Zahl +10, zweite Zahl unverändert, daher Ergebnis +10.\n0,5 Punkte für die beiden richtig beschriebenen Veränderungen ohne klaren Zusammenhang mit dem Ergebnis.\nBloßes Wiederholen 'Die Ergebnisse werden um 10 größer' gibt keinen Erklärungspunkt.",
+       "en": "1 Punkt für den Zusammenhang: erste Zahl +10, zweite Zahl unverändert, daher Ergebnis +10.\n0,5 Punkte für die beiden richtig beschriebenen Veränderungen ohne klaren Zusammenhang mit dem Ergebnis.\nBloßes Wiederholen 'Die Ergebnisse werden um 10 größer' gibt keinen Erklärungspunkt."
       },
       "creditSteps": [
        0,
@@ -6043,7 +6019,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_05.json",
     "sha256": "ce2822d79dd437168f8d647cd34a0ddc05308d7ccd5431be12b8328b670cd0c8",
     "companionPath": "content/interactive/mathe3.json",
@@ -6095,8 +6071,8 @@
     {
      "id": "a1",
      "prompt": {
-      "de": "a) Schreibe Miras Rechenweg für 7 · 19 auf.",
-      "en": "a) Schreibe Miras Rechenweg für 7 · 19 auf."
+      "de": "a) Berechne 7 · 19 mit Miras Rechenweg. Schreibe Miras Rechenweg auf.",
+      "en": "a) Berechne 7 · 19 mit Miras Rechenweg. Schreibe Miras Rechenweg auf."
      },
      "competencyIds": [
       "M-Z07"
@@ -6124,8 +6100,8 @@
     {
      "id": "a2",
      "prompt": {
-      "de": "a) 7 · 19 =",
-      "en": "a) 7 · 19 ="
+      "de": "a) Ergebnis: 7 · 19 =",
+      "en": "a) Ergebnis: 7 · 19 ="
      },
      "competencyIds": [
       "M-Z05"
@@ -6186,8 +6162,8 @@
      "en": "7 · 20 ist leicht. Überlege, wie viele Siebener du damit zu viel hast."
     },
     {
-     "de": "Stell dir 7 Gruppen vor: In jeder Gruppe ist eins zu viel.",
-     "en": "Stell dir 7 Gruppen vor: In jeder Gruppe ist eins zu viel."
+     "de": "Lege 7 · 20 und 7 · 19 als Punktefelder nebeneinander: Was ist der Unterschied?",
+     "en": "Lege 7 · 20 und 7 · 19 als Punktefelder nebeneinander: Was ist der Unterschied?"
     }
    ],
    "solution": {
@@ -6198,30 +6174,13 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_06.json",
     "sha256": "ca10108f337f9291e6ce9c42853b1223a7a74712c2cb9511d838ad344f2e9650",
     "companionPath": "content/interactive/mathe3.json",
     "official": false,
     "license": "kompass4 project material; no open licence declared (see kompass4 LICENSING.md)",
     "taskId": "m3_06"
-   },
-   "figure": {
-    "kind": "stack",
-    "data": {
-     "items": [
-      {
-       "kind": "text",
-       "data": {
-        "text": "a) Berechne 7 · 19 mit Miras Rechenweg. Schreibe Miras Rechenweg auf."
-       }
-      }
-     ]
-    },
-    "alt": {
-     "de": "",
-     "en": ""
-    }
    }
   },
   {
@@ -6345,7 +6304,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_07.json",
     "sha256": "a1470ca94fb5ac961752578b085efdc176d2968c1ad287d1da4c44c11a49d17f",
     "companionPath": "content/interactive/mathe3.json",
@@ -6442,7 +6401,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_08.json",
     "sha256": "0e36d7501cfd88fa21c0d8c02af09da59e3dc8f788779ea9276e521d4f3da88d",
     "companionPath": "content/interactive/mathe3.json",
@@ -6533,7 +6492,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_09.json",
     "sha256": "92c77b3fae11f19dc0e79c75b64915b5aae65ca82a44b5acbe5b04b2d25a8a50",
     "companionPath": "content/interactive/mathe3.json",
@@ -6637,7 +6596,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_10.json",
     "sha256": "dd6328ff289073fce8a9d54be86e96134d6c5b91a72c3b1231f7e7acd902b56e",
     "companionPath": "content/interactive/mathe3.json",
@@ -6739,7 +6698,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_11.json",
     "sha256": "86efa788b6abbf5ce982b208779905401a1a16aa2265914be69da80da8b3da68",
     "companionPath": "content/interactive/mathe3.json",
@@ -6793,8 +6752,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "Welche Figur lässt sich zu einem Würfel falten?",
-      "en": "Welche Figur lässt sich zu einem Würfel falten?"
+      "de": "Nur eine Figur lässt sich ohne Überlappung zu einem Würfel falten. Kreuze genau diese Figur an.",
+      "en": "Nur eine Figur lässt sich ohne Überlappung zu einem Würfel falten. Kreuze genau diese Figur an."
      },
      "competencyIds": [
       "M-R07"
@@ -6850,7 +6809,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_12.json",
     "sha256": "14114206c7ec2f729b4109422a2ed62f85894e57d1248f32e33a195d241851e1",
     "companionPath": "content/interactive/mathe3.json",
@@ -6969,7 +6928,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_13.json",
     "sha256": "8bab2efa80bda5f1b9da3a90710b4ec6989fa6c36830e903f870625a2e9dc79b",
     "companionPath": "content/interactive/mathe3.json",
@@ -7019,8 +6978,12 @@
      "maxPoints": 1,
      "rubric": [
       {
-       "de": "1 Punkt für 2,80 €.",
-       "en": "1 Punkt für 2,80 €."
+       "de": "1 Punkt für 2,80 € bzw. eine gleichwertige Geldangabe; 280 ct anerkennen, wenn die Einheit eindeutig ist.",
+       "en": "1 Punkt für 2,80 € bzw. eine gleichwertige Geldangabe; 280 ct anerkennen, wenn die Einheit eindeutig ist."
+      },
+      {
+       "de": "Eine bloße 280 ohne geänderte Einheit ist im €-Antwortfeld nicht richtig.",
+       "en": "Eine bloße 280 ohne geänderte Einheit ist im €-Antwortfeld nicht richtig."
       }
      ],
      "kind": "number",
@@ -7044,8 +7007,12 @@
      "maxPoints": 1,
      "rubric": [
       {
-       "de": "1 Punkt für 0,30 €.",
-       "en": "1 Punkt für 0,30 €."
+       "de": "1 Punkt für 0,30 € bzw. eine gleichwertige Geldangabe; 30 ct anerkennen, wenn die Einheit eindeutig ist.",
+       "en": "1 Punkt für 0,30 € bzw. eine gleichwertige Geldangabe; 30 ct anerkennen, wenn die Einheit eindeutig ist."
+      },
+      {
+       "de": "Eine bloße 30 ohne geänderte Einheit ist im €-Antwortfeld nicht richtig.",
+       "en": "Eine bloße 30 ohne geänderte Einheit ist im €-Antwortfeld nicht richtig."
       }
      ],
      "kind": "number",
@@ -7076,7 +7043,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_14.json",
     "sha256": "769e72082caadd59e83181419395d210fd07b36f976ec06cf29eb2f62ed124e3",
     "companionPath": "content/interactive/mathe3.json",
@@ -7155,8 +7122,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Welchen Bus kannst du spätestens nehmen?",
-      "en": "b) Welchen Bus kannst du spätestens nehmen?"
+      "de": "b) Du sollst um 9:15 Uhr am Museum sein. Von der Haltestelle bis zum Museum gehst du 10 Minuten. Welchen Bus kannst du spätestens nehmen?",
+      "en": "b) Du sollst um 9:15 Uhr am Museum sein. Von der Haltestelle bis zum Museum gehst du 10 Minuten. Welchen Bus kannst du spätestens nehmen?"
      },
      "competencyIds": [
       "M-D01",
@@ -7203,7 +7170,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_15.json",
     "sha256": "068b706f7bf1a475f0c61d33acc6e141ab20083946c447ace12656cb037960e8",
     "companionPath": "content/interactive/mathe3.json",
@@ -7212,42 +7179,29 @@
     "taskId": "m3_15"
    },
    "figure": {
-    "kind": "stack",
+    "kind": "table",
     "data": {
-     "items": [
-      {
-       "kind": "table",
-       "data": {
-        "headers": [
-         "Bus",
-         "Abfahrt",
-         "Ankunft"
-        ],
-        "rows": [
-         [
-          "A",
-          "8:10 Uhr",
-          "8:42 Uhr"
-         ],
-         [
-          "B",
-          "8:35 Uhr",
-          "9:07 Uhr"
-         ],
-         [
-          "C",
-          "9:00 Uhr",
-          "9:32 Uhr"
-         ]
-        ]
-       }
-      },
-      {
-       "kind": "text",
-       "data": {
-        "text": "b) Du sollst um 9:15 Uhr am Museum sein. Von der Haltestelle bis zum Museum gehst du 10 Minuten. Welchen Bus kannst du spätestens nehmen?"
-       }
-      }
+     "headers": [
+      "Bus",
+      "Abfahrt",
+      "Ankunft"
+     ],
+     "rows": [
+      [
+       "A",
+       "8:10 Uhr",
+       "8:42 Uhr"
+      ],
+      [
+       "B",
+       "8:35 Uhr",
+       "9:07 Uhr"
+      ],
+      [
+       "C",
+       "9:00 Uhr",
+       "9:32 Uhr"
+      ]
      ]
     },
     "alt": {
@@ -7383,7 +7337,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_16.json",
     "sha256": "9e53e9561b3488cbfeb7ef958b8f04c8f808eea786b1c00724fb6c9ac309a0a5",
     "companionPath": "content/interactive/mathe3.json",
@@ -7495,7 +7449,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_17.json",
     "sha256": "53cde7b94e262d494690761fdf85d31df3181e86635db708cdd3f112a83496ce",
     "companionPath": "content/interactive/mathe3.json",
@@ -7583,7 +7537,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_18.json",
     "sha256": "3d70ff79860870c4c0188d3bc56b3000aacd7096c3b206c8caf8cf53692313ac",
     "companionPath": "content/interactive/mathe3.json",
@@ -7686,7 +7640,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_19.json",
     "sha256": "75e9fc76c1dc6490451262f5ac9345b3292b161cb30890647dd4c32ecf23cb25",
     "companionPath": "content/interactive/mathe3.json",
@@ -7727,8 +7681,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Welche Aussage ist sicher richtig?",
-      "en": "a) Welche Aussage ist sicher richtig?"
+      "de": "a) Welche Aussage ist sicher richtig? Kreuze genau eine an.",
+      "en": "a) Welche Aussage ist sicher richtig? Kreuze genau eine an."
      },
      "competencyIds": [
       "M-D04"
@@ -7772,8 +7726,8 @@
     {
      "id": "b1",
      "prompt": {
-      "de": "b) Welche Regel bietet die größere Gewinnchance?",
-      "en": "b) Welche Regel bietet die größere Gewinnchance?"
+      "de": "b) Regel A: Du gewinnst bei 1 oder 2. Regel B: Du gewinnst bei 2, 4 oder 6. Welche Regel bietet die größere Gewinnchance? Kreuze an.",
+      "en": "b) Regel A: Du gewinnst bei 1 oder 2. Regel B: Du gewinnst bei 2, 4 oder 6. Welche Regel bietet die größere Gewinnchance? Kreuze an."
      },
      "competencyIds": [
       "M-D05"
@@ -7855,7 +7809,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe3/m3_20.json",
     "sha256": "2325eb497b162ed1fbdf0f63e1e854b3e6532db3d33e43b1f841d239d58e04d7",
     "companionPath": "content/interactive/mathe3.json",
@@ -7867,12 +7821,6 @@
     "kind": "stack",
     "data": {
      "items": [
-      {
-       "kind": "text",
-       "data": {
-        "text": "a) Welche Aussage ist sicher richtig? Kreuze genau eine an."
-       }
-      },
       {
        "kind": "text",
        "data": {
@@ -7930,8 +7878,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Vertausche die Hunderterziffer und die Einerziffer. Wie heißt die neue Zahl?",
-      "en": "b) Vertausche die Hunderterziffer und die Einerziffer. Wie heißt die neue Zahl?"
+      "de": "b) Vertausche die Hunderterziffer und die Einerziffer. Die Zehnerziffer bleibt gleich. Wie heißt die neue Zahl?",
+      "en": "b) Vertausche die Hunderterziffer und die Einerziffer. Die Zehnerziffer bleibt gleich. Wie heißt die neue Zahl?"
      },
      "competencyIds": [
       "M-Z01"
@@ -7970,7 +7918,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_01.json",
     "sha256": "a981663992ff4a294c78e509041c0c389a08dc8a55f47656733f0a04e50c42b3",
     "companionPath": "content/interactive/mathe4.json",
@@ -7979,32 +7927,19 @@
     "taskId": "m4_01"
    },
    "figure": {
-    "kind": "stack",
+    "kind": "table",
     "data": {
-     "items": [
-      {
-       "kind": "table",
-       "data": {
-        "headers": [
-         "Einer",
-         "Hunderter",
-         "Zehner"
-        ],
-        "rows": [
-         [
-          "4",
-          "7",
-          "0"
-         ]
-        ]
-       }
-      },
-      {
-       "kind": "text",
-       "data": {
-        "text": "b) Vertausche die Hunderterziffer und die Einerziffer. Die Zehnerziffer bleibt gleich. Wie heißt die neue Zahl?"
-       }
-      }
+     "headers": [
+      "Einer",
+      "Hunderter",
+      "Zehner"
+     ],
+     "rows": [
+      [
+       "4",
+       "7",
+       "0"
+      ]
      ]
     },
     "alt": {
@@ -8096,7 +8031,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_02.json",
     "sha256": "13cd4717d7c23bba648494ed9000a7eb51a021a65b5d015862f0b4d5f6189876",
     "companionPath": "content/interactive/mathe4.json",
@@ -8184,7 +8119,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_03.json",
     "sha256": "d9bac774768dcaf769cee2370c1dcd329c291908e08183ad705e74669a3bacab",
     "companionPath": "content/interactive/mathe4.json",
@@ -8278,7 +8213,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_04.json",
     "sha256": "88f9396402b927a3e59c1002169dbd6fd3a4a96f46b4fb14dfa2ea2156b05ac8",
     "companionPath": "content/interactive/mathe4.json",
@@ -8323,8 +8258,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Welche Rechnung führt jetzt zum Ergebnis von 602 − 198?",
-      "en": "a) Welche Rechnung führt jetzt zum Ergebnis von 602 − 198?"
+      "de": "a) Welche Rechnung führt jetzt zum Ergebnis von 602 − 198? Kreuze genau eine an.",
+      "en": "a) Welche Rechnung führt jetzt zum Ergebnis von 602 − 198? Kreuze genau eine an."
      },
      "competencyIds": [
       "M-Z07"
@@ -8407,30 +8342,13 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_05.json",
     "sha256": "aafd6caaf1acec5c59525c959094224d5df9fabb8c22deaa1433f707f991714e",
     "companionPath": "content/interactive/mathe4.json",
     "official": false,
     "license": "kompass4 project material; no open licence declared (see kompass4 LICENSING.md)",
     "taskId": "m4_05"
-   },
-   "figure": {
-    "kind": "stack",
-    "data": {
-     "items": [
-      {
-       "kind": "text",
-       "data": {
-        "text": "a) Welche Rechnung führt jetzt zum Ergebnis von 602 - 198? Kreuze genau eine an."
-       }
-      }
-     ]
-    },
-    "alt": {
-     "de": "",
-     "en": ""
-    }
    }
   },
   {
@@ -8500,8 +8418,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Welche Reihenfolge liefert das größere Endergebnis? Begründe.",
-      "en": "b) Welche Reihenfolge liefert das größere Endergebnis? Begründe."
+      "de": "b) Welche Reihenfolge liefert das größere Endergebnis? Begründe mit deinen Rechnungen oder erkläre, was mit der 6 geschieht.",
+      "en": "b) Welche Reihenfolge liefert das größere Endergebnis? Begründe mit deinen Rechnungen oder erkläre, was mit der 6 geschieht."
      },
      "competencyIds": [
       "M-Z09"
@@ -8515,14 +8433,18 @@
       {
        "de": "Nur die Reihenfolge ohne Begründung: 0 Punkte. Ein einzelner Rechenfehler in a schadet einer richtigen Erklärung nicht.",
        "en": "Nur die Reihenfolge ohne Begründung: 0 Punkte. Ein einzelner Rechenfehler in a schadet einer richtigen Erklärung nicht."
+      },
+      {
+       "de": "Die Karten werden nacheinander ausgeführt; 8 + 6 · 3 ist ohne Klammern keine passende Darstellung des ersten Wegs.",
+       "en": "Die Karten werden nacheinander ausgeführt; 8 + 6 · 3 ist ohne Klammern keine passende Darstellung des ersten Wegs."
       }
      ],
      "kind": "text",
      "answer": {
       "type": "manual",
       "criteria": {
-       "de": "1 Punkt für 'zuerst +6, danach ·3' mit zutreffendem Vergleich der Endergebnisse (42 > 30) oder richtiger Erklärung, dass die 6 mitverdreifacht wird.\nNur die Reihenfolge ohne Begründung: 0 Punkte. Ein einzelner Rechenfehler in a schadet einer richtigen Erklärung nicht.",
-       "en": "1 Punkt für 'zuerst +6, danach ·3' mit zutreffendem Vergleich der Endergebnisse (42 > 30) oder richtiger Erklärung, dass die 6 mitverdreifacht wird.\nNur die Reihenfolge ohne Begründung: 0 Punkte. Ein einzelner Rechenfehler in a schadet einer richtigen Erklärung nicht."
+       "de": "1 Punkt für 'zuerst +6, danach ·3' mit zutreffendem Vergleich der Endergebnisse (42 > 30) oder richtiger Erklärung, dass die 6 mitverdreifacht wird.\nNur die Reihenfolge ohne Begründung: 0 Punkte. Ein einzelner Rechenfehler in a schadet einer richtigen Erklärung nicht.\nDie Karten werden nacheinander ausgeführt; 8 + 6 · 3 ist ohne Klammern keine passende Darstellung des ersten Wegs.",
+       "en": "1 Punkt für 'zuerst +6, danach ·3' mit zutreffendem Vergleich der Endergebnisse (42 > 30) oder richtiger Erklärung, dass die 6 mitverdreifacht wird.\nNur die Reihenfolge ohne Begründung: 0 Punkte. Ein einzelner Rechenfehler in a schadet einer richtigen Erklärung nicht.\nDie Karten werden nacheinander ausgeführt; 8 + 6 · 3 ist ohne Klammern keine passende Darstellung des ersten Wegs."
       },
       "creditSteps": [
        0,
@@ -8549,7 +8471,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_06.json",
     "sha256": "be45df77dc63d19d9af8df5a9e96f72397e3a56c626b728dc751af32e5dedda3",
     "companionPath": "content/interactive/mathe4.json",
@@ -8584,12 +8506,6 @@
           ""
          ]
         ]
-       }
-      },
-      {
-       "kind": "text",
-       "data": {
-        "text": "b) Welche Reihenfolge liefert das größere Endergebnis? Begründe mit deinen Rechnungen oder erkläre, was mit der 6 geschieht."
        }
       }
      ]
@@ -8697,7 +8613,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_07.json",
     "sha256": "f6c479e72c2a4929c688a7ce03255a7622fbbf66e9c77a9c0fcce9788c5b1cf1",
     "companionPath": "content/interactive/mathe4.json",
@@ -8746,7 +8662,6 @@
       "en": "a) Wie viele Hüllen fehlen noch?"
      },
      "competencyIds": [
-      "M-Z05",
       "M-Z10"
      ],
      "maxPoints": 1,
@@ -8771,13 +8686,18 @@
       "en": "b) Wie viele ganze Päckchen muss die Klasse mindestens kaufen?"
      },
      "competencyIds": [
-      "M-Z10"
+      "M-Z10",
+      "M-Z05"
      ],
      "maxPoints": 1,
      "rubric": [
       {
-       "de": "1 Punkt für 4 ganze Päckchen; 3,5 ist nicht richtig. Im Papiertest zählt bei bloßem Rechenfehler in a das korrekte Aufrunden der eigenen Fehlmenge (Folgefehler).",
-       "en": "1 Punkt für 4 ganze Päckchen; 3,5 ist nicht richtig. Im Papiertest zählt bei bloßem Rechenfehler in a das korrekte Aufrunden der eigenen Fehlmenge (Folgefehler)."
+       "de": "1 Punkt für 4 ganze Päckchen. Ein Rechenweg ist nicht zwingend; 3,5 Päckchen ist wegen der Verkaufsregel nicht richtig.",
+       "en": "1 Punkt für 4 ganze Päckchen. Ein Rechenweg ist nicht zwingend; 3,5 Päckchen ist wegen der Verkaufsregel nicht richtig."
+      },
+      {
+       "de": "Folgefehler: Bei erkennbar richtigem Ansatz 48 − 13, aber bloßem Rechenfehler in a, zählt das korrekte Aufrunden der eigenen positiven Fehlmenge auf ganze Zehnerpäckchen. Ein falsches Sachmodell aus a wird dadurch nicht richtig.",
+       "en": "Folgefehler: Bei erkennbar richtigem Ansatz 48 − 13, aber bloßem Rechenfehler in a, zählt das korrekte Aufrunden der eigenen positiven Fehlmenge auf ganze Zehnerpäckchen. Ein falsches Sachmodell aus a wird dadurch nicht richtig."
       }
      ],
      "kind": "number",
@@ -8808,7 +8728,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_08.json",
     "sha256": "53b7f4b1debd6098bf681222a1d0efe3c884bb04ffbee48ebe6ea4acc250b574",
     "companionPath": "content/interactive/mathe4.json",
@@ -8945,7 +8865,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_09.json",
     "sha256": "972d414c49e75c0be160e16db6a674d71a791edbaa1be57e7894f41f85354728",
     "companionPath": "content/interactive/mathe4.json",
@@ -9036,7 +8956,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_10.json",
     "sha256": "3fabe186717636f8001cbb1d0bc068f4590f9cfd08026562ac8057892afc6524",
     "companionPath": "content/interactive/mathe4.json",
@@ -9114,14 +9034,18 @@
       {
        "de": "1 Punkt für P' auf dem richtigen Gitterpunkt (7, 1) mit eindeutiger Zuordnung. Vertauschte Beschriftung ist keine richtige Zuordnung.",
        "en": "1 Punkt für P' auf dem richtigen Gitterpunkt (7, 1) mit eindeutiger Zuordnung. Vertauschte Beschriftung ist keine richtige Zuordnung."
+      },
+      {
+       "de": "Markierung nahe genug am richtigen Gitterpunkt anerkennen, wenn die Lage eindeutig ist. Fehlende Beschriftung bei sonst eindeutiger Zuordnung nicht zusätzlich bestrafen.",
+       "en": "Markierung nahe genug am richtigen Gitterpunkt anerkennen, wenn die Lage eindeutig ist. Fehlende Beschriftung bei sonst eindeutiger Zuordnung nicht zusätzlich bestrafen."
       }
      ],
      "kind": "text",
      "answer": {
       "type": "manual",
       "criteria": {
-       "de": "1 Punkt für P' auf dem richtigen Gitterpunkt (7, 1) mit eindeutiger Zuordnung. Vertauschte Beschriftung ist keine richtige Zuordnung.",
-       "en": "1 Punkt für P' auf dem richtigen Gitterpunkt (7, 1) mit eindeutiger Zuordnung. Vertauschte Beschriftung ist keine richtige Zuordnung."
+       "de": "1 Punkt für P' auf dem richtigen Gitterpunkt (7, 1) mit eindeutiger Zuordnung. Vertauschte Beschriftung ist keine richtige Zuordnung.\nMarkierung nahe genug am richtigen Gitterpunkt anerkennen, wenn die Lage eindeutig ist. Fehlende Beschriftung bei sonst eindeutiger Zuordnung nicht zusätzlich bestrafen.",
+       "en": "1 Punkt für P' auf dem richtigen Gitterpunkt (7, 1) mit eindeutiger Zuordnung. Vertauschte Beschriftung ist keine richtige Zuordnung.\nMarkierung nahe genug am richtigen Gitterpunkt anerkennen, wenn die Lage eindeutig ist. Fehlende Beschriftung bei sonst eindeutiger Zuordnung nicht zusätzlich bestrafen."
       },
       "creditSteps": [
        0,
@@ -9141,16 +9065,20 @@
      "maxPoints": 1,
      "rubric": [
       {
-       "de": "1 Punkt für Q' auf dem richtigen Gitterpunkt (5, 3) mit eindeutiger Zuordnung.",
-       "en": "1 Punkt für Q' auf dem richtigen Gitterpunkt (5, 3) mit eindeutiger Zuordnung."
+       "de": "1 Punkt für Q' auf dem richtigen Gitterpunkt (5, 3) mit eindeutiger Zuordnung. Vertauschte Beschriftung ist keine richtige Zuordnung.",
+       "en": "1 Punkt für Q' auf dem richtigen Gitterpunkt (5, 3) mit eindeutiger Zuordnung. Vertauschte Beschriftung ist keine richtige Zuordnung."
+      },
+      {
+       "de": "Markierung nahe genug am richtigen Gitterpunkt anerkennen, wenn die Lage eindeutig ist. Fehlende Beschriftung bei sonst eindeutiger Zuordnung nicht zusätzlich bestrafen.",
+       "en": "Markierung nahe genug am richtigen Gitterpunkt anerkennen, wenn die Lage eindeutig ist. Fehlende Beschriftung bei sonst eindeutiger Zuordnung nicht zusätzlich bestrafen."
       }
      ],
      "kind": "text",
      "answer": {
       "type": "manual",
       "criteria": {
-       "de": "1 Punkt für Q' auf dem richtigen Gitterpunkt (5, 3) mit eindeutiger Zuordnung.",
-       "en": "1 Punkt für Q' auf dem richtigen Gitterpunkt (5, 3) mit eindeutiger Zuordnung."
+       "de": "1 Punkt für Q' auf dem richtigen Gitterpunkt (5, 3) mit eindeutiger Zuordnung. Vertauschte Beschriftung ist keine richtige Zuordnung.\nMarkierung nahe genug am richtigen Gitterpunkt anerkennen, wenn die Lage eindeutig ist. Fehlende Beschriftung bei sonst eindeutiger Zuordnung nicht zusätzlich bestrafen.",
+       "en": "1 Punkt für Q' auf dem richtigen Gitterpunkt (5, 3) mit eindeutiger Zuordnung. Vertauschte Beschriftung ist keine richtige Zuordnung.\nMarkierung nahe genug am richtigen Gitterpunkt anerkennen, wenn die Lage eindeutig ist. Fehlende Beschriftung bei sonst eindeutiger Zuordnung nicht zusätzlich bestrafen."
       },
       "creditSteps": [
        0,
@@ -9177,7 +9105,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_11.json",
     "sha256": "2dab04e4f4ba0f01cc35ac4dcd1e079f2570768e0365b38e213b976860fe61a9",
     "companionPath": "content/interactive/mathe4.json",
@@ -9255,8 +9183,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Wie viele Würfel hoch ist das Schattenbild von vorn ganz links?",
-      "en": "b) Wie viele Würfel hoch ist das Schattenbild von vorn ganz links?"
+      "de": "b) Du blickst in Pfeilrichtung genau von vorn auf das Gebäude. Wie viele Würfel hoch ist sein Schattenbild ganz links? Beachte auch den hinteren Turm.",
+      "en": "b) Du blickst in Pfeilrichtung genau von vorn auf das Gebäude. Wie viele Würfel hoch ist sein Schattenbild ganz links? Beachte auch den hinteren Turm."
      },
      "competencyIds": [
       "M-R06"
@@ -9269,11 +9197,14 @@
       }
      ],
      "kind": "number",
-     "unit": "Würfel",
+     "unit": "Würfel hoch",
      "answer": {
       "type": "number",
       "value": 2,
-      "accepted": []
+      "accepted": [],
+      "unitAliases": [
+       "Würfel"
+      ]
      }
     }
    ],
@@ -9295,7 +9226,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_12.json",
     "sha256": "286c420f30ce7b513fa5f8a31beacf44a0764a6fd68806d48318023de510dd3c",
     "companionPath": "content/interactive/mathe4.json",
@@ -9304,33 +9235,16 @@
     "taskId": "m4_12"
    },
    "figure": {
-    "kind": "stack",
-    "data": {
-     "items": [
-      {
-       "kind": "image",
-       "alt": {
-        "de": "Bauplan mit zwei Reihen und drei Spalten; ein Pfeil zeigt die Blickrichtung von vorn",
-        "en": "Bauplan mit zwei Reihen und drei Spalten; ein Pfeil zeigt die Blickrichtung von vorn"
-       },
-       "data": {
-        "asset": "assets/kompass/kompass4/figures/cube_plan-543a148cc31ca306.png",
-        "width": 414,
-        "height": 471,
-        "widthCm": 4.2
-       }
-      },
-      {
-       "kind": "text",
-       "data": {
-        "text": "b) Du blickst in Pfeilrichtung genau von vorn auf das Gebäude. Wie viele Würfel hoch ist sein Schattenbild ganz links? Beachte auch den hinteren Turm."
-       }
-      }
-     ]
-    },
+    "kind": "image",
     "alt": {
      "de": "Bauplan mit zwei Reihen und drei Spalten; ein Pfeil zeigt die Blickrichtung von vorn",
      "en": "Bauplan mit zwei Reihen und drei Spalten; ein Pfeil zeigt die Blickrichtung von vorn"
+    },
+    "data": {
+     "asset": "assets/kompass/kompass4/figures/cube_plan-543a148cc31ca306.png",
+     "width": 414,
+     "height": 471,
+     "widthCm": 4.2
     }
    }
   },
@@ -9368,14 +9282,18 @@
       {
        "de": "Bei einem Rechenfehler bleibt der Methodenpunkt bei klar richtigem Ansatz erhalten.",
        "en": "Bei einem Rechenfehler bleibt der Methodenpunkt bei klar richtigem Ansatz erhalten."
+      },
+      {
+       "de": "Die Zeichnung darf nicht ausgemessen werden.",
+       "en": "Die Zeichnung darf nicht ausgemessen werden."
       }
      ],
      "kind": "text",
      "answer": {
       "type": "manual",
       "criteria": {
-       "de": "1 Punkt für einen passenden Rechenweg: beide langen Seiten abziehen und den Rest halbieren; oder Umfang halbieren und eine lange Seite abziehen; oder vollständige Kontrolle 7 + 4 + 7 + 4 = 22.\nBei einem Rechenfehler bleibt der Methodenpunkt bei klar richtigem Ansatz erhalten.",
-       "en": "1 Punkt für einen passenden Rechenweg: beide langen Seiten abziehen und den Rest halbieren; oder Umfang halbieren und eine lange Seite abziehen; oder vollständige Kontrolle 7 + 4 + 7 + 4 = 22.\nBei einem Rechenfehler bleibt der Methodenpunkt bei klar richtigem Ansatz erhalten."
+       "de": "1 Punkt für einen passenden Rechenweg: beide langen Seiten abziehen und den Rest halbieren; oder Umfang halbieren und eine lange Seite abziehen; oder vollständige Kontrolle 7 + 4 + 7 + 4 = 22.\nBei einem Rechenfehler bleibt der Methodenpunkt bei klar richtigem Ansatz erhalten.\nDie Zeichnung darf nicht ausgemessen werden.",
+       "en": "1 Punkt für einen passenden Rechenweg: beide langen Seiten abziehen und den Rest halbieren; oder Umfang halbieren und eine lange Seite abziehen; oder vollständige Kontrolle 7 + 4 + 7 + 4 = 22.\nBei einem Rechenfehler bleibt der Methodenpunkt bei klar richtigem Ansatz erhalten.\nDie Zeichnung darf nicht ausgemessen werden."
       },
       "creditSteps": [
        0,
@@ -9426,7 +9344,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_13.json",
     "sha256": "10ed136d284289381de20e70373faadcd75224b182698a1d1a96ad7eb460ddb9",
     "companionPath": "content/interactive/mathe4.json",
@@ -9471,7 +9389,7 @@
       "en": "a) Was kosten sechs einzeln gekaufte Hefte?"
      },
      "competencyIds": [
-      "M-G04"
+      "M-G03"
      ],
      "maxPoints": 1,
      "rubric": [
@@ -9492,8 +9410,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Wie viel Geld spart Sam mit zwei Packungen?",
-      "en": "b) Wie viel Geld spart Sam mit zwei Packungen?"
+      "de": "b) Sam kauft stattdessen zwei Packungen mit je drei Heften. Wie viel Geld spart er gegenüber den sechs einzeln gekauften Heften?",
+      "en": "b) Sam kauft stattdessen zwei Packungen mit je drei Heften. Wie viel Geld spart er gegenüber den sechs einzeln gekauften Heften?"
      },
      "competencyIds": [
       "M-G03",
@@ -9502,8 +9420,12 @@
      "maxPoints": 1,
      "rubric": [
       {
-       "de": "1 Punkt für 2 € Ersparnis (200 Cent gleichwertig). Nur 10 € beantwortet die Frage nicht.",
-       "en": "1 Punkt für 2 € Ersparnis (200 Cent gleichwertig). Nur 10 € beantwortet die Frage nicht."
+       "de": "1 Punkt für 2 € Ersparnis; 200 Cent ist gleichwertig. Nur 10 € als Packungspreis beantwortet die Frage nach der Ersparnis noch nicht.",
+       "en": "1 Punkt für 2 € Ersparnis; 200 Cent ist gleichwertig. Nur 10 € als Packungspreis beantwortet die Frage nach der Ersparnis noch nicht."
+      },
+      {
+       "de": "Folgefehler: Bei bloßem Rechenfehler zu 6 · 2 in a die nachvollziehbar korrekte Differenz der eigenen Summe zum richtigen Packungspreis 10 € anerkennen. Der Vergleich muss dieselbe Menge von sechs Heften betreffen.",
+       "en": "Folgefehler: Bei bloßem Rechenfehler zu 6 · 2 in a die nachvollziehbar korrekte Differenz der eigenen Summe zum richtigen Packungspreis 10 € anerkennen. Der Vergleich muss dieselbe Menge von sechs Heften betreffen."
       }
      ],
      "kind": "number",
@@ -9519,8 +9441,8 @@
    ],
    "hints": [
     {
-     "de": "Rechne zuerst den Preis für zwei Packungen aus.",
-     "en": "Rechne zuerst den Preis für zwei Packungen aus."
+     "de": "Rechne aus, was sechs einzelne Hefte kosten und was zwei Packungen kosten.",
+     "en": "Rechne aus, was sechs einzelne Hefte kosten und was zwei Packungen kosten."
     },
     {
      "de": "Sparen heißt: Wie groß ist der Unterschied zwischen den beiden Preisen?",
@@ -9535,7 +9457,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_14.json",
     "sha256": "ac566a0d928d9b7495600db96472712af1c7769d701070f405c2bd7c6469a800",
     "companionPath": "content/interactive/mathe4.json",
@@ -9544,34 +9466,21 @@
     "taskId": "m4_14"
    },
    "figure": {
-    "kind": "stack",
+    "kind": "table",
     "data": {
-     "items": [
-      {
-       "kind": "table",
-       "data": {
-        "headers": [
-         "Angebot",
-         "Preis"
-        ],
-        "rows": [
-         [
-          "Ein einzelnes Heft",
-          "2,00 €"
-         ],
-         [
-          "Eine Packung mit 3 Heften",
-          "5,00 €"
-         ]
-        ]
-       }
-      },
-      {
-       "kind": "text",
-       "data": {
-        "text": "b) Sam kauft stattdessen zwei Packungen mit je drei Heften. Wie viel Geld spart er gegenüber den sechs einzeln gekauften Heften?"
-       }
-      }
+     "headers": [
+      "Angebot",
+      "Preis"
+     ],
+     "rows": [
+      [
+       "Ein einzelnes Heft",
+       "2,00 €"
+      ],
+      [
+       "Eine Packung mit 3 Heften",
+       "5,00 €"
+      ]
      ]
     },
     "alt": {
@@ -9641,8 +9550,12 @@
      "maxPoints": 1,
      "rubric": [
       {
-       "de": "1 Punkt für 15:25 Uhr. Im Papiertest zählt bei falschem a auch die eigene Zeit + 10 Minuten (Folgefehler).",
-       "en": "1 Punkt für 15:25 Uhr. Im Papiertest zählt bei falschem a auch die eigene Zeit + 10 Minuten (Folgefehler)."
+       "de": "1 Punkt für 15:25 Uhr; eindeutige gleichwertige Zeitnotationen anerkennen. Das richtige Ergebnis unabhängig von a anerkennen.",
+       "en": "1 Punkt für 15:25 Uhr; eindeutige gleichwertige Zeitnotationen anerkennen. Das richtige Ergebnis unabhängig von a anerkennen."
+      },
+      {
+       "de": "Folgefehler: Bei falscher Zwischenzeit in a zählt b, wenn nachvollziehbar genau zehn Minuten zur eigenen Zeit hinzugefügt wurden.",
+       "en": "Folgefehler: Bei falscher Zwischenzeit in a zählt b, wenn nachvollziehbar genau zehn Minuten zur eigenen Zeit hinzugefügt wurden."
       }
      ],
      "kind": "text",
@@ -9657,8 +9570,8 @@
       "caseSensitive": false,
       "reviewOnMismatch": true,
       "criteria": {
-       "de": "1 Punkt für 15:25 Uhr. Im Papiertest zählt bei falschem a auch die eigene Zeit + 10 Minuten (Folgefehler).",
-       "en": "1 Punkt für 15:25 Uhr. Im Papiertest zählt bei falschem a auch die eigene Zeit + 10 Minuten (Folgefehler)."
+       "de": "1 Punkt für 15:25 Uhr; eindeutige gleichwertige Zeitnotationen anerkennen. Das richtige Ergebnis unabhängig von a anerkennen.\nFolgefehler: Bei falscher Zwischenzeit in a zählt b, wenn nachvollziehbar genau zehn Minuten zur eigenen Zeit hinzugefügt wurden.",
+       "en": "1 Punkt für 15:25 Uhr; eindeutige gleichwertige Zeitnotationen anerkennen. Das richtige Ergebnis unabhängig von a anerkennen.\nFolgefehler: Bei falscher Zwischenzeit in a zählt b, wenn nachvollziehbar genau zehn Minuten zur eigenen Zeit hinzugefügt wurden."
       },
       "followOnFrom": "a"
      }
@@ -9682,7 +9595,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_15.json",
     "sha256": "f0c690558e0fff5906fdb75dc52b38348acaa839324af0ccb9bc1d0e96ea52bc",
     "companionPath": "content/interactive/mathe4.json",
@@ -9781,7 +9694,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_16.json",
     "sha256": "f0a52502dfd1674155cf6c4d2bbdfeda17085c512aa8ab330291e40db88cfce7",
     "companionPath": "content/interactive/mathe4.json",
@@ -9870,8 +9783,12 @@
      "maxPoints": 1,
      "rubric": [
       {
-       "de": "1 Punkt für 400 ml. Im Papiertest zählt bei bloßem Rechenfehler in a auch 1000 minus die eigene Menge (Folgefehler).",
-       "en": "1 Punkt für 400 ml. Im Papiertest zählt bei bloßem Rechenfehler in a auch 1000 minus die eigene Menge (Folgefehler)."
+       "de": "1 Punkt für 400 ml.",
+       "en": "1 Punkt für 400 ml."
+      },
+      {
+       "de": "Folgefehler: Bei bloßem Rechenfehler im Ansatz 3 · 200 in a zählt b für korrektes Subtrahieren der eigenen Menge von 1000 ml, sofern eine nicht negative Restmenge entsteht.",
+       "en": "Folgefehler: Bei bloßem Rechenfehler im Ansatz 3 · 200 in a zählt b für korrektes Subtrahieren der eigenen Menge von 1000 ml, sofern eine nicht negative Restmenge entsteht."
       }
      ],
      "kind": "number",
@@ -9902,7 +9819,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_17.json",
     "sha256": "cc73dc24292c6861bb4bc256bf89c25d8031efa27f08b88f75728399cf103e0f",
     "companionPath": "content/interactive/mathe4.json",
@@ -9930,8 +9847,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Fehlende Anzahl beim Malen",
-      "en": "a) Fehlende Anzahl beim Malen"
+      "de": "a) Ergänze in der Tabelle die fehlende Anzahl beim Malen.",
+      "en": "a) Ergänze in der Tabelle die fehlende Anzahl beim Malen."
      },
      "competencyIds": [
       "M-D01"
@@ -9994,7 +9911,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_18.json",
     "sha256": "f14d5fb67fcc730ce5d3d83dda04dc3f97daf4393b3073ab9ee601a83a11b1b2",
     "companionPath": "content/interactive/mathe4.json",
@@ -10003,38 +9920,25 @@
     "taskId": "m4_18"
    },
    "figure": {
-    "kind": "stack",
+    "kind": "table",
     "data": {
-     "items": [
-      {
-       "kind": "table",
-       "data": {
-        "headers": [
-         "Beschäftigung",
-         "Anzahl Kinder"
-        ],
-        "rows": [
-         [
-          "Bauen",
-          "9"
-         ],
-         [
-          "Lesen",
-          "7"
-         ],
-         [
-          "Malen",
-          ""
-         ]
-        ]
-       }
-      },
-      {
-       "kind": "text",
-       "data": {
-        "text": "a) Ergänze in der Tabelle die fehlende Anzahl beim Malen."
-       }
-      }
+     "headers": [
+      "Beschäftigung",
+      "Anzahl Kinder"
+     ],
+     "rows": [
+      [
+       "Bauen",
+       "9"
+      ],
+      [
+       "Lesen",
+       "7"
+      ],
+      [
+       "Malen",
+       ""
+      ]
      ]
     },
     "alt": {
@@ -10136,7 +10040,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_19.json",
     "sha256": "c779c2c732cdb01f43db6b2438f3f9e3b9cf32cbd30410f1a49d2485e5ba12f3",
     "companionPath": "content/interactive/mathe4.json",
@@ -10177,8 +10081,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Einen Stern zu ziehen ist ...",
-      "en": "a) Einen Stern zu ziehen ist ..."
+      "de": "a) Einen Stern zu ziehen ist ... Kreuze genau eine Beschreibung an.",
+      "en": "a) Einen Stern zu ziehen ist ... Kreuze genau eine Beschreibung an."
      },
      "competencyIds": [
       "M-D04"
@@ -10222,8 +10126,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Wie viele Kreisplättchen müssen dazukommen, damit Stern und Kreis gleich wahrscheinlich sind?",
-      "en": "b) Wie viele Kreisplättchen müssen dazukommen, damit Stern und Kreis gleich wahrscheinlich sind?"
+      "de": "b) In den abgebildeten Beutel werden nur weitere Kreisplättchen gelegt. Wie viele müssen dazukommen, damit Stern und Kreis beim Ziehen gleich wahrscheinlich sind?",
+      "en": "b) In den abgebildeten Beutel werden nur weitere Kreisplättchen gelegt. Wie viele müssen dazukommen, damit Stern und Kreis beim Ziehen gleich wahrscheinlich sind?"
      },
      "competencyIds": [
       "M-D05"
@@ -10240,7 +10144,10 @@
      "answer": {
       "type": "number",
       "value": 2,
-      "accepted": []
+      "accepted": [],
+      "unitAliases": [
+       "Plättchen"
+      ]
      }
     }
    ],
@@ -10262,7 +10169,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe4/m4_20.json",
     "sha256": "dab334c5f818fa445140d7d2700f7d7644360d3da24101c92fe9f74ad58a4130",
     "companionPath": "content/interactive/mathe4.json",
@@ -10271,39 +10178,16 @@
     "taskId": "m4_20"
    },
    "figure": {
-    "kind": "stack",
-    "data": {
-     "items": [
-      {
-       "kind": "image",
-       "alt": {
-        "de": "Ein Beutel mit vier runden Plättchen, davon drei mit einem Sternzeichen und eines mit einem Kreiszeichen",
-        "en": "Ein Beutel mit vier runden Plättchen, davon drei mit einem Sternzeichen und eines mit einem Kreiszeichen"
-       },
-       "data": {
-        "asset": "assets/kompass/kompass4/figures/token_bags-4c85006629e75fa2.png",
-        "width": 522,
-        "height": 303,
-        "widthCm": 6.2
-       }
-      },
-      {
-       "kind": "text",
-       "data": {
-        "text": "a) Einen Stern zu ziehen ist ... Kreuze genau eine Beschreibung an."
-       }
-      },
-      {
-       "kind": "text",
-       "data": {
-        "text": "b) In den abgebildeten Beutel werden nur weitere Kreisplättchen gelegt. Wie viele müssen dazukommen, damit Stern und Kreis beim Ziehen gleich wahrscheinlich sind?"
-       }
-      }
-     ]
-    },
+    "kind": "image",
     "alt": {
      "de": "Ein Beutel mit vier runden Plättchen, davon drei mit einem Sternzeichen und eines mit einem Kreiszeichen",
      "en": "Ein Beutel mit vier runden Plättchen, davon drei mit einem Sternzeichen und eines mit einem Kreiszeichen"
+    },
+    "data": {
+     "asset": "assets/kompass/kompass4/figures/token_bags-4c85006629e75fa2.png",
+     "width": 522,
+     "height": 303,
+     "widthCm": 6.2
     }
    }
   },
@@ -10326,8 +10210,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Welche Zahl hat Nuri gelegt? (4 Hunderter, 17 Zehner, 6 Einer)",
-      "en": "a) Welche Zahl hat Nuri gelegt? (4 Hunderter, 17 Zehner, 6 Einer)"
+      "de": "a) Welche Zahl hat Nuri gelegt?",
+      "en": "a) Welche Zahl hat Nuri gelegt?"
      },
      "competencyIds": [
       "M-Z01"
@@ -10350,8 +10234,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Nuri nimmt einen Hunderter weg und legt zwei Zehner dazu. Welche Zahl liegt nun auf dem Tisch?",
-      "en": "b) Nuri nimmt einen Hunderter weg und legt zwei Zehner dazu. Welche Zahl liegt nun auf dem Tisch?"
+      "de": "b) Nuri nimmt von diesem Material einen Hunderter weg und legt zwei Zehner dazu. Welche Zahl liegt nun auf dem Tisch?",
+      "en": "b) Nuri nimmt von diesem Material einen Hunderter weg und legt zwei Zehner dazu. Welche Zahl liegt nun auf dem Tisch?"
      },
      "competencyIds": [
       "M-Z01"
@@ -10391,7 +10275,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_01.json",
     "sha256": "19ade6bf0e73f1e7381ac2214ba86116b5b5aeb4c08aaf641eb3a5fefebc206e",
     "companionPath": "content/interactive/mathe5.json",
@@ -10400,32 +10284,19 @@
     "taskId": "m5_01"
    },
    "figure": {
-    "kind": "stack",
+    "kind": "table",
     "data": {
-     "items": [
-      {
-       "kind": "table",
-       "data": {
-        "headers": [
-         "Hunderter",
-         "Zehner",
-         "Einer"
-        ],
-        "rows": [
-         [
-          "4",
-          "17",
-          "6"
-         ]
-        ]
-       }
-      },
-      {
-       "kind": "text",
-       "data": {
-        "text": "b) Nuri nimmt von diesem Material einen Hunderter weg und legt zwei Zehner dazu. Welche Zahl liegt nun auf dem Tisch?"
-       }
-      }
+     "headers": [
+      "Hunderter",
+      "Zehner",
+      "Einer"
+     ],
+     "rows": [
+      [
+       "4",
+       "17",
+       "6"
+      ]
      ]
     },
     "alt": {
@@ -10517,7 +10388,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_02.json",
     "sha256": "c447cdf8b5d103513db9b7c30ed7f1fdde1e736f9492e62fe0820b196cc5d8ac",
     "companionPath": "content/interactive/mathe5.json",
@@ -10558,8 +10429,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) 602 - 178 = (richtiges Ergebnis)",
-      "en": "a) 602 - 178 = (richtiges Ergebnis)"
+      "de": "a) Berechne das richtige Ergebnis (602 - 178). Du kannst deinen Rechenweg dazuschreiben.",
+      "en": "a) Berechne das richtige Ergebnis (602 - 178). Du kannst deinen Rechenweg dazuschreiben."
      },
      "competencyIds": [
       "M-Z04"
@@ -10631,7 +10502,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_03.json",
     "sha256": "24ab03b5c14947b41c5d46501a829f9683e32469fec4acda24ece5a1017c6c08",
     "companionPath": "content/interactive/mathe5.json",
@@ -10724,7 +10595,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_04.json",
     "sha256": "3c64850e17778beed7d9241e377296df23d8fda252b920ee0cb46a431027ea36",
     "companionPath": "content/interactive/mathe5.json",
@@ -10837,7 +10708,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_05.json",
     "sha256": "fe7361ec25a848858033fa092ca93fe9f6c32ca497f0edf73262536ef0c09398",
     "companionPath": "content/interactive/mathe5.json",
@@ -10865,8 +10736,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "Erste Lücke: 5 → 10 → 20 → 35 → 55 → ____",
-      "en": "Erste Lücke: 5 → 10 → 20 → 35 → 55 → ____"
+      "de": "Trage die nächsten beiden Zahlen in die Lücken ein. Erste Lücke: 5 → 10 → 20 → 35 → 55 → ____ → ____",
+      "en": "Trage die nächsten beiden Zahlen in die Lücken ein. Erste Lücke: 5 → 10 → 20 → 35 → 55 → ____ → ____"
      },
      "competencyIds": [
       "M-Z08"
@@ -10889,8 +10760,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "Zweite Lücke: 5 → 10 → 20 → 35 → 55 → 80 → ____",
-      "en": "Zweite Lücke: 5 → 10 → 20 → 35 → 55 → 80 → ____"
+      "de": "Trage die nächsten beiden Zahlen in die Lücken ein. Zweite Lücke: 5 → 10 → 20 → 35 → 55 → ____ → ____",
+      "en": "Trage die nächsten beiden Zahlen in die Lücken ein. Zweite Lücke: 5 → 10 → 20 → 35 → 55 → ____ → ____"
      },
      "competencyIds": [
       "M-Z08"
@@ -10926,30 +10797,13 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_06.json",
     "sha256": "2027e392dd15ef6b1b362d0e803af2d7c35ef93f1b8e51a01410588bbbfdacec",
     "companionPath": "content/interactive/mathe5.json",
     "official": false,
     "license": "kompass4 project material; no open licence declared (see kompass4 LICENSING.md)",
     "taskId": "m5_06"
-   },
-   "figure": {
-    "kind": "stack",
-    "data": {
-     "items": [
-      {
-       "kind": "text",
-       "data": {
-        "text": "Trage die nächsten beiden Zahlen in die Lücken ein."
-       }
-      }
-     ]
-    },
-    "alt": {
-     "de": "",
-     "en": ""
-    }
    }
   },
   {
@@ -10971,8 +10825,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "Finde alle unterschiedlichen Kombinationen aus einem T-Shirt (Rot, Blau, Grün) und einer Hose (Schwarz, Weiß). Trage jede Möglichkeit nur einmal ein.",
-      "en": "Finde alle unterschiedlichen Kombinationen aus einem T-Shirt (Rot, Blau, Grün) und einer Hose (Schwarz, Weiß). Trage jede Möglichkeit nur einmal ein."
+      "de": "Finde alle unterschiedlichen Möglichkeiten. Trage jede Möglichkeit nur einmal ein.",
+      "en": "Finde alle unterschiedlichen Möglichkeiten. Trage jede Möglichkeit nur einmal ein."
      },
      "competencyIds": [
       "M-Z12"
@@ -11017,7 +10871,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_07.json",
     "sha256": "97989fd4bdec77f2ec9f7a7644605943d69a69b54577887f3eb43b4a25a2ce6c",
     "companionPath": "content/interactive/mathe5.json",
@@ -11026,50 +10880,37 @@
     "taskId": "m5_07"
    },
    "figure": {
-    "kind": "stack",
+    "kind": "table",
     "data": {
-     "items": [
-      {
-       "kind": "text",
-       "data": {
-        "text": "Finde alle unterschiedlichen Möglichkeiten. Trage jede Möglichkeit nur einmal ein."
-       }
-      },
-      {
-       "kind": "table",
-       "data": {
-        "headers": [
-         "T-Shirt",
-         "Hose"
-        ],
-        "rows": [
-         [
-          "",
-          ""
-         ],
-         [
-          "",
-          ""
-         ],
-         [
-          "",
-          ""
-         ],
-         [
-          "",
-          ""
-         ],
-         [
-          "",
-          ""
-         ],
-         [
-          "",
-          ""
-         ]
-        ]
-       }
-      }
+     "headers": [
+      "T-Shirt",
+      "Hose"
+     ],
+     "rows": [
+      [
+       "",
+       ""
+      ],
+      [
+       "",
+       ""
+      ],
+      [
+       "",
+       ""
+      ],
+      [
+       "",
+       ""
+      ],
+      [
+       "",
+       ""
+      ],
+      [
+       "",
+       ""
+      ]
      ]
     },
     "alt": {
@@ -11163,7 +11004,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_08.json",
     "sha256": "13586de434229065da5f9941c59ff380b554b4d774835ec1f19e918224d0e61c",
     "companionPath": "content/interactive/mathe5.json",
@@ -11181,8 +11022,8 @@
     "en": "Ein Dreieck mit rechtem Winkel zeichnen"
    },
    "prompt": {
-    "de": "Zeichne ein Dreieck in das Punktfeld. Alle drei Ecken sollen auf Punkten liegen. Eine Ecke soll ein rechter Winkel sein. Benutze das Geodreieck.",
-    "en": "Zeichne ein Dreieck in das Punktfeld. Alle drei Ecken sollen auf Punkten liegen. Eine Ecke soll ein rechter Winkel sein. Benutze das Geodreieck."
+    "de": "Ein Dreieck mit rechtem Winkel zeichnen",
+    "en": "Ein Dreieck mit rechtem Winkel zeichnen"
    },
    "level": 2,
    "use": "original",
@@ -11191,8 +11032,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "Zeichne ein Dreieck in das Punktfeld. Alle drei Ecken sollen auf Punkten liegen. Eine Ecke soll ein rechter Winkel sein.",
-      "en": "Zeichne ein Dreieck in das Punktfeld. Alle drei Ecken sollen auf Punkten liegen. Eine Ecke soll ein rechter Winkel sein."
+      "de": "Zeichne ein Dreieck in das Punktfeld. Alle drei Ecken sollen auf Punkten liegen. Eine Ecke soll ein rechter Winkel sein. Benutze das Geodreieck.",
+      "en": "Zeichne ein Dreieck in das Punktfeld. Alle drei Ecken sollen auf Punkten liegen. Eine Ecke soll ein rechter Winkel sein. Benutze das Geodreieck."
      },
      "competencyIds": [
       "M-R01"
@@ -11241,7 +11082,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_09.json",
     "sha256": "f6f9d2736734664cf6424f1d0f8b5e93bed2d3a013f275f250cf335999d7846d",
     "companionPath": "content/interactive/mathe5.json",
@@ -11313,7 +11154,10 @@
      "answer": {
       "type": "number",
       "value": 9,
-      "accepted": []
+      "accepted": [],
+      "unitAliases": [
+       "Quadrate"
+      ]
      }
     },
     {
@@ -11338,6 +11182,9 @@
       "type": "number",
       "value": 1,
       "accepted": [],
+      "unitAliases": [
+       "Quadrat"
+      ],
       "followOnFrom": "a"
      }
     }
@@ -11360,7 +11207,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_10.json",
     "sha256": "bdb447d48769e5227a46d466b73d6ee2542c3af56336aa1b81a004e7c8c266ec",
     "companionPath": "content/interactive/mathe5.json",
@@ -11453,7 +11300,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_11.json",
     "sha256": "3cc2dca399e51c7222ad5c2122309a68b64626af02cc7e801d6e93567ec46c38",
     "companionPath": "content/interactive/mathe5.json",
@@ -11538,8 +11385,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Haben die Flächen B und E am fertigen Würfel eine gemeinsame Kante? Kreuze an (ja/nein) und begründe kurz.",
-      "en": "b) Haben die Flächen B und E am fertigen Würfel eine gemeinsame Kante? Kreuze an (ja/nein) und begründe kurz."
+      "de": "b) Haben die Flächen B und E am fertigen Würfel eine gemeinsame Kante? Kreuze an und begründe kurz.",
+      "en": "b) Haben die Flächen B und E am fertigen Würfel eine gemeinsame Kante? Kreuze an und begründe kurz."
      },
      "competencyIds": [
       "M-R07"
@@ -11575,8 +11422,8 @@
      "en": "Stelle dir vor, du faltest die lange Reihe zu einem Ring. Welche Flächen liegen sich dann gegenüber?"
     },
     {
-     "de": "Die beiden angesetzten Flächen werden zu Deckel und Boden des Rings.",
-     "en": "Die beiden angesetzten Flächen werden zu Deckel und Boden des Rings."
+     "de": "Überlege, an welchen Seiten des Rings die beiden angesetzten Flächen beim Falten landen.",
+     "en": "Überlege, an welchen Seiten des Rings die beiden angesetzten Flächen beim Falten landen."
     }
    ],
    "solution": {
@@ -11587,7 +11434,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_12.json",
     "sha256": "142d0ab49fd0969a245765123f2dc58517b1fdc6cd8069c5898f6cd0145d37eb",
     "companionPath": "content/interactive/mathe5.json",
@@ -11628,8 +11475,8 @@
     {
      "id": "a1",
      "prompt": {
-      "de": "a) Wie lang ist der Umfang von A? (6 cm und 2 cm)",
-      "en": "a) Wie lang ist der Umfang von A? (6 cm und 2 cm)"
+      "de": "a) Wie lang ist der Umfang von A?",
+      "en": "a) Wie lang ist der Umfang von A?"
      },
      "competencyIds": [
       "M-R08"
@@ -11652,8 +11499,8 @@
     {
      "id": "a2",
      "prompt": {
-      "de": "a) Wie lang ist der Umfang von B? (4 cm und 3 cm)",
-      "en": "a) Wie lang ist der Umfang von B? (4 cm und 3 cm)"
+      "de": "a) Wie lang ist der Umfang von B?",
+      "en": "a) Wie lang ist der Umfang von B?"
      },
      "competencyIds": [
       "M-R08"
@@ -11676,8 +11523,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Kann man beide Flächen mit gleich vielen Quadraten von 1 cm Seitenlänge auslegen? Kreuze an (ja/nein) und begründe.",
-      "en": "b) Kann man beide Flächen mit gleich vielen Quadraten von 1 cm Seitenlänge auslegen? Kreuze an (ja/nein) und begründe."
+      "de": "b) Kann man beide Flächen mit gleich vielen Quadraten von 1 cm Seitenlänge auslegen? Kreuze an und begründe.",
+      "en": "b) Kann man beide Flächen mit gleich vielen Quadraten von 1 cm Seitenlänge auslegen? Kreuze an und begründe."
      },
      "competencyIds": [
       "M-R08"
@@ -11725,7 +11572,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_13.json",
     "sha256": "ad55507780dce2eacf17deb88a7f45c18bb3666156db2e0bb40c7b5ffc6498d1",
     "companionPath": "content/interactive/mathe5.json",
@@ -11766,8 +11613,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Drei Postkarten zu je 0,75 € und ein Bleistift zu 1,20 €: Wie viel muss Mara bezahlen?",
-      "en": "a) Drei Postkarten zu je 0,75 € und ein Bleistift zu 1,20 €: Wie viel muss Mara bezahlen?"
+      "de": "a) Wie viel muss Mara bezahlen?",
+      "en": "a) Wie viel muss Mara bezahlen?"
      },
      "competencyIds": [
       "M-G03",
@@ -11834,7 +11681,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_14.json",
     "sha256": "13c2e17d3675037afef954865863350253e4281b650c953f7eb5a274326a19e3",
     "companionPath": "content/interactive/mathe5.json",
@@ -11907,7 +11754,9 @@
        "10:07 Uhr",
        "10.07 Uhr",
        "10 Uhr 7",
-       "10:07Uhr"
+       "10:07Uhr",
+       "10 Uhr 07",
+       "10.07Uhr"
       ],
       "caseSensitive": false,
       "reviewOnMismatch": true,
@@ -11945,7 +11794,10 @@
        "09:50 Uhr",
        "9.50 Uhr",
        "09.50 Uhr",
-       "9 Uhr 50"
+       "9 Uhr 50",
+       "9:50Uhr",
+       "9.50Uhr",
+       "09:50Uhr"
       ],
       "caseSensitive": false,
       "reviewOnMismatch": true,
@@ -11975,7 +11827,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_15.json",
     "sha256": "3e4b7548e4409fae9c37b48ebc8c673806ae34f41a9af869772a60d2d0aa851b",
     "companionPath": "content/interactive/mathe5.json",
@@ -11993,8 +11845,8 @@
     "en": "Eine Strecke genau zeichnen"
    },
    "prompt": {
-    "de": "a) Zeichne mit dem Lineal eine 65 mm lange Strecke in den freien Bereich. Markiere beide Endpunkte.",
-    "en": "a) Zeichne mit dem Lineal eine 65 mm lange Strecke in den freien Bereich. Markiere beide Endpunkte."
+    "de": "Eine Strecke genau zeichnen",
+    "en": "Eine Strecke genau zeichnen"
    },
    "level": 2,
    "use": "original",
@@ -12003,8 +11855,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Zeichne mit dem Lineal eine 65 mm lange Strecke. Markiere beide Endpunkte.",
-      "en": "a) Zeichne mit dem Lineal eine 65 mm lange Strecke. Markiere beide Endpunkte."
+      "de": "a) Zeichne mit dem Lineal eine 65 mm lange Strecke in den freien Bereich. Markiere beide Endpunkte.",
+      "en": "a) Zeichne mit dem Lineal eine 65 mm lange Strecke in den freien Bereich. Markiere beide Endpunkte."
      },
      "competencyIds": [
       "M-G06"
@@ -12032,8 +11884,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) 65 mm = ___ cm ___ mm",
-      "en": "b) 65 mm = ___ cm ___ mm"
+      "de": "b) Ergänze die Länge in Zentimetern und Millimetern: 65 mm = ___ cm ___ mm",
+      "en": "b) Ergänze die Länge in Zentimetern und Millimetern: 65 mm = ___ cm ___ mm"
      },
      "competencyIds": [
       "M-G06"
@@ -12053,7 +11905,10 @@
        "6cm 5mm",
        "6 cm und 5 mm",
        "6cm5mm",
-       "6 cm, 5 mm"
+       "6 cm, 5 mm",
+       "6 und 5",
+       "6 5",
+       "6cm und 5mm"
       ],
       "caseSensitive": false,
       "reviewOnMismatch": true,
@@ -12082,30 +11937,13 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_16.json",
     "sha256": "5ebe8e72429b3f79afc12ef68f3121db6caa2d7b53afa93ccf550668c7c81303",
     "companionPath": "content/interactive/mathe5.json",
     "official": false,
     "license": "kompass4 project material; no open licence declared (see kompass4 LICENSING.md)",
     "taskId": "m5_16"
-   },
-   "figure": {
-    "kind": "stack",
-    "data": {
-     "items": [
-      {
-       "kind": "text",
-       "data": {
-        "text": "b) Ergänze die Länge in Zentimetern und Millimetern:\n65 mm = ______ cm ______ mm"
-       }
-      }
-     ]
-    },
-    "alt": {
-     "de": "",
-     "en": ""
-    }
    },
    "solutionFigure": {
     "kind": "image",
@@ -12140,8 +11978,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Wie viele Milliliter Wasser fehlen noch bis 1 l?",
-      "en": "a) Wie viele Milliliter Wasser fehlen noch bis 1 l?"
+      "de": "a) Wie viele Milliliter Wasser fehlen noch?",
+      "en": "a) Wie viele Milliliter Wasser fehlen noch?"
      },
      "competencyIds": [
       "M-G07"
@@ -12164,8 +12002,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Ein Becher fasst 200 ml. Wie viele volle Becher werden zum Auffüllen gebraucht?",
-      "en": "b) Ein Becher fasst 200 ml. Wie viele volle Becher werden zum Auffüllen gebraucht?"
+      "de": "b) Ein kleiner Becher fasst genau 200 ml. Wie viele volle Becher werden zum Auffüllen gebraucht? Es wird nichts verschüttet.",
+      "en": "b) Ein kleiner Becher fasst genau 200 ml. Wie viele volle Becher werden zum Auffüllen gebraucht? Es wird nichts verschüttet."
      },
      "competencyIds": [
       "M-G07",
@@ -12206,30 +12044,13 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_17.json",
     "sha256": "55c0f41e0c3e4d2b4e25317e7a7d6cd713dddda20b1467f493a09f72396a828f",
     "companionPath": "content/interactive/mathe5.json",
     "official": false,
     "license": "kompass4 project material; no open licence declared (see kompass4 LICENSING.md)",
     "taskId": "m5_17"
-   },
-   "figure": {
-    "kind": "stack",
-    "data": {
-     "items": [
-      {
-       "kind": "text",
-       "data": {
-        "text": "b) Ein kleiner Becher fasst genau 200 ml. Wie viele volle Becher werden zum Auffüllen gebraucht? Es wird nichts verschüttet."
-       }
-      }
-     ]
-    },
-    "alt": {
-     "de": "",
-     "en": ""
-    }
    }
   },
   {
@@ -12293,7 +12114,10 @@
      "answer": {
       "type": "number",
       "value": 4,
-      "accepted": []
+      "accepted": [],
+      "unitAliases": [
+       "Regentage"
+      ]
      }
     }
    ],
@@ -12315,7 +12139,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_18.json",
     "sha256": "b5d5e205921ff823beb316345ae7326e9e9250fff492065e2db25d6d79d0978b",
     "companionPath": "content/interactive/mathe5.json",
@@ -12356,8 +12180,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "Zeichne die Säule für Dienstag (6 Bälle) ein. Achte auf die Skala.",
-      "en": "Zeichne die Säule für Dienstag (6 Bälle) ein. Achte auf die Skala."
+      "de": "Zeichne die Säule für Dienstag ein. Sie beginnt bei 0. Achte auf die Skala. Benutze das Lineal.",
+      "en": "Zeichne die Säule für Dienstag ein. Sie beginnt bei 0. Achte auf die Skala. Benutze das Lineal."
      },
      "competencyIds": [
       "M-D02",
@@ -12386,8 +12210,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "Zeichne die Säule für Mittwoch (15 Bälle) ein. Achte auf die Skala.",
-      "en": "Zeichne die Säule für Mittwoch (15 Bälle) ein. Achte auf die Skala."
+      "de": "Zeichne die Säule für Mittwoch ein. Sie beginnt bei 0. Achte auf die Skala. Benutze das Lineal.",
+      "en": "Zeichne die Säule für Mittwoch ein. Sie beginnt bei 0. Achte auf die Skala. Benutze das Lineal."
      },
      "competencyIds": [
       "M-D02",
@@ -12396,16 +12220,16 @@
      "maxPoints": 1,
      "rubric": [
       {
-       "de": "1 Punkt für eine Säule bei Mi, die an der Nulllinie beginnt und bis 15 reicht. Geringe Ungenauigkeiten zulassen, wenn die Skalenhöhe eindeutig ist; Farbe und Breite nicht bewerten.",
-       "en": "1 Punkt für eine Säule bei Mi, die an der Nulllinie beginnt und bis 15 reicht. Geringe Ungenauigkeiten zulassen, wenn die Skalenhöhe eindeutig ist; Farbe und Breite nicht bewerten."
+       "de": "1 Punkt für eine Säule bei Mi, die an der Nulllinie beginnt und bis 15 reicht. Geringe Ungenauigkeiten zulassen, wenn die Skalenhöhe eindeutig ist; Farbe und Breite nicht bewerten. Nur die Zahl ohne Säule genügt nicht.",
+       "en": "1 Punkt für eine Säule bei Mi, die an der Nulllinie beginnt und bis 15 reicht. Geringe Ungenauigkeiten zulassen, wenn die Skalenhöhe eindeutig ist; Farbe und Breite nicht bewerten. Nur die Zahl ohne Säule genügt nicht."
       }
      ],
      "kind": "text",
      "answer": {
       "type": "manual",
       "criteria": {
-       "de": "1 Punkt für eine Säule bei Mi, die an der Nulllinie beginnt und bis 15 reicht. Geringe Ungenauigkeiten zulassen, wenn die Skalenhöhe eindeutig ist; Farbe und Breite nicht bewerten.",
-       "en": "1 Punkt für eine Säule bei Mi, die an der Nulllinie beginnt und bis 15 reicht. Geringe Ungenauigkeiten zulassen, wenn die Skalenhöhe eindeutig ist; Farbe und Breite nicht bewerten."
+       "de": "1 Punkt für eine Säule bei Mi, die an der Nulllinie beginnt und bis 15 reicht. Geringe Ungenauigkeiten zulassen, wenn die Skalenhöhe eindeutig ist; Farbe und Breite nicht bewerten. Nur die Zahl ohne Säule genügt nicht.",
+       "en": "1 Punkt für eine Säule bei Mi, die an der Nulllinie beginnt und bis 15 reicht. Geringe Ungenauigkeiten zulassen, wenn die Skalenhöhe eindeutig ist; Farbe und Breite nicht bewerten. Nur die Zahl ohne Säule genügt nicht."
       },
       "creditSteps": [
        0,
@@ -12432,7 +12256,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_19.json",
     "sha256": "ff0c7ba458594ad736a5bfef1177c347c7dbee2677d821b99c10580f55441454",
     "companionPath": "content/interactive/mathe5.json",
@@ -12616,7 +12440,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe5/m5_20.json",
     "sha256": "b8ac27c51a714b192df4782aa500fc5e24e255112a2423eb8ac5fa41f9a3cd83",
     "companionPath": "content/interactive/mathe5.json",
@@ -12674,8 +12498,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Bilde aus 2, 5 und 8 die größte gerade dreistellige Zahl.",
-      "en": "a) Bilde aus 2, 5 und 8 die größte gerade dreistellige Zahl."
+      "de": "a) Bilde die größte gerade dreistellige Zahl.",
+      "en": "a) Bilde die größte gerade dreistellige Zahl."
      },
      "competencyIds": [
       "M-Z01",
@@ -12699,8 +12523,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Bilde aus 2, 5 und 8 die kleinste ungerade dreistellige Zahl.",
-      "en": "b) Bilde aus 2, 5 und 8 die kleinste ungerade dreistellige Zahl."
+      "de": "b) Bilde die kleinste ungerade dreistellige Zahl.",
+      "en": "b) Bilde die kleinste ungerade dreistellige Zahl."
      },
      "competencyIds": [
       "M-Z01",
@@ -12740,7 +12564,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_01.json",
     "sha256": "a2115deb20411717dbfddd011b407734e749ec7a4b6788b5196ed36a84847886",
     "companionPath": "content/interactive/mathe6.json",
@@ -12758,8 +12582,8 @@
     "en": "Zahlen ordnen und die Mitte finden"
    },
    "prompt": {
-    "de": "Zahlen ordnen und die Mitte finden",
-    "en": "Zahlen ordnen und die Mitte finden"
+    "de": "960     609     906     690",
+    "en": "960     609     906     690"
    },
    "level": 2,
    "use": "original",
@@ -12768,8 +12592,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Ordne die Zahlen von der kleinsten zur größten: 960, 609, 906, 690",
-      "en": "a) Ordne die Zahlen von der kleinsten zur größten: 960, 609, 906, 690"
+      "de": "a) Ordne die Zahlen von der kleinsten zur größten.",
+      "en": "a) Ordne die Zahlen von der kleinsten zur größten."
      },
      "competencyIds": [
       "M-Z02"
@@ -12865,7 +12689,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_02.json",
     "sha256": "df38815b8d51ab68baffbb62569e4f5dc54ba3efdbb91ab3f0446fe56bd58f62",
     "companionPath": "content/interactive/mathe6.json",
@@ -12893,8 +12717,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) 473 - 1 = ? Welches Ergebnis erhält Lea für 273 + 199?",
-      "en": "a) 473 - 1 = ? Welches Ergebnis erhält Lea für 273 + 199?"
+      "de": "a) Welches Ergebnis erhält Lea?",
+      "en": "a) Welches Ergebnis erhält Lea?"
      },
      "competencyIds": [
       "M-Z04"
@@ -12966,7 +12790,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_03.json",
     "sha256": "8aedde2ef5fe935d129d9bbe03c5ebd3f801577e26ed0a61e6e865f98ce1deac",
     "companionPath": "content/interactive/mathe6.json",
@@ -13058,7 +12882,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_04.json",
     "sha256": "4267d86b06a1f9dd5595d431891caa359ec61336702eaa539f5f7d601f7950e3",
     "companionPath": "content/interactive/mathe6.json",
@@ -13151,7 +12975,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_05.json",
     "sha256": "efdd6e3a591ed4eb917a96b7144ba153d77a25c05a96c5fb57f007e2ccb7f344",
     "companionPath": "content/interactive/mathe6.json",
@@ -13196,8 +13020,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Wie viele Sitzplätze gibt es insgesamt? (8 kleine Tische mit je 4, 6 große Tische mit je 6 Plätzen)",
-      "en": "a) Wie viele Sitzplätze gibt es insgesamt? (8 kleine Tische mit je 4, 6 große Tische mit je 6 Plätzen)"
+      "de": "a) Wie viele Sitzplätze gibt es insgesamt?",
+      "en": "a) Wie viele Sitzplätze gibt es insgesamt?"
      },
      "competencyIds": [
       "M-Z10",
@@ -13215,7 +13039,10 @@
      "answer": {
       "type": "number",
       "value": 68,
-      "accepted": []
+      "accepted": [],
+      "unitAliases": [
+       "Sitzplätze"
+      ]
      }
     },
     {
@@ -13240,6 +13067,9 @@
       "type": "number",
       "value": 3,
       "accepted": [],
+      "unitAliases": [
+       "Sitzplätze"
+      ],
       "followOnFrom": "a"
      }
     }
@@ -13262,7 +13092,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_06.json",
     "sha256": "3d405471fe578cacda874dde78befb929a0b94518202e1d6fce421606a0fae30",
     "companionPath": "content/interactive/mathe6.json",
@@ -13316,8 +13146,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "Schreibe alle zweistelligen Nummern aus den Ziffern 1, 4 und 7 auf, in denen keine Ziffer zweimal vorkommt.",
-      "en": "Schreibe alle zweistelligen Nummern aus den Ziffern 1, 4 und 7 auf, in denen keine Ziffer zweimal vorkommt."
+      "de": "Schreibe alle möglichen Nummern auf. Jede Nummer soll nur einmal vorkommen.",
+      "en": "Schreibe alle möglichen Nummern auf. Jede Nummer soll nur einmal vorkommen."
      },
      "competencyIds": [
       "M-Z12"
@@ -13362,30 +13192,13 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_07.json",
     "sha256": "47017fd107e01c6e72184f9fcd997960e5258c5c9c46fbcf2557facfeeeeb2ec",
     "companionPath": "content/interactive/mathe6.json",
     "official": false,
     "license": "kompass4 project material; no open licence declared (see kompass4 LICENSING.md)",
     "taskId": "m6_07"
-   },
-   "figure": {
-    "kind": "stack",
-    "data": {
-     "items": [
-      {
-       "kind": "text",
-       "data": {
-        "text": "Schreibe alle möglichen Nummern auf. Jede Nummer soll nur einmal vorkommen."
-       }
-      }
-     ]
-    },
-    "alt": {
-     "de": "",
-     "en": ""
-    }
    }
   },
   {
@@ -13407,8 +13220,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) 75 Perlen an 8 Kinder: Wie viele Perlen bekommt jedes Kind?",
-      "en": "a) 75 Perlen an 8 Kinder: Wie viele Perlen bekommt jedes Kind?"
+      "de": "a) Wie viele Perlen bekommt jedes Kind?",
+      "en": "a) Wie viele Perlen bekommt jedes Kind?"
      },
      "competencyIds": [
       "M-Z10",
@@ -13474,7 +13287,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_08.json",
     "sha256": "85eee6d4263352e42899bb6685bb51e68bab7bfc1b8072a48b876f1de9b10d3c",
     "companionPath": "content/interactive/mathe6.json",
@@ -13492,8 +13305,8 @@
     "en": "Ein Quadrat im Punktfeld zeichnen"
    },
    "prompt": {
-    "de": "Zeichne ein Quadrat in das Punktfeld. Alle Ecken sollen auf Punkten liegen. Jede Seite soll zwei Punktabstände lang sein und waagerecht oder senkrecht verlaufen. Benutze das Geodreieck.",
-    "en": "Zeichne ein Quadrat in das Punktfeld. Alle Ecken sollen auf Punkten liegen. Jede Seite soll zwei Punktabstände lang sein und waagerecht oder senkrecht verlaufen. Benutze das Geodreieck."
+    "de": "Ein Quadrat im Punktfeld zeichnen",
+    "en": "Ein Quadrat im Punktfeld zeichnen"
    },
    "level": 2,
    "use": "original",
@@ -13502,8 +13315,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "Zeichne ein Quadrat in das Punktfeld. Alle Ecken auf Punkten, jede Seite zwei Punktabstände lang, waagerecht oder senkrecht.",
-      "en": "Zeichne ein Quadrat in das Punktfeld. Alle Ecken auf Punkten, jede Seite zwei Punktabstände lang, waagerecht oder senkrecht."
+      "de": "Zeichne ein Quadrat in das Punktfeld. Alle Ecken sollen auf Punkten liegen. Jede Seite soll zwei Punktabstände lang sein und waagerecht oder senkrecht verlaufen. Benutze das Geodreieck.",
+      "en": "Zeichne ein Quadrat in das Punktfeld. Alle Ecken sollen auf Punkten liegen. Jede Seite soll zwei Punktabstände lang sein und waagerecht oder senkrecht verlaufen. Benutze das Geodreieck."
      },
      "competencyIds": [
       "M-R01"
@@ -13552,7 +13365,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_09.json",
     "sha256": "c0e46127926f726c15158a6b966c87e2148158376fbd604e2b2265d6012608de",
     "companionPath": "content/interactive/mathe6.json",
@@ -13651,8 +13464,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Welche Figur entsteht nach einer halben Drehung (von Start aus)?",
-      "en": "b) Welche Figur entsteht nach einer halben Drehung (von Start aus)?"
+      "de": "b) Welche Figur entsteht nach einer halben Drehung?",
+      "en": "b) Welche Figur entsteht nach einer halben Drehung?"
      },
      "competencyIds": [
       "M-R04"
@@ -13712,7 +13525,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_10.json",
     "sha256": "f7b61887b97e72e8d49e2dc990ccb19ab5c0d047b475f488082a3b0950deb4ba",
     "companionPath": "content/interactive/mathe6.json",
@@ -13847,7 +13660,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_11.json",
     "sha256": "d7a520ec209b7dfd89d0fb49b6eaf1d932bea39fb19b261bc231fc32c565bf82",
     "companionPath": "content/interactive/mathe6.json",
@@ -13906,7 +13719,10 @@
      "answer": {
       "type": "number",
       "value": 10,
-      "accepted": []
+      "accepted": [],
+      "unitAliases": [
+       "graue Plättchen"
+      ]
      }
     },
     {
@@ -13957,7 +13773,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_12.json",
     "sha256": "d17ca3b21704d532f3025c2060cea76d1ab7c2ed275e4c7743abd33ebe39df9b",
     "companionPath": "content/interactive/mathe6.json",
@@ -14035,8 +13851,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Wie lang ist der äußere Rand der ganzen Figur? (Seite eines kleinen Quadrats: 2 cm)",
-      "en": "b) Wie lang ist der äußere Rand der ganzen Figur? (Seite eines kleinen Quadrats: 2 cm)"
+      "de": "b) Wie lang ist der äußere Rand der ganzen Figur?",
+      "en": "b) Wie lang ist der äußere Rand der ganzen Figur?"
      },
      "competencyIds": [
       "M-R08"
@@ -14075,7 +13891,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_13.json",
     "sha256": "64740208ce790c7c27c1bc7a9e15ecb5ec32ccf21e2c47506484d977d5908eb0",
     "companionPath": "content/interactive/mathe6.json",
@@ -14222,7 +14038,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_14.json",
     "sha256": "a7a3f90076e6c767f4fb60faaf97b3e839a4d66fdaa022e28ba308433602c803",
     "companionPath": "content/interactive/mathe6.json",
@@ -14250,8 +14066,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Ein Seil ist 3 m 20 cm lang. 75 cm und dann 95 cm werden abgeschnitten. Wie viele Zentimeter bleiben übrig?",
-      "en": "a) Ein Seil ist 3 m 20 cm lang. 75 cm und dann 95 cm werden abgeschnitten. Wie viele Zentimeter bleiben übrig?"
+      "de": "a) Wie viele Zentimeter Seil bleiben übrig?",
+      "en": "a) Wie viele Zentimeter Seil bleiben übrig?"
      },
      "competencyIds": [
       "M-G02"
@@ -14293,6 +14109,8 @@
       "values": [
        "1 m 50 cm",
        "1m 50cm",
+       "1 m 50cm",
+       "1m 50 cm",
        "1m50cm",
        "1 m und 50 cm",
        "1 m, 50 cm"
@@ -14325,7 +14143,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_15.json",
     "sha256": "b8f835182cd5c32967f7c9798cf90f0b1e1ccc1c361aadb4646a012cf20f219b",
     "companionPath": "content/interactive/mathe6.json",
@@ -14353,8 +14171,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Zwei Hefte kosten 3 €. Wie viel kosten sechs Hefte zusammen?",
-      "en": "a) Zwei Hefte kosten 3 €. Wie viel kosten sechs Hefte zusammen?"
+      "de": "a) Wie viel kosten die sechs Hefte zusammen?",
+      "en": "a) Wie viel kosten die sechs Hefte zusammen?"
      },
      "competencyIds": [
       "M-G03"
@@ -14420,7 +14238,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_16.json",
     "sha256": "8050da003d11c623a967b385b78d28709b26de6712f852658b456534d0ce1f22",
     "companionPath": "content/interactive/mathe6.json",
@@ -14448,8 +14266,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Bus fährt 09:48 Uhr ab und kommt 10:06 Uhr an. Wie viele Minuten dauert die Busfahrt?",
-      "en": "a) Bus fährt 09:48 Uhr ab und kommt 10:06 Uhr an. Wie viele Minuten dauert die Busfahrt?"
+      "de": "a) Wie viele Minuten dauert die Busfahrt?",
+      "en": "a) Wie viele Minuten dauert die Busfahrt?"
      },
      "competencyIds": [
       "M-G05"
@@ -14521,7 +14339,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_17.json",
     "sha256": "269bcec8f79bcb39c0146579d4a72d211dc56facbb1e1aaf979a042dfd78f387",
     "companionPath": "content/interactive/mathe6.json",
@@ -14618,7 +14436,10 @@
      "answer": {
       "type": "number",
       "value": 15,
-      "accepted": []
+      "accepted": [],
+      "unitAliases": [
+       "Bücher"
+      ]
      }
     }
    ],
@@ -14636,7 +14457,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_18.json",
     "sha256": "508bf3f6905dfe4e9c7ef62c6aaf3fecfdb062771361f4747e2f76df355d4c77",
     "companionPath": "content/interactive/mathe6.json",
@@ -14695,8 +14516,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Wie viele Samentütchen wurden an den drei Tagen zusammen verteilt? (1 Quadrat = 3 Tütchen)",
-      "en": "a) Wie viele Samentütchen wurden an den drei Tagen zusammen verteilt? (1 Quadrat = 3 Tütchen)"
+      "de": "a) Wie viele Samentütchen wurden an den drei Tagen zusammen verteilt?",
+      "en": "a) Wie viele Samentütchen wurden an den drei Tagen zusammen verteilt?"
      },
      "competencyIds": [
       "M-D03"
@@ -14713,7 +14534,10 @@
      "answer": {
       "type": "number",
       "value": 36,
-      "accepted": []
+      "accepted": [],
+      "unitAliases": [
+       "Samentütchen"
+      ]
      }
     },
     {
@@ -14759,7 +14583,7 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_19.json",
     "sha256": "9289e39f47fac45734be61fb448dc50b58d01eed88c9e18bd1a8330c2fcab42e",
     "companionPath": "content/interactive/mathe6.json",
@@ -14800,8 +14624,8 @@
     {
      "id": "a",
      "prompt": {
-      "de": "a) Beim ersten Ziehen eine ungerade Zahl zu erhalten, ist ...",
-      "en": "a) Beim ersten Ziehen eine ungerade Zahl zu erhalten, ist ..."
+      "de": "a) Beim ersten Ziehen eine ungerade Zahl zu erhalten, ist ... Kreuze genau eine Antwort an.",
+      "en": "a) Beim ersten Ziehen eine ungerade Zahl zu erhalten, ist ... Kreuze genau eine Antwort an."
      },
      "competencyIds": [
       "M-D04"
@@ -14845,8 +14669,8 @@
     {
      "id": "b",
      "prompt": {
-      "de": "b) Nuri behauptet: „Nach zweimaligem Ziehen ist sicher mindestens eine Zahl größer als 4 dabei.“ Hat Nuri recht? Kreuze an (ja/nein) und begründe mit einem Beispiel.",
-      "en": "b) Nuri behauptet: „Nach zweimaligem Ziehen ist sicher mindestens eine Zahl größer als 4 dabei.“ Hat Nuri recht? Kreuze an (ja/nein) und begründe mit einem Beispiel."
+      "de": "b) Nuri behauptet: „Nach zweimaligem Ziehen ist sicher mindestens eine Zahl größer als 4 dabei.“ Hat Nuri recht? Kreuze an und begründe mit einem Beispiel für die zwei gezogenen Zahlen. (ja / nein)",
+      "en": "b) Nuri behauptet: „Nach zweimaligem Ziehen ist sicher mindestens eine Zahl größer als 4 dabei.“ Hat Nuri recht? Kreuze an und begründe mit einem Beispiel für die zwei gezogenen Zahlen. (ja / nein)"
      },
      "competencyIds": [
       "M-D04"
@@ -14894,36 +14718,13 @@
    "source": {
     "kind": "project-original",
     "repository": "https://github.com/CrispStrobe/kompass4",
-    "revision": "9f04850812a5abe1e9e25d0e19740a8815407018",
+    "revision": "21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a",
     "path": "content/tasks/mathe6/m6_20.json",
     "sha256": "678e5d84788ad95a8ba22bffc68b05b099d686737fd73ea9d0ed04faad62dfb0",
     "companionPath": "content/interactive/mathe6.json",
     "official": false,
     "license": "kompass4 project material; no open licence declared (see kompass4 LICENSING.md)",
     "taskId": "m6_20"
-   },
-   "figure": {
-    "kind": "stack",
-    "data": {
-     "items": [
-      {
-       "kind": "text",
-       "data": {
-        "text": "a) Beim ersten Ziehen eine ungerade Zahl zu erhalten, ist ... Kreuze genau eine Antwort an."
-       }
-      },
-      {
-       "kind": "text",
-       "data": {
-        "text": "b) Nuri behauptet: „Nach zweimaligem Ziehen ist sicher mindestens eine Zahl größer als 4 dabei.“ Hat Nuri recht? Kreuze an und begründe mit einem Beispiel für die zwei gezogenen Zahlen."
-       }
-      }
-     ]
-    },
-    "alt": {
-     "de": "",
-     "en": ""
-    }
    }
   }
  ],
@@ -14955,8 +14756,8 @@
    ],
    "totalPoints": 40,
    "totalSeconds": 2700,
-   "printUrl": "https://github.com/CrispStrobe/kompass4/raw/9f04850812a5abe1e9e25d0e19740a8815407018/materials/modular/mathe1/Kompass4_mathe1_Aufgaben.pdf",
-   "solutionsUrl": "https://github.com/CrispStrobe/kompass4/raw/9f04850812a5abe1e9e25d0e19740a8815407018/materials/modular/mathe1/Kompass4_mathe1_Loesungen.pdf",
+   "printUrl": "https://github.com/CrispStrobe/kompass4/raw/21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a/materials/modular/mathe1/Kompass4_mathe1_Aufgaben.pdf",
+   "solutionsUrl": "https://github.com/CrispStrobe/kompass4/raw/21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a/materials/modular/mathe1/Kompass4_mathe1_Loesungen.pdf",
    "instructions": [
     "Arbeite ohne Taschenrechner.",
     "Lies jede Aufgabe genau. Wenn du nicht weiterweißt, mache zunächst bei einer anderen Aufgabe weiter. Du darfst später zurückkommen. Prüfe deine Antworten am Ende."
@@ -14995,8 +14796,8 @@
    ],
    "totalPoints": 40,
    "totalSeconds": 2700,
-   "printUrl": "https://github.com/CrispStrobe/kompass4/raw/9f04850812a5abe1e9e25d0e19740a8815407018/materials/modular/mathe2/Kompass4_mathe2_Aufgaben.pdf",
-   "solutionsUrl": "https://github.com/CrispStrobe/kompass4/raw/9f04850812a5abe1e9e25d0e19740a8815407018/materials/modular/mathe2/Kompass4_mathe2_Loesungen.pdf",
+   "printUrl": "https://github.com/CrispStrobe/kompass4/raw/21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a/materials/modular/mathe2/Kompass4_mathe2_Aufgaben.pdf",
+   "solutionsUrl": "https://github.com/CrispStrobe/kompass4/raw/21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a/materials/modular/mathe2/Kompass4_mathe2_Loesungen.pdf",
    "instructions": [
     "Arbeite ohne Taschenrechner.",
     "Lies jede Aufgabe genau. Wenn du nicht weiterweißt, mache zunächst bei einer anderen Aufgabe weiter. Du darfst später zurückkommen. Prüfe deine Antworten am Ende."
@@ -15034,8 +14835,8 @@
    ],
    "totalPoints": 40,
    "totalSeconds": 2700,
-   "printUrl": "https://github.com/CrispStrobe/kompass4/raw/9f04850812a5abe1e9e25d0e19740a8815407018/materials/modular/mathe3/Kompass4_mathe3_Aufgaben.pdf",
-   "solutionsUrl": "https://github.com/CrispStrobe/kompass4/raw/9f04850812a5abe1e9e25d0e19740a8815407018/materials/modular/mathe3/Kompass4_mathe3_Loesungen.pdf",
+   "printUrl": "https://github.com/CrispStrobe/kompass4/raw/21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a/materials/modular/mathe3/Kompass4_mathe3_Aufgaben.pdf",
+   "solutionsUrl": "https://github.com/CrispStrobe/kompass4/raw/21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a/materials/modular/mathe3/Kompass4_mathe3_Loesungen.pdf",
    "instructions": [
     "Arbeite ohne Taschenrechner.",
     "Das Lineal brauchst du nur zum Zeichnen. Rechne bei beschrifteten Skizzen mit den angegebenen Maßen.",
@@ -15074,8 +14875,8 @@
    ],
    "totalPoints": 40,
    "totalSeconds": 2700,
-   "printUrl": "https://github.com/CrispStrobe/kompass4/raw/9f04850812a5abe1e9e25d0e19740a8815407018/materials/modular/mathe4/Kompass4_mathe4_Aufgaben.pdf",
-   "solutionsUrl": "https://github.com/CrispStrobe/kompass4/raw/9f04850812a5abe1e9e25d0e19740a8815407018/materials/modular/mathe4/Kompass4_mathe4_Loesungen.pdf",
+   "printUrl": "https://github.com/CrispStrobe/kompass4/raw/21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a/materials/modular/mathe4/Kompass4_mathe4_Aufgaben.pdf",
+   "solutionsUrl": "https://github.com/CrispStrobe/kompass4/raw/21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a/materials/modular/mathe4/Kompass4_mathe4_Loesungen.pdf",
    "instructions": [
     "Arbeite ohne Taschenrechner.",
     "Das Lineal hilft dir beim Zeichnen. Rechne bei beschrifteten Skizzen mit den angegebenen Maßen; miss die Bilder nicht aus.",
@@ -15115,8 +14916,8 @@
    ],
    "totalPoints": 40,
    "totalSeconds": 2700,
-   "printUrl": "https://github.com/CrispStrobe/kompass4/raw/9f04850812a5abe1e9e25d0e19740a8815407018/materials/modular/mathe5/Kompass4_mathe5_Aufgaben.pdf",
-   "solutionsUrl": "https://github.com/CrispStrobe/kompass4/raw/9f04850812a5abe1e9e25d0e19740a8815407018/materials/modular/mathe5/Kompass4_mathe5_Loesungen.pdf",
+   "printUrl": "https://github.com/CrispStrobe/kompass4/raw/21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a/materials/modular/mathe5/Kompass4_mathe5_Aufgaben.pdf",
+   "solutionsUrl": "https://github.com/CrispStrobe/kompass4/raw/21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a/materials/modular/mathe5/Kompass4_mathe5_Loesungen.pdf",
    "instructions": [
     "Arbeite ohne Taschenrechner.",
     "Das Lineal hilft dir beim Zeichnen. Rechne bei beschrifteten Skizzen mit den angegebenen Maßen; miss die Bilder nicht aus.",
@@ -15156,8 +14957,8 @@
    ],
    "totalPoints": 40,
    "totalSeconds": 2700,
-   "printUrl": "https://github.com/CrispStrobe/kompass4/raw/9f04850812a5abe1e9e25d0e19740a8815407018/materials/modular/mathe6/Kompass4_mathe6_Aufgaben.pdf",
-   "solutionsUrl": "https://github.com/CrispStrobe/kompass4/raw/9f04850812a5abe1e9e25d0e19740a8815407018/materials/modular/mathe6/Kompass4_mathe6_Loesungen.pdf",
+   "printUrl": "https://github.com/CrispStrobe/kompass4/raw/21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a/materials/modular/mathe6/Kompass4_mathe6_Aufgaben.pdf",
+   "solutionsUrl": "https://github.com/CrispStrobe/kompass4/raw/21acb9e0f986a6e5599ad7a709e89f0ffc0c6e5a/materials/modular/mathe6/Kompass4_mathe6_Loesungen.pdf",
    "instructions": [
     "Arbeite ohne Taschenrechner.",
     "Das Lineal hilft dir beim Zeichnen. Rechne bei beschrifteten Skizzen mit den angegebenen Maßen; miss die Bilder nicht aus.",
