@@ -3,6 +3,26 @@
 Updated 2026-11-10. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
+## Store: 1.6.4 (70) in TestFlight (2026-11-10)
+
+[PR #72](https://github.com/CrispStrobe/NumberNebula/pull/72) (reviewed original
+papers, unit words, count-word aliases) is merged as `2955240`, **1.6.4+70**; it
+was merged with admin rights before its checks ran, at the owner's request.
+Tag `v1.6.4` on `957acc0` (adds the 1.6.4 release notes) ran the
+[release workflow](https://github.com/CrispStrobe/NumberNebula/actions/runs/42763706765):
+iOS and macOS were signed and uploaded and distributed to TestFlight. Both builds
+are `VALID`, internally testable, and on "External Testers" waiting for Beta App
+Review. Nothing was submitted for App Store review; 1.5.45 (61) is unaffected.
+
+The first release notes said "grade 3/4" / "Klasse 3/4", which
+`test/docs/no_age_targeting_test.dart` rejects (guideline 2.3.8). They are
+corrected in `fastlane/metadata/*/release_notes.txt`, and the TestFlight
+"What to Test" text of both builds was replaced through the API (en-US, de-DE).
+On `main` `957acc0`, [calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/42763700291)
+and [web build, browser tests and deployment](https://github.com/CrispStrobe/NumberNebula/actions/runs/42763700458)
+passed and both web hosts serve 1.6.4 (70); [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/42763700353)
+failed only on that release-notes guard, fixed in the following commit.
+
 ## KOMPASS integration: PR #71, merged 2026-11-10
 
 [PR #71](https://github.com/CrispStrobe/NumberNebula/pull/71) is merged into `main`
