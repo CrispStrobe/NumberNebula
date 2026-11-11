@@ -3,7 +3,7 @@
 Historical June 2026 analysis of 49 screen entries: win/lose conditions, scoring, difficulty scaling, SRI integration, and cross-game consistency. The current registry contains 48 games.
 
 **Date:** 2026-06-13
-**Status:** Historical audit completed at the date above. Formulas and issue descriptions below may predate later fixes; verify current code before acting. Read [HANDOVER.md](HANDOVER.md) for current evidence and [REMAINING_WORK.md](REMAINING_WORK.md) for open calibration and round-audit lanes.
+**Status:** Historical audit completed at the date above. Formulas and issue descriptions below may predate later fixes; verify current code before acting. Read [HANDOVER.md](../../HANDOVER.md) for current evidence and [REMAINING_WORK.md](../../REMAINING_WORK.md) for open calibration and round-audit lanes.
 
 ### Changes Applied (2026-06-12 — 2026-06-13)
 
