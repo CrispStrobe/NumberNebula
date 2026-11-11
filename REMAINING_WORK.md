@@ -1,37 +1,40 @@
 # Executable next-work lanes
 
-Updated 2026-11-09. Read [HANDOVER.md](HANDOVER.md) first for the current state,
+Updated 2026-11-11. Read [HANDOVER.md](HANDOVER.md) first for the current state,
 the shipping baseline and completed audits. These are scoped next steps, not claims
 that the named games are broken. Each round-audit batch below is independent;
 implement one game per PR rather than combining an entire batch.
 
-## Active owner-requested KOMPASS pathway
+## KOMPASS pathway (merged)
 
-The active combined work is on
-[`integrate/kompass4-all`](https://github.com/CrispStrobe/NumberNebula/tree/integrate/kompass4-all),
-in [draft PR #71](https://github.com/CrispStrobe/NumberNebula/pull/71). It combines
+The combined work shipped as [PR #71](https://github.com/CrispStrobe/NumberNebula/pull/71)
+(1.6.3+69) and [PR #72](https://github.com/CrispStrobe/NumberNebula/pull/72)
+(reviewed original papers, 1.6.4+70). It combines
 the foundation/harder labs from #69, the reasoning expansion from #70, and the
-six original kompass4 mathematics papers. Continue on this integration rather
-than the earlier component branches. Older lab drafts retain their recipe;
+six original kompass4 mathematics papers. All component branches are deleted;
+continue from `main`. Older lab drafts retain their recipe;
 new rounds use the harder recipe. Original-paper tasks retain a separate use
 and evidence classification.
 Use [the feature handoff](docs/kompass4-implementation.md) for source contracts,
 validation commands and known limits, and [the coverage map](docs/kompass4-coverage.md)
 for the 32 competencies. Read [the expansion record](docs/kompass4-reasoning-expansion.md)
-for the expansion's evidence. At integrated `2546d424`, strict analysis, 187
-KOMPASS cases, the 2,247-case native suite and pure calibration passed; browser
-validation was still queued. Verify the latest PR #71 head and review before merging;
-then verify merged-main publication through the existing workflows. Learner and
+for the expansion's evidence. All checks passed on the merged heads and on
+`main`, and 1.6.4 (70) is live on the web and in TestFlight. Open: a teacher
+sign-off of the 120 original-paper tasks (their `reviewStatus` is still `draft`;
+the answer keys were checked and none was wrong). Learner and
 teacher pilots remain necessary before any learning-outcome or test-readiness
 claim. Existing release and unrelated game-audit lanes below remain separate.
 
 ## Next up (in this order)
 
-1. **Watch App Review** (lane R, step 2): 1.5.45 (61) for iOS and macOS,
-   submitted 2026-11-05, release type Manual. React only to Apple's messages; do
-   not resubmit proactively, and do not release without the owner.
-2. **TestFlight 1.5.46 (62)** (Gridlock fix, merged): build and upload on
-   both platforms when the Mac has ≥15 GB free; see release readiness.
+1. **Watch iOS App Review** (lane R, step 2): iOS 1.5.45 (61), submitted
+   2026-11-05, release type Manual. macOS 1.5.45 was released on 2026-11-10.
+   React only to Apple's messages; do not resubmit proactively, and do not
+   release without the owner.
+2. **Submit 1.6.4 (70)** after iOS 1.5.45 is released: both builds are in
+   TestFlight and passed Beta App Review; the age-free release notes are in
+   `fastlane/metadata/*/release_notes.txt`. The owner submits. (1.5.46 (62) was
+   never uploaded; 1.6.4 supersedes it.)
 3. **Store listing fixes** (lane S): screenshots, truncated cards. The game
    count is fixed. Text changes need no app build.
 4. **Release tooling** (lane T): build numbers, fastlane lanes, local release
@@ -164,10 +167,8 @@ were a real input bug: below 650 px height or at large text the board sits in a
 vertical `SingleChildScrollView`, where a free pan needed 36 px before it beat
 scrolling, so short drags never moved a ship. `_buildShip` now uses axis-locked
 drag callbacks with `DragStartBehavior.down` (the 20 px step threshold is
-unchanged), and the loading overlay scrolls instead of overflowing. Remaining:
-ship build 62 to TestFlight like 1.5.45 (see release readiness), and submit
-1.5.46 for App Store review only after 1.5.45 is released and with the owner's
-go-ahead.
+unchanged), and the loading overlay scrolls instead of overflowing. It ships to
+the stores with 1.6.4 (70), which superseded build 62.
 The scope below is what PR #66 was written against; use it to review the PR.
 
 Start with Gridlock, using `shipsFromBoard` and a legal authored board such as
@@ -306,9 +307,9 @@ run in parallel; do not let separate agents race on them.
 
 ## R — Store release readiness
 
-**Status (2026-10-28):** see the "Current state" table in
-[docs/release-readiness.md](docs/release-readiness.md). iOS 1.4.10 (14) is in
-review; 1.5.44 (60) is in TestFlight; macOS 1.4.10 is live. **Owner files:**
+**Status (2026-11-11):** iOS 1.5.45 (61) is in review; macOS 1.5.45 (61) is
+live (released 2026-11-10); 1.6.4 (70) is in TestFlight on both platforms. The
+older "Current state" table is in [docs/release-readiness.md](docs/release-readiness.md). **Owner files:**
 `.github/workflows/release.yml`, `submit.yml`, `fastlane/`, `tool/asc/asc.py`,
 `pubspec.yaml`.
 

@@ -1,7 +1,23 @@
 # NumberNebula: current state and agent handover
 
-Updated 2026-11-10. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
+Updated 2026-11-11. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
+
+## Store state (checked 2026-11-11)
+
+| Platform | App Store | TestFlight |
+|---|---|---|
+| iOS | 1.5.45 (61) Waiting for Review since 2026-11-05 | 1.6.4 (70), internal and external testers |
+| macOS | 1.5.45 (61) **released 2026-11-10** (Ready for Sale; replaces 1.4.10) | 1.6.4 (70), internal and external testers |
+
+Both 1.6.4 (70) builds passed Beta App Review. Next store step: after iOS 1.5.45
+is approved and released, prepare 1.6.4 for both platforms; the owner submits.
+Do not withdraw the iOS 1.5.45 submission (it would rejoin the queue).
+1.5.46 (62) was never uploaded; 1.6.4 (70) supersedes it.
+
+Branch cleanup (2026-11-11): every merged or superseded branch was deleted in
+this repository (#55–#57 were integrated by #58, #69/#70 by #71, and #71/#72 are
+merged) and in kompass4 (PRs #1–#7 merged). Both repositories have only `main`.
 
 ## Store: 1.6.4 (70) in TestFlight (2026-11-10)
 
@@ -11,8 +27,7 @@ was merged with admin rights before its checks ran, at the owner's request.
 Tag `v1.6.4` on `957acc0` (adds the 1.6.4 release notes) ran the
 [release workflow](https://github.com/CrispStrobe/NumberNebula/actions/runs/42763706765):
 iOS and macOS were signed and uploaded and distributed to TestFlight. Both builds
-are `VALID`, internally testable, and on "External Testers" waiting for Beta App
-Review. Nothing was submitted for App Store review; 1.5.45 (61) is unaffected.
+are `VALID` and passed Beta App Review on 2026-11-10/11. Nothing was submitted for App Store review; 1.5.45 (61) is unaffected.
 
 The first release notes said "grade 3/4" / "Klasse 3/4", which
 `test/docs/no_age_targeting_test.dart` rejects (guideline 2.3.8). They are
@@ -70,11 +85,9 @@ Both the live app and the GitHub Pages copy serve 1.6.3 (69).
 ## Earlier KOMPASS reasoning expansion (2026-11-09)
 
 The owner requested more suitable minigames and content after reviewing the
-latest kompass4 mathematics bank. The integrated expansion is checkpointed on
-[`codex/kompass4-reasoning-expansion-20261109`](https://github.com/CrispStrobe/NumberNebula/tree/codex/kompass4-reasoning-expansion-20261109),
-in [draft PR #70](https://github.com/CrispStrobe/NumberNebula/pull/70), based on
-the pathway's `8971225`. It includes PR #69's unmerged foundation and targets
-main so the existing validation workflows run.
+latest kompass4 mathematics bank. The expansion was
+[PR #70](https://github.com/CrispStrobe/NumberNebula/pull/70), based on
+the pathway's `8971225`; it was integrated by PR #71 and its branch deleted.
 
 App **1.6.0+66**, content **2.1.0**: eight labs / 22 activity types, 144 bilingual
 tasks / 298 scored parts, 72 practice / 36 check / 36 rehearsal tasks. The four
@@ -89,20 +102,19 @@ builders, 4,068 standalone Dart mathematical checks and the frozen legacy audit
 authored; exact-head remote analysis, native tests, calibration and browser jobs
 remain required. Do not substitute earlier foundation results for this source.
 See [the expansion record](docs/kompass4-reasoning-expansion.md) for contracts and
-validation details. This branch has not been merged or published.
+validation details. Superseded: this work shipped through PR #71 (1.6.3+69).
 
 ## KOMPASS foundation branch (2026-11-08)
 
 The owner requested the complete optional KOMPASS 4 mathematics pathway, including
-new minigames, with incremental remote checkpoints. Work is on
-[`codex/kompass4-learning-path`](https://github.com/CrispStrobe/NumberNebula/tree/codex/kompass4-learning-path),
+new minigames, with incremental remote checkpoints. Work was on
+`codex/kompass4-learning-path` (deleted after integration by PR #71),
 version **1.6.1+67** (resumed 2026-11-09). The implementation covers all 32 project competency IDs,
 128 original bilingual tasks, four interactive labs, independent checks, a
 resumable 45-minute rehearsal, local learning evidence and printable booklets.
 See [implementation and validation](docs/kompass4-implementation.md),
 [complete coverage](docs/kompass4-coverage.md), and the branch's PR checks for the
-exact integrated source. Main and store publication remain at the verified
-versions described below until this branch is reviewed and merged.
+exact integrated source. Superseded: merged through PR #71 (1.6.3+69).
 
 ## Current state (2026-10-28)
 
@@ -136,8 +148,8 @@ Store (2026-11-05): after nine days in Waiting for Review, iOS 1.4.10 was withdr
 and **1.5.45 (61) was submitted for App Store review on both iOS and macOS**, with
 the all-ages store text and release type Manual (the owner releases after
 approval). 1.5.45 (61) passed Beta App Review and is in TestFlight for internal and
-external testers on both platforms. macOS 1.4.10 stays live until 1.5.45 is
-released. The details, and a release path that does not need GitHub's macOS
+external testers on both platforms. macOS 1.5.45 was approved and released on
+2026-11-10, replacing 1.4.10; iOS 1.5.45 is still in review (see the top). The details, and a release path that does not need GitHub's macOS
 runners, are in [docs/release-readiness.md](docs/release-readiness.md).
 
 **Gridlock repair merged:** [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66)
@@ -151,7 +163,7 @@ the loading overlay scrolls instead of overflowing. All PR checks passed at
 [calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/42004943204) and
 [web build, live tests, deploy and pages](https://github.com/CrispStrobe/NumberNebula/actions/runs/42004943384)
 passed, and the live site's `version.json` reported 1.5.46 (62) on 2026-11-05.
-There are no open PRs. Build 62 is not yet uploaded to TestFlight.
+There are no open PRs. Build 62 was never uploaded; 1.6.4 (70) superseded it.
 
 ## Preceding verified main publication
 

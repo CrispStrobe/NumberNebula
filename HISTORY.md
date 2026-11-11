@@ -1,5 +1,16 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-11-10/11 — KOMPASS 4 shipped; macOS 1.5.45 released; branch cleanup
+
+- PR #71 merged (`55eda35`, 1.6.3+69): KOMPASS 4 labs, reasoning expansion and
+  the six original kompass4 papers. PR #72 merged (`2955240`, 1.6.4+70): the
+  reviewed papers, unit words and count-word aliases.
+- 1.6.4 (70) released to TestFlight on iOS and macOS; both passed Beta App
+  Review. Release notes corrected to age-free wording after the
+  `no_age_targeting_test` guard caught "grade 3/4".
+- macOS 1.5.45 (61) approved and released by the owner's decision on 2026-11-10.
+- All merged or superseded branches deleted here and in kompass4.
+
 ## 2026-11-05 — 1.5.45 (61) submitted to the App Store on iOS and macOS
 
 - iOS 1.4.10 (14) had been Waiting for Review for nine days. Its submission was

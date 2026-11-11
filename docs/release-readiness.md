@@ -1,11 +1,11 @@
 # Store release readiness
 
-## Current state (checked 2026-11-05 via the App Store Connect API)
+## Current state (checked 2026-11-11 via the App Store Connect API)
 
 | Platform | Live on the App Store | In App Review | TestFlight |
 | --- | --- | --- | --- |
-| iOS | nothing yet (first release) | **1.5.45 (61)**, Waiting for Review, submitted 2026-11-05 | 1.5.45 (61): Beta App Review approved, internal and external testers |
-| macOS | 1.4.10 (14), with the old "Target age" row and "kids" description/keywords | **1.5.45 (61)**, Waiting for Review, submitted 2026-11-05 | 1.5.45 (61): Beta App Review approved, internal and external testers |
+| iOS | nothing yet (first release) | **1.5.45 (61)**, Waiting for Review, submitted 2026-11-05 | 1.6.4 (70): Beta App Review approved, internal and external testers |
+| macOS | **1.5.45 (61)**, released 2026-11-10 (replaced 1.4.10) | nothing | 1.6.4 (70): Beta App Review approved, internal and external testers |
 
 Both 1.5.45 versions use release type **Manual**: after approval, the owner
 releases them in App Store Connect (or ask the owner before releasing via the
@@ -44,9 +44,8 @@ Facts that are easy to get wrong:
 - `submit.yml` and the Fastfile take `APP_VERSION`/`BUILD_NUMBER` from
   `pubspec.yaml` of the checked-out ref. Make sure that matches the App Store
   version you mean to submit.
-- The live macOS 1.4.10 listing keeps its old description and keywords
-  (version-level text such as "primary-school explorers" and `kids`) until
-  1.5.45 is approved and released.
+- The old macOS 1.4.10 listing text ("primary-school explorers", `kids`) was
+  replaced when macOS 1.5.45 was released on 2026-11-10.
 
 ## Local release path (when the GitHub macOS queue stalls)
 
