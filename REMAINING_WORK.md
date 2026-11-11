@@ -1,9 +1,13 @@
-# Executable next-work lanes
+# Open work: order, risks and executable lanes
 
 Updated 2026-11-11. Read [HANDOVER.md](HANDOVER.md) first for the current state,
-the shipping baseline and completed audits. These are scoped next steps, not claims
-that the named games are broken. Each round-audit batch below is independent;
-implement one game per PR rather than combining an entire batch.
+the shipping baseline and completed audits; completed work moves to
+[HISTORY.md](HISTORY.md). This file replaces the former `PLAN.md` (order and
+dependencies) and `REMAINING_ISSUES_DETAILED.md` (risks and reproduction rules).
+
+The lanes are scoped next steps, not claims that the named games are broken.
+Each round-audit batch below is independent; implement one game per PR rather
+than combining an entire batch.
 
 ## KOMPASS pathway (merged)
 
@@ -39,8 +43,48 @@ claim. Existing release and unrelated game-audit lanes below remain separate.
    count is fixed. Text changes need no app build.
 4. **Release tooling** (lane T): build numbers, fastlane lanes, local release
    script. This stops the next release from going through what 2026-10-27/28 did.
-5. Then the remaining round audits (B–F), lane L validation and the product
-   ideas in lane U, as capacity allows.
+5. **Teacher sign-off** of the 120 original kompass4 paper tasks (see above).
+6. Then, as capacity allows: the remaining round audits (D–F, one game per PR,
+   starting with Star Loader or an independently owned E/F game), lane L
+   validation, and the product ideas in lane U.
+7. In parallel when resources permit: G (structural progression flags) and I
+   (narrow upstream solver benchmark), preserving all baseline/candidate/fallback
+   paths and without automatic par changes; J and K (browser/rendering and CI
+   cost), optimizing only measured bottlenecks and keeping every validation gate.
+8. H (human/device validation) can be prepared now; its measurements need real
+   devices and playtest data, so no calibrated difficulty or native frame/battery
+   improvement may be claimed before then.
+
+Parallel ownership: screen/test lanes can work independently. Assign a single
+integrator to shared mixins, workflow files, dependency pins and version bumps.
+
+## Known risks and evidence gaps
+
+| Risk or evidence gap | Current evidence | Lane |
+| --- | --- | --- |
+| Remaining round lifecycle/input edge cases | 37 registered games have focused round suites; 11 remain (D–F). No specific new defect is asserted without reproduction. | D–F |
+| Structural progression jumps | 67 recorded flags; zero generation failures. Authored transitions can repeat across grades. | G |
+| Difficulty pars and workload bands | Untrained estimates; no playtest results. Generator timing is not solving time. | H |
+| Solver costs and browser integer representations | App retains pinned `dart_csp` v2.2.0, alternatives and fallbacks. Native success alone does not prove dart2js/WASM safety. | I |
+| Rendering/startup claims | Cached paths and remote probes exist; no demonstrated native FPS/battery gain. | J, H |
+| CI duplication and artifact expiry | Full gates pass; calibration artifacts have finite retention. Preserve needed fixtures. | K |
+| KOMPASS original-paper mappings | Answer keys checked, none wrong; `reviewStatus` is `draft` pending a teacher. No learning-outcome or test-readiness claim without pilots. | KOMPASS |
+| Store review | iOS 1.5.45 in review; review history includes 2.3.8 and 4.3(a). Store text must stay free of age/grade/child targeting. | R |
+
+### Reproduction requirements
+
+Report the game key, commit, seed or frozen board, grade/level, locale, text
+scale, viewport, motion setting and exact input/restore/retry sequence. Include
+expected versus observed outcome and whether the session remains saved.
+For asynchronous bugs, capture which round owned the callback. For generator
+bugs, replay the fixture with an independent rule validator. Publish only
+synthetic/reproducible state, without profiles or account information.
+
+Browser validation still recognizes the narrowly identified upstream Flutter
+CPU-only CanvasKit startup race; see [engine report](docs/flutter-engine-race-report.md).
+Do not expand this exception to unrelated app, storage or renderer errors.
+Historical June fixes and formulas are in [the balance audit](docs/archive/GAME_BALANCE_AUDIT.md)
+and [HISTORY.md](HISTORY.md); confirm current code before using old formulas.
 
 ## Player availability
 
@@ -52,10 +96,10 @@ its exact key and release criteria here. Audit lanes below do not withhold games
 
 ### Fixed and shipping
 
-All 48 registered games are available in the menu and missions. The 36 implemented
+All 48 registered games are available in the menu and missions. The 37 implemented
 focused round audits are mapped in [HANDOVER.md](HANDOVER.md); historical browser
 play-throughs are archived in [game-quality notes](docs/game-quality-history.md).
-The remaining 12 focused audits are additional hardening work, not a broken-game list.
+The remaining 11 focused audits are additional hardening work, not a broken-game list.
 
 ## Shared acceptance for game lanes A–F
 
@@ -218,7 +262,7 @@ Start with Arithmancer: schedule an AI response, replace/restore the round, and
 prove the response cannot land in the new state. Verify turn ownership, selected
 cards, outcomes once, localized turn labels, pause/retry and disposal. Repeat
 for Asteroid Duel. **Done:** shared acceptance and legal-move/AI regression tests.
-D–F cover the 12 registered games without implemented dedicated round audits.
+D–F cover the 11 registered games without implemented dedicated round audits.
 Legacy screens such as `bubble_math_game.dart` and `creature_forge_game.dart`
 are not extra registered-game lanes; do not delete them as incidental cleanup.
 
@@ -457,8 +501,9 @@ the store text, but in-app labels still say grade/Klasse in places).
   A cosmetic rename that loses progress is unacceptable.
 - Launcher icons: regenerate from `assets/images/app_icon.png` when the artwork
   actually changes; re-encoding unchanged source art is not a gameplay fix.
-- Historical design briefs/specs describe original implementation tasks. Verify
-  current source before treating their old assignments as open work.
+- Historical design briefs/specs (now in `docs/archive/`) describe original
+  implementation tasks. Verify current source before treating their old
+  assignments as open work.
 
 
 ## L — Practice rules and comparable difficulty

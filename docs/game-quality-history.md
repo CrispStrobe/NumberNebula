@@ -232,7 +232,7 @@ were fixed.
 
 - 49 games implemented from Kanguru competition analysis
 - 70+ test files (789+ tests, all passing)
-- Comprehensive game balance audit (GAME_BALANCE_AUDIT.md)
+- Comprehensive game balance audit (docs/archive/GAME_BALANCE_AUDIT.md)
 - Star rating system: `scoreToStars()`, `bestStars`/`lastStars` in GameProvider, UI on game cards
 - `StarRatingDisplay` widget for win dialogs
 - SRI integration for all arithmetic games
@@ -247,8 +247,8 @@ were fixed.
 
 ## KEY FILES
 
-- `GAME_BALANCE_AUDIT.md` — systematic audit of all 49 games with per-game catalog
-- `DESIGN_BRIEFS.md` / `DESIGN_BRIEFS_ROUND2.md` — approved redesign specs
-- `GAME_IDEAS.md` — original 1544-problem analysis
-- `GAME_THEMING.md` — space narrative, i18n strings
-- `VISUAL_TEMPLATE.md` — mandatory UI patterns
+- `docs/archive/GAME_BALANCE_AUDIT.md` — systematic audit of all 49 games with per-game catalog
+- `docs/archive/DESIGN_BRIEFS.md` / `DESIGN_BRIEFS_ROUND2.md` — approved redesign specs
+- `docs/archive/GAME_IDEAS.md` — original 1544-problem analysis
+- `docs/archive/GAME_THEMING.md` — space narrative, i18n strings
+- `docs/VISUAL_TEMPLATE.md` — mandatory UI patterns

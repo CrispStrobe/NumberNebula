@@ -11,6 +11,286 @@
 - macOS 1.5.45 (61) approved and released by the owner's decision on 2026-11-10.
 - All merged or superseded branches deleted here and in kompass4.
 
+## Handover archive (sections moved out of HANDOVER.md on 2026-11-11)
+
+These were the current-state sections of HANDOVER.md when they were written. They
+record evidence for the named commits only; links to deleted branches were
+removed.
+
+### Store: 1.6.4 (70) in TestFlight (2026-11-10)
+
+[PR #72](https://github.com/CrispStrobe/NumberNebula/pull/72) (reviewed original
+papers, unit words, count-word aliases) is merged as `2955240`, **1.6.4+70**; it
+was merged with admin rights before its checks ran, at the owner's request.
+Tag `v1.6.4` on `957acc0` (adds the 1.6.4 release notes) ran the
+[release workflow](https://github.com/CrispStrobe/NumberNebula/actions/runs/42763706765):
+iOS and macOS were signed and uploaded and distributed to TestFlight. Both builds
+are `VALID` and passed Beta App Review on 2026-11-10/11. Nothing was submitted for App Store review; 1.5.45 (61) is unaffected.
+
+The first release notes said "grade 3/4" / "Klasse 3/4", which
+`test/docs/no_age_targeting_test.dart` rejects (guideline 2.3.8). They are
+corrected in `fastlane/metadata/*/release_notes.txt`, and the TestFlight
+"What to Test" text of both builds was replaced through the API (en-US, de-DE).
+On `main` `957acc0`, [calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/42763700291)
+and [web build, browser tests and deployment](https://github.com/CrispStrobe/NumberNebula/actions/runs/42763700458)
+passed and both web hosts serve 1.6.4 (70); [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/42763700353)
+failed only on that release-notes guard, fixed in the following commit.
+
+### KOMPASS integration: PR #71, merged 2026-11-10
+
+[PR #71](https://github.com/CrispStrobe/NumberNebula/pull/71) is merged into `main`
+as `55eda35` (1.6.3+69). It combines
+the foundation and harder labs from #69, the reasoning expansion from #70, and
+the six original kompass4 practice papers. #69 is marked merged and #70 is closed
+as included; continue from `main`, not from their branches.
+
+App **1.6.3+69** contains the main **144-task / 298-part bilingual bank** plus
+**120 original German paper tasks / 249 parts / 240 points**, grouped into six
+20-task papers. The combined loader version is **2.1.0+k4.1.0.0**. The original
+papers use their own selection and preserve `contentUse: original`; they do not
+enter the main practice/check/rehearsal pools or become verified independent
+course evidence. Their digital answer mappings remain drafts pending teacher
+review. The eight labs retain saved recipe-1 rounds and use the harder recipe 2
+for new rounds. The 48 free-play games retain their existing rules.
+
+At integrated head `2546d4245e2594662340d1c02a4473bac480ca3c`,
+[CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/42671817079)
+passed strict analysis, **187 focused KOMPASS cases** and the **2,247-case full
+native suite**, with no reported skips/failures in the successful attempt.
+The focused tests are included in the full count. CI was attempt 2;
+[pure calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/42671816877)
+was attempt 3 and passed **60,400 generation cases across 48 games**. The
+[web workflow](https://github.com/CrispStrobe/NumberNebula/actions/runs/42671817293)
+built WASM/JavaScript and completed capture/replay; live browser tests were still
+queued when checked. Later commits need their own required checks.
+
+The follow-up enforces declared manual-credit steps in original-paper rubrics,
+including the review controls and scorer. Existing saved reviews remain intact
+until explicitly changed; correcting one part preserves another part's prior
+review. Course rubrics without declared steps keep their existing behavior.
+CI now checks reproducibility of the original-paper import and its figure set.
+The follow-up browser regression verifies that the independent-check answer
+actually reaches the saved draft and immutable first response. Earlier fixes
+for saved score parts, text editing and restored fields are already integrated.
+Verified on the exact PR head `3c7c362`: [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/42700806533),
+[calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/42700806431) and
+[web build and browser tests](https://github.com/CrispStrobe/NumberNebula/actions/runs/42700806387).
+Verified again on merged `main` `55eda35`: [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/42715596423),
+[calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/42715596890) and
+[web build, browser tests and deployment](https://github.com/CrispStrobe/NumberNebula/actions/runs/42715596406).
+Both the live app and the GitHub Pages copy serve 1.6.3 (69).
+
+### Earlier KOMPASS reasoning expansion (2026-11-09)
+
+The owner requested more suitable minigames and content after reviewing the
+latest kompass4 mathematics bank. The expansion was
+[PR #70](https://github.com/CrispStrobe/NumberNebula/pull/70), based on
+the pathway's `8971225`; it was integrated by PR #71 and its branch deleted.
+
+App **1.6.0+66**, content **2.1.0**: eight labs / 22 activity types, 144 bilingual
+tasks / 298 scored parts, 72 practice / 36 check / 36 rehearsal tasks. The four
+added labs cover reasoning and complete combinations, journeys, area/perimeter
+construction and chance counterexamples. All 128 older tasks are unchanged;
+the original lab recipes and 48 free-play games remain stable. Compatibility
+gates allow historical sessions/reviews only for explicitly verified tasks.
+
+The expansion passes 83 Python content/print/compatibility cases, reproducible
+builders, 4,068 standalone Dart mathematical checks and the frozen legacy audit
+(53 rounds, 281 scoring results). New Flutter widget and browser regressions are
+authored; exact-head remote analysis, native tests, calibration and browser jobs
+remain required. Do not substitute earlier foundation results for this source.
+See [the expansion record](docs/kompass4-reasoning-expansion.md) for contracts and
+validation details. Superseded: this work shipped through PR #71 (1.6.3+69).
+
+### KOMPASS foundation branch (2026-11-08)
+
+The owner requested the complete optional KOMPASS 4 mathematics pathway, including
+new minigames, with incremental remote checkpoints. Work was on
+`codex/kompass4-learning-path` (deleted after integration by PR #71),
+version **1.6.1+67** (resumed 2026-11-09). The implementation covers all 32 project competency IDs,
+128 original bilingual tasks, four interactive labs, independent checks, a
+resumable 45-minute rehearsal, local learning evidence and printable booklets.
+See [implementation and validation](docs/kompass4-implementation.md),
+[complete coverage](docs/kompass4-coverage.md), and the branch's PR checks for the
+exact integrated source. Superseded: merged through PR #71 (1.6.3+69).
+
+### Current state (2026-10-28)
+
+`main` is at version **1.5.45+61**: the app code evaluated below
+([`b84a927`](https://github.com/CrispStrobe/NumberNebula/commit/b84a927), 1.5.44+60)
+plus the removal of all age and child-audience statements. The owner ruled on
+2026-10-28 that the app is for math learners of all ages; see lane U item 1 in
+REMAINING_WORK.md and `test/docs/no_age_targeting_test.dart`. Since the Molecule
+baseline (1.5.39+55, described below), these changes have landed:
+
+- [PR #68](https://github.com/CrispStrobe/NumberNebula/pull/68) (`1672c66`): store
+  text only. The App Store rejected 1.4.10 under guideline 2.3.8 because the
+  subtitle said "for kids". See [release readiness](docs/release-readiness.md).
+- [PR #67](https://github.com/CrispStrobe/NumberNebula/pull/67) (`a6de6a2`): the
+  48-game practice/Üben rewrite, with 5 failing native tests fixed before merging.
+  See [practice rules](docs/practice-rules-and-difficulty.md#status-2026-10-28).
+- `8b39a33`: fixes the web live test that had failed since PR #67's first head
+  (live-region text matched twice). `b84a927` reverts a `Podfile.lock` change
+  swept into that commit.
+
+Evidence: at `b84a927`, [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700725093)
+and [pure calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700724702)
+passed. At `ddc72f3` (same app code as 1.5.45+61), [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/40738365561),
+[calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/40738365624) and the
+[web build, live tests, deploy and pages](https://github.com/CrispStrobe/NumberNebula/actions/runs/40738365648)
+all passed; on 2026-11-05 the live site's `version.json` reported 1.5.45 (61).
+PRs #67 and #68 were merged with admin rights before their required checks
+finished; the checks above ran afterwards on `main`.
+
+Store (2026-11-05): after nine days in Waiting for Review, iOS 1.4.10 was withdrawn
+and **1.5.45 (61) was submitted for App Store review on both iOS and macOS**, with
+the all-ages store text and release type Manual (the owner releases after
+approval). 1.5.45 (61) passed Beta App Review and is in TestFlight for internal and
+external testers on both platforms. macOS 1.5.45 was approved and released on
+2026-11-10, replacing 1.4.10; iOS 1.5.45 is still in review (see the top). The details, and a release path that does not need GitHub's macOS
+runners, are in [docs/release-readiness.md](docs/release-readiness.md).
+
+**Gridlock repair merged:** [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66)
+is on `main` as [`a17b1bd`](https://github.com/CrispStrobe/NumberNebula/commit/a17b1bd),
+version **1.5.46+62**. Its 2 failing small-screen tests were a real input bug:
+inside the scroll view used below 650 px height or at large text, a free pan
+needed 36 px before it beat vertical scrolling, so short ship drags did nothing.
+Ship drags are now locked to the ship's axis and measured from touch-down, and
+the loading overlay scrolls instead of overflowing. All PR checks passed at
+`8f665ab`. On merged `main`, [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/42004943218),
+[calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/42004943204) and
+[web build, live tests, deploy and pages](https://github.com/CrispStrobe/NumberNebula/actions/runs/42004943384)
+passed, and the live site's `version.json` reported 1.5.46 (62) on 2026-11-05.
+There are no open PRs. Build 62 was never uploaded; 1.6.4 (70) superseded it.
+
+### Preceding verified main publication
+
+[Relic Assembly / PR #64](https://github.com/CrispStrobe/NumberNebula/pull/64)
+merged at exact source
+[`dd6e5d2`](https://github.com/CrispStrobe/NumberNebula/commit/dd6e5d22397401b360878190ec6963c00fd02203),
+version **1.5.38+54**. Strict analysis and 1,823 native cases passed, including all
+39 Relic and 45 Hull cases, zero skips. Generation passed 60,400 cases across all
+48 games; Flutter capture/replay passed 864 cases. Its full GitHub artifact
+browser report has 45 passed and one existing Chromium loader skip, zero observed
+retries. Actual raw reports and source/test identities were independently checked.
+
+The tested GitHub artifact was first published with synthetic checkout marker
+`656db57`; its complete source tree equals the merged head. Its historical
+[canonical proof](https://numbernebula-8bz2qrmmg-crispstrobes-projects.vercel.app/hosted-proof.json)
+records two passing Relic checks across Chromium/WASM and Firefox/JavaScript,
+zero skips/retries and stable compiled hashes. Report protection applies. The
+shipping wrapper was compiled separately; its different build was not substituted
+for that browser-tested GitHub artifact.
+
+Merged-main [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/39235051563),
+[calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/39235051487)
+and [web/deployment](https://github.com/CrispStrobe/NumberNebula/actions/runs/39235051481)
+**all succeeded**. Both actual main browser reports were independently verified:
+each has **45 passed, one existing Chromium loader skip and zero observed retries**.
+The main capture report passed 864 cases across 48 games. That workflow published
+its own tested main artifact, runtime marker **`dd6e5d2`**, to
+[numbernebula.vercel.app](https://numbernebula.vercel.app). Its five compiled-file
+hashes, version and isolation headers matched the canonical site after completion.
+The older `656db57` report remains historical evidence for its own artifact.
+The obsolete queued PR-preview deployment was canceled after the earlier verified
+publication; that aggregate is canceled, not green. The preceding Hull main
+checks in [PR #63](https://github.com/CrispStrobe/NumberNebula/pull/63) also succeeded.
+
+### October 18 integration
+
+Implemented on October 19: **1.5.39+55** (since superseded; see Current state); see the [Molecule audit](docs/molecule-builder-round-audit.md).
+The preceding implemented version is **1.5.38+54**, [PR #64](https://github.com/CrispStrobe/NumberNebula/pull/64); see the [Relic Assembly audit](docs/relic-assembly-round-audit.md).
+Its 39 focused cases include held-pointer isolation for generation-error retry.
+Its final 39-case source is verified above; earlier 38-case results do not validate that follow-up.
+The preceding Hull follow-up is **1.5.37+53**, [PR #63](https://github.com/CrispStrobe/NumberNebula/pull/63);
+use its exact-source native, browser and deployment evidence rather than assuming a queued check passed.
+The initial Hull repair is [PR #62](https://github.com/CrispStrobe/NumberNebula/pull/62), version **1.5.36+52**.
+A follow-up guards same-round plate replacement; its new exact-source checks are required.
+The preceding verified version is **1.5.35+51**, [PR #61](https://github.com/CrispStrobe/NumberNebula/pull/61).
+The preceding verified version is **1.5.34+50**, [PR #60](https://github.com/CrispStrobe/NumberNebula/pull/60).
+The preceding verified baseline is **1.5.33+49**, [PR #59](https://github.com/CrispStrobe/NumberNebula/pull/59).
+The earlier [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)
+repairs the October 17 audits and integrates the work originally proposed in
+#55, #56 and #57. Its checks verify that earlier integration; use the second-pass
+build evidence for the current source. Historical green runs do not validate a
+later head.
+
+There are focused round suites for **36 registered games**, with **12** remaining
+to audit. All 22 newly skipped acceptance cases from the October 17 changes have
+been re-enabled, the Arithmetic Square placeholder has been replaced by actual
+input/save/inventory/terminal tests, and a coverage contract rejects skipped
+acceptance cases in these eleven added suites. The two historical generator smoke
+skips are also re-enabled in the second-pass suite with their existing bounds.
+
+The integration keeps correct but unsubmitted manual answers playable, resets
+round identity and terminal effects on restoration, conserves duplicate tray
+values, and makes a full incorrect board lose at its exhausted budget. A correct
+last legal move can still win. Existing scores, pars, generators, A/B selection
+and fallback implementations are retained. The dynamic Alien card border remains
+animated while its static card contents are reused.
+
+The [Lane G evidence review](docs/structural-difficulty-review-G.md) now separates
+historical summary integrity from four live seeded Robot generation/command
+replays. Its real Flutter wrapper and pure workflow step are present; unsupported
+sample/proof claims have been withdrawn. This is not human difficulty calibration.
+
+Puzzle Math (B) is implemented in [PR #61](https://github.com/CrispStrobe/NumberNebula/pull/61); see its
+[round audit](docs/puzzle-math-round-audit.md). Hull Plating (C) is implemented in its [round audit](docs/hull-plating-round-audit.md);
+verify its repair PR before treating it as a green baseline. Relic Assembly (C)
+has an [implementation under validation](docs/relic-assembly-round-audit.md).
+Molecule Builder (D) is [implemented under validation](docs/molecule-builder-round-audit.md).
+The next screen audit is Gridlock (D), followed by the unchanged D/E/F games. H has a
+[prepared playtest protocol](docs/human-playtest-protocol.md); R has a
+[draft readiness document](docs/release-readiness.md). Neither claims device
+measurements or a new store release.
+
+### Codebreaker round audit
+
+The [Codebreaker audit](docs/codebreaker-round-audit.md) adds real input,
+finite tray accounting, repeated-symbol and duplicate-value checks, restore
+isolation, terminal saves, one-time outcomes, guarded retry/navigation and
+reduced-motion coverage. English/German phone controls are exercised at doubled
+text size. Codebreaker retains both existing generator paths and symbol autofill.
+Use its repair PR's exact-source validation and deployed checks as evidence;
+implemented tests alone do not establish a passing build.
+
+### Second-pass regression audit
+
+The [change-by-change audit](docs/october-17-regression-audit.md) records additional
+missed defects in retry flags, retained controls, restored drop effects and Star
+Forge rendering. Its expanded tests require exact state and outcome assertions,
+and run against the previous implementations as negative controls. Browser smoke
+coverage opens all eleven changed games in both release engines. Passing totals
+are evidence for those contracts, not proof that every possible defect is absent.
+
+The [published audit evidence](https://github.com/CrispStrobe/NumberNebula/pull/59)
+identifies the tested source, negative controls, full-suite results, all-game
+samples and changed-line coverage. Its results are recorded only after validation passes and retain links to the
+validated build report. An older deployment or a missing report does not validate
+the current source. Production redeployments may omit supplementary audit assets;
+the linked PR retains the evidence and exact tested commit. When GitHub's runner queue is excessive, reuse a tested artifact
+or use a configured remote validation container; do not wait indefinitely or run
+large jobs on a busy shared host.
+
+### Historical verified baseline (October 5)
+
+App version **1.5.22+38** at
+[`8eaf252bc86dfc7e44bb219613e60f2bd3450e7c`](https://github.com/CrispStrobe/NumberNebula/commit/8eaf252bc86dfc7e44bb219613e60f2bd3450e7c),
+after [PR #46](https://github.com/CrispStrobe/NumberNebula/pull/46).
+That documentation-only update did not change the app version.
+
+| Evidence on that exact main commit | Result | Public run |
+| --- | --- | --- |
+| Flutter analysis, focused regressions, reduced motion and retained rendering fallbacks | Passed; full suite 1,471 passing, two existing skips | [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/37241615028) |
+| Pure Dart generation, validators and localized hints | 48 registered games; 60,400 cases; zero failures | [Calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/37241614982) |
+| WASM and JavaScript fallback, fixture capture/replay, Chromium/Firefox, production deployment and hosted checks | Passed; 864 Flutter capture/replay cases | [Web and deployment](https://github.com/CrispStrobe/NumberNebula/actions/runs/37241614977) |
+
+All 48 registered games are available. `lib/features/games/game_registry.dart`
+and `lib/features/missions/data/game_pool.dart` are the coverage authorities.
+Older audit documents catalog 49 games; that includes legacy material and
+must not be interpreted as 49 registered games. Generation and session coverage
+for all games does not mean every interactive edge case has been audited.
+
 ## 2026-11-05 — 1.5.45 (61) submitted to the App Store on iOS and macOS
 
 - iOS 1.4.10 (14) had been Waiting for Review for nine days. Its submission was
