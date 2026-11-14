@@ -1,5 +1,28 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-11-14 — 1.6.5 (71): KOMPASS sessions crashed in release builds
+
+- 1.6.4 (70) from TestFlight crashed on iPad (SIGSEGV, `EXC_BAD_ACCESS` at
+  0xc) as soon as "Meine nächste Übung" or "Selbstständig lösen" opened a
+  session. Reproduced in a macOS profile (AOT) build and symbolized with
+  `--split-debug-info` + `llvm-symbolizer`: `KompassScore.partById` called from
+  `_KompassCourseScreenState._body` (`kompass_course_screen.dart:639`). The
+  nested collection element `if (showingFeedback) if (attempt.score.partById(..)
+  case final result?) ...[...]` inside `for (part in task.parts)` was evaluated
+  by the AOT build although `showingFeedback` was false, dereferencing a
+  missing attempt. JIT widget tests and the dart2js/WASM browser tests evaluate
+  it correctly, which is why every check passed.
+- Fix: the feedback moved into `_partFeedback`, with explicit null checks.
+- New `integration_test/kompass_open_test.dart` opens practice (with an answer
+  check), the independent check, the rehearsal, both kinds of original paper and
+  all eight labs in a compiled build; new CI job `kompass-aot` runs it as a
+  profile Linux build under Xvfb. Locally it passed on macOS profile.
+- `CrashLogger.beginActivity/endActivity`: a marker written before a KOMPASS
+  session or lab opens and cleared after its first frame, so a native crash
+  (which no Dart handler sees) is recorded on the next launch under
+  Settings → Diagnostics. The paper and resume entry points now catch and log
+  failures like the other entry points.
+
 ## 2026-11-10/11 — KOMPASS 4 shipped; macOS 1.5.45 released; branch cleanup
 
 - PR #71 merged (`55eda35`, 1.6.3+69): KOMPASS 4 labs, reasoning expansion and

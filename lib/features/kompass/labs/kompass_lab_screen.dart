@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../core/services/crash_logger.dart';
 import '../../../core/services/profile_preferences.dart';
 import '../widgets/kompass_cell_input.dart';
 import '../widgets/kompass_figure_view.dart';
@@ -78,6 +79,9 @@ class KompassLabScreenState extends State<KompassLabScreen>
   @override
   void initState() {
     super.initState();
+    // The first frame drew without a native crash: clear the marker.
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => CrashLogger.instance.endActivity());
     WidgetsBinding.instance.addObserver(this);
     _foreground = WidgetsBinding.instance.lifecycleState == null ||
         WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;

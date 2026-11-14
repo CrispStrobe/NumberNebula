@@ -176,6 +176,43 @@ jobs:
       - name: Run tests
         run: flutter test --concurrency=2 --reporter expanded
 
+  kompass-aot:
+    # Compiled (AOT) app run of every KOMPASS entry point. 1.6.4 (70) crashed
+    # natively on iPad when a practice or check session opened; JIT widget
+    # tests passed because only the AOT build mis-evaluated the screen. This
+    # drives the real app as a profile (AOT) Linux desktop build under Xvfb.
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux desktop build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libstdc++-12-dev xvfb
+
+      - name: Read Flutter SDK pin
+        run: echo "FLUTTER_VERSION=$(cat .flutter-version)" >> "$GITHUB_ENV"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Open every KOMPASS session, paper and lab in an AOT build
+        run: |
+          xvfb-run -a -s "-screen 0 1280x900x24" \
+            flutter drive --profile -d linux \
+              --driver=test_driver/integration_test.dart \
+              --target=integration_test/kompass_open_test.dart
+
   version-bump:
     # A PR that changes shipping code must also move the version, otherwise a
     # release can silently reuse a build number the stores have already seen.

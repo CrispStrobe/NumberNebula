@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/services/crash_logger.dart';
+
 import '../models/kompass_attempt.dart';
 import '../models/kompass_content.dart';
 import '../services/kompass_scorer.dart';
@@ -94,6 +96,9 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
   @override
   void initState() {
     super.initState();
+    // The first frame drew without a native crash: clear the marker.
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => CrashLogger.instance.endActivity());
     WidgetsBinding.instance.addObserver(this);
     final saved = widget.initialSession;
     _sessionId = saved?['id'] as String? ??
@@ -635,43 +640,7 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
                     key: ValueKey('$_sessionId:${task.id}:${part.id}'),
                     child: _input(part),
                   ),
-                  if (showingFeedback)
-                    if (attempt.score.partById(part.id) case final result?) ...[
-                      const SizedBox(height: 12),
-                      Semantics(
-                        liveRegion: true,
-                        child: Text(
-                          result.pendingReview
-                              ? kc(
-                                  _german,
-                                  'Deine Begründung wird mit den Kriterien am Ende geprüft.',
-                                  'Review your explanation against the criteria at the end.',
-                                )
-                              : result.correct
-                                  ? kc(_german, 'Das stimmt.',
-                                      'That is correct.')
-                                  : result.carriedError
-                                      ? kc(
-                                          _german,
-                                          'Dieser Schritt passt zu deinem Zwischenergebnis.',
-                                          'This step follows correctly from your intermediate result.',
-                                        )
-                                      : result.feedback != null
-                                          ? kompassText(
-                                              result.feedback, _german)
-                                          : kc(
-                                              _german,
-                                              'Prüfe deinen Lösungsweg. Ein Hinweis kann helfen.',
-                                              'Check your approach. A hint may help.',
-                                            ),
-                          style: TextStyle(
-                            color: result.correct
-                                ? const Color(0xFF176746)
-                                : const Color(0xFF844015),
-                          ),
-                        ),
-                      ),
-                    ],
+                  ..._partFeedback(showingFeedback ? attempt : null, part.id),
                 ],
               ),
             ),
@@ -767,6 +736,58 @@ class _KompassCourseScreenState extends State<KompassCourseScreen>
           ),
       ],
     );
+  }
+
+  /// Per-part feedback after a practice answer was checked.
+  ///
+  /// Kept out of the collection literal on purpose: 1.6.4 (70) nested
+  /// `if (showingFeedback) if (attempt.score.partById(..) case final r?)`
+  /// inside `for (part in task.parts)`, and the AOT build evaluated the inner
+  /// pattern although the outer condition was false, dereferencing a missing
+  /// attempt (SIGSEGV on opening any practice or check session, iPad and
+  /// macOS release builds; JIT tests passed). Plain null checks only here.
+  List<Widget> _partFeedback(KompassAttempt? attempt, String partId) {
+    if (attempt == null) return const [];
+    final KompassPartScore? result = attempt.score.partById(partId);
+    if (result == null) return const [];
+    final String message;
+    if (result.pendingReview) {
+      message = kc(
+        _german,
+        'Deine Begründung wird mit den Kriterien am Ende geprüft.',
+        'Review your explanation against the criteria at the end.',
+      );
+    } else if (result.correct) {
+      message = kc(_german, 'Das stimmt.', 'That is correct.');
+    } else if (result.carriedError) {
+      message = kc(
+        _german,
+        'Dieser Schritt passt zu deinem Zwischenergebnis.',
+        'This step follows correctly from your intermediate result.',
+      );
+    } else if (result.feedback != null) {
+      message = kompassText(result.feedback, _german);
+    } else {
+      message = kc(
+        _german,
+        'Prüfe deinen Lösungsweg. Ein Hinweis kann helfen.',
+        'Check your approach. A hint may help.',
+      );
+    }
+    return [
+      const SizedBox(height: 12),
+      Semantics(
+        liveRegion: true,
+        child: Text(
+          message,
+          style: TextStyle(
+            color: result.correct
+                ? const Color(0xFF176746)
+                : const Color(0xFF844015),
+          ),
+        ),
+      ),
+    ];
   }
 
   Widget _input(KompassPart part) {
