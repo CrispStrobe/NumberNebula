@@ -13,6 +13,7 @@
 // signing identity).
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -42,22 +43,33 @@ Future<bool> _waitFor(WidgetTester tester, Finder finder,
   return finder.evaluate().isNotEmpty;
 }
 
-/// Lazily built lists only create rows near the viewport: scroll the
-/// current page's main list (up, then down) until [finder] exists.
+/// Lazily built lists only create rows near the viewport: step the current
+/// page's vertical lists through their extent until [finder] exists. Jumps
+/// the scroll position directly, so it does not depend on drag gestures
+/// reaching the list (they did not under xvfb).
 Future<bool> _reveal(WidgetTester tester, Finder finder) async {
   if (finder.evaluate().isNotEmpty) return true;
-  for (final delta in const [-300.0, 300.0]) {
-    final lists = find.byWidgetPredicate(
-        (w) => w is Scrollable && w.axisDirection == AxisDirection.down);
-    if (lists.evaluate().isEmpty) return false;
-    try {
-      await tester.scrollUntilVisible(finder, delta,
-          scrollable: lists.last, maxScrolls: 80);
-    } catch (_) {
-      continue;
+  final lists = find
+      .byWidgetPredicate(
+          (w) => w is Scrollable && w.axisDirection == AxisDirection.down)
+      .evaluate()
+      .where((e) => ModalRoute.of(e)?.isCurrent ?? true)
+      .toList()
+      .reversed;
+  for (final element in lists) {
+    if (!element.mounted) continue;
+    final position =
+        ((element as StatefulElement).state as ScrollableState).position;
+    var offset = position.minScrollExtent;
+    for (var step = 0; step < 400; step++) {
+      // maxScrollExtent grows as lazily built rows appear; re-read it.
+      final target = math.min(offset, position.maxScrollExtent);
+      position.jumpTo(target);
+      await tester.pump();
+      if (finder.evaluate().isNotEmpty) return true;
+      if (target >= position.maxScrollExtent) break;
+      offset += 250;
     }
-    await tester.pump();
-    if (finder.evaluate().isNotEmpty) return true;
   }
   return false;
 }

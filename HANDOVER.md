@@ -10,22 +10,26 @@ Working rules are in [AGENTS.md](AGENTS.md).
 
 ## Current state
 
-`main` is at app version **1.6.4+70**; both web hosts serve 1.6.4 (70). On
-`main` [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/42778728829),
-[calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/42778728927)
-and [web build, browser tests and deployment](https://github.com/CrispStrobe/NumberNebula/actions/runs/42778728898)
-passed at `63c08f7` (same app code as 1.6.4+70). There are no open PRs, and
-`main` is the only branch.
+`main` is at app version **1.6.5+71** (merge of #75, `9c0d7f2`). On that
+head [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/43620238047)
+(including `kompass-aot`) and
+[calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/43620238147)
+passed; the [web build and deployment](https://github.com/CrispStrobe/NumberNebula/actions/runs/43620237990)
+was queued at the time of writing, so recheck that both web hosts serve 1.6.5 (71).
+The `v1.6.5` [release run](https://github.com/CrispStrobe/NumberNebula/actions/runs/43620255734)
+uploaded both builds.
 
 | Platform | App Store | TestFlight |
 |---|---|---|
-| iOS | 1.5.45 (61) Waiting for Review since 2026-11-05 (release type Manual) | 1.6.4 (70), internal and external testers |
-| macOS | 1.5.45 (61), released 2026-11-10 (replaced 1.4.10) | 1.6.4 (70), internal and external testers |
+| iOS | 1.5.45 (61) Waiting for Review since 2026-11-05 (release type Manual) | 1.6.5 (71), internal testers (1.6.4 (70) external) |
+| macOS | 1.5.45 (61), released 2026-11-10 (replaced 1.4.10) | 1.6.5 (71), internal testers (1.6.4 (70) external) |
 
 **1.6.5 (71)** fixes a release-build crash when opening any KOMPASS practice or
 check session (see HISTORY.md, 2026-11-14) and adds the compiled-build KOMPASS
 test (`integration_test/kompass_open_test.dart`, CI job `kompass-aot`). Widget
-tests run in JIT and cannot see AOT-only failures; keep that job green.
+tests run in JIT and cannot see AOT-only failures; keep that job green. On
+Linux `flutter drive` reports success even when the test fails, so the job
+greps for the test's `KOMPASS-E2E: done` marker; keep that check.
 
 Store states were checked on 2026-11-11 and change without a commit; recheck
 with `tool/asc/asc.py status`. Both 1.6.4 builds passed Beta App Review. The next
