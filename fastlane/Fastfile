@@ -98,6 +98,15 @@ lane :testflight do |options|
   notes    = File.read(
     File.join(__dir__, 'metadata', 'en-US', 'release_notes.txt')
   ).strip
+  # A bare `changelog` is written into every TestFlight locale, so German
+  # testers saw English. Each metadata locale gets its own release_notes.txt;
+  # 'default' (English) covers any other locale on the build. pilot ignores
+  # `changelog` once localized_build_info is given, hence the explicit default.
+  localized_notes = Dir[File.join(__dir__, 'metadata', '*', 'release_notes.txt')]
+                    .to_h { |f| [File.basename(File.dirname(f)), File.read(f).strip] }
+                    .reject { |_locale, text| text.empty? }
+                    .merge('default' => notes)
+                    .transform_values { |text| { whats_new: text } }
 
   api_key = asc_api_key
   groups  = external_group_names
@@ -114,6 +123,7 @@ lane :testflight do |options|
     app_version: version,
     build_number: build,
     changelog: notes,
+    localized_build_info: localized_notes,
     distribute_external: !groups.empty?,
     groups: groups,
     skip_submission: groups.empty?,
