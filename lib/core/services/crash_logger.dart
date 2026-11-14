@@ -55,9 +55,11 @@ class CrashLogger {
   static final CrashLogger instance = CrashLogger._();
 
   static const _filename = 'crash_log.jsonl';
+  static const _activityFilename = 'pending_activity.json';
   static const _maxEntries = 50;
 
   File? _file;
+  File? _activity;
   bool _initialized = false;
 
   /// Initialize the logger and install global error handlers. Idempotent.
@@ -69,6 +71,8 @@ class CrashLogger {
     try {
       final dir = await getApplicationDocumentsDirectory();
       _file = File(p.join(dir.path, _filename));
+      _activity = File(p.join(dir.path, _activityFilename));
+      _reportUnfinishedActivity();
     } catch (e) {
       // If we can't even open the file we still install handlers; entries
       // will just be debugPrint'd. Better than crashing the crash logger.
@@ -96,6 +100,64 @@ class CrashLogger {
       );
       return true; // suppress default termination
     };
+  }
+
+  /// Marks the start of an action that has crashed natively before (opening
+  /// a KOMPASS session or lab). A native crash (SIGSEGV in compiled code)
+  /// kills the process before any Dart handler runs, so nothing would be
+  /// logged. The marker is written synchronously; [endActivity] removes it
+  /// once the screen has drawn. If the app dies in between, the next launch
+  /// records which action was running.
+  void beginActivity(String name) {
+    final file = _activity;
+    if (file == null) return;
+    try {
+      file.writeAsStringSync(
+        jsonEncode({
+          'activity': name,
+          'ts': DateTime.now().toIso8601String(),
+        }),
+        flush: true,
+      );
+    } catch (_) {
+      // Never let diagnostics break the action itself.
+    }
+  }
+
+  /// Clears the marker set by [beginActivity].
+  void endActivity() {
+    final file = _activity;
+    if (file == null) return;
+    try {
+      if (file.existsSync()) file.deleteSync();
+    } catch (_) {}
+  }
+
+  void _reportUnfinishedActivity() {
+    final file = _activity;
+    if (file == null) return;
+    try {
+      if (!file.existsSync()) return;
+      final raw = file.readAsStringSync();
+      file.deleteSync();
+      String activity = 'unknown';
+      String? started;
+      try {
+        final json = jsonDecode(raw) as Map<String, dynamic>;
+        activity = json['activity'] as String? ?? activity;
+        started = json['ts'] as String?;
+      } catch (_) {}
+      _recordSync(
+        source: 'native',
+        summary: 'The app ended unexpectedly while: $activity',
+        context: {
+          if (started != null) 'started': started,
+          'note': 'No Dart stack exists for a native crash; the device '
+              'crash report (Settings > Privacy > Analytics) has the '
+              'addresses.',
+        },
+      );
+    } catch (_) {}
   }
 
   /// Manually record an issue (e.g. caught exception in a service).
@@ -165,8 +227,8 @@ class CrashLogger {
     for (final line in lines) {
       if (line.trim().isEmpty) continue;
       try {
-        entries.add(CrashEntry.fromJson(
-            jsonDecode(line) as Map<String, dynamic>));
+        entries
+            .add(CrashEntry.fromJson(jsonDecode(line) as Map<String, dynamic>));
       } catch (_) {
         // Skip malformed lines silently.
       }

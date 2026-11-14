@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/services/crash_logger.dart';
 import '../../../core/services/profile_preferences.dart';
 import '../../../generated/l10n.dart';
 import '../../games/game_registry.dart';
@@ -187,11 +188,15 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
       }
       await _store!.clearSession();
       if (!mounted) return;
+      CrashLogger.instance.beginActivity('KOMPASS ${mode.name} session');
       await Navigator.of(context).push(MaterialPageRoute<void>(
           builder: (_) => KompassCourseScreen(
               pack: _pack!, store: _store!, tasks: tasks, mode: mode)));
       if (mounted) setState(() {});
-    } catch (_) {
+    } catch (error, stack) {
+      CrashLogger.instance.record(
+          summary: 'KOMPASS ${mode.name} could not open: $error',
+          stackTrace: stack.toString());
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(kc(
@@ -200,6 +205,7 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
                 'The session could not be opened. Please try again.'))));
       }
     } finally {
+      CrashLogger.instance.endActivity();
       _opening = false;
     }
   }
@@ -242,6 +248,8 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
       }
       await _store!.clearSession();
       if (!mounted) return;
+      CrashLogger.instance.beginActivity(
+          'KOMPASS paper ${paper.id} (${timed ? 'test' : 'practice'})');
       await Navigator.of(context).push(MaterialPageRoute<void>(
           builder: (_) => KompassCourseScreen(
               pack: _pack!,
@@ -250,7 +258,19 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
               mode: timed ? KompassMode.rehearsal : KompassMode.practice,
               rehearsalDuration: Duration(seconds: paper.totalSeconds))));
       if (mounted) setState(() {});
+    } catch (error, stack) {
+      CrashLogger.instance.record(
+          summary: 'KOMPASS paper ${paper.id} could not open: $error',
+          stackTrace: stack.toString());
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(kc(
+                _german,
+                'Die Runde konnte nicht geöffnet werden. Bitte versuche es erneut.',
+                'The session could not be opened. Please try again.'))));
+      }
     } finally {
+      CrashLogger.instance.endActivity();
       _opening = false;
     }
   }
@@ -259,11 +279,24 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
     if (_store?.session == null || _opening) return;
     _opening = true;
     try {
+      CrashLogger.instance.beginActivity('KOMPASS resume session');
       await Navigator.of(context).push(MaterialPageRoute<void>(
           builder: (_) => KompassCourseScreen.resume(
               pack: _pack!, store: _store!, session: _store!.session!)));
       if (mounted) setState(() {});
+    } catch (error, stack) {
+      CrashLogger.instance.record(
+          summary: 'KOMPASS resume could not open: $error',
+          stackTrace: stack.toString());
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(kc(
+                _german,
+                'Die Runde konnte nicht geöffnet werden. Bitte versuche es erneut.',
+                'The session could not be opened. Please try again.'))));
+      }
     } finally {
+      CrashLogger.instance.endActivity();
       _opening = false;
     }
   }
@@ -277,6 +310,7 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
         await _store!.markExposed(family, sessionId: 'lab_practice:$labId');
       }
       if (!mounted) return;
+      CrashLogger.instance.beginActivity('KOMPASS lab $labId');
       await Navigator.of(context).push(MaterialPageRoute<void>(
           builder: (_) => KompassLabScreen(
               labId: labId,
@@ -289,7 +323,10 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
                 await _store!.record(attempt);
               })));
       if (mounted) setState(() {});
-    } catch (_) {
+    } catch (error, stack) {
+      CrashLogger.instance.record(
+          summary: 'KOMPASS lab $labId failed: $error',
+          stackTrace: stack.toString());
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -304,6 +341,7 @@ class _KompassHubScreenState extends State<KompassHubScreen> {
         );
       }
     } finally {
+      CrashLogger.instance.endActivity();
       _opening = false;
     }
   }

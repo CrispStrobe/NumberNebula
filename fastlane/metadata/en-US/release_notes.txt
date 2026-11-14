@@ -1,3 +1,5 @@
+Fixed: opening a KOMPASS practice, check or rehearsal no longer closes the app on iPad and iPhone.
+
 New: KOMPASS 4 mathematics, a complete learning path in mathematics.
 
 - 144 bilingual tasks for practice, independent checks and a 45-minute rehearsal, with hints, worked solutions and printable booklets.

@@ -1,6 +1,6 @@
 # NumberNebula: current state and agent handover
 
-Updated 2026-11-11. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
+Updated 2026-11-14. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app) (mirror:
 [GitHub Pages](https://crispstrobe.github.io/NumberNebula/)).
 
@@ -21,6 +21,11 @@ passed at `63c08f7` (same app code as 1.6.4+70). There are no open PRs, and
 |---|---|---|
 | iOS | 1.5.45 (61) Waiting for Review since 2026-11-05 (release type Manual) | 1.6.4 (70), internal and external testers |
 | macOS | 1.5.45 (61), released 2026-11-10 (replaced 1.4.10) | 1.6.4 (70), internal and external testers |
+
+**1.6.5 (71)** fixes a release-build crash when opening any KOMPASS practice or
+check session (see HISTORY.md, 2026-11-14) and adds the compiled-build KOMPASS
+test (`integration_test/kompass_open_test.dart`, CI job `kompass-aot`). Widget
+tests run in JIT and cannot see AOT-only failures; keep that job green.
 
 Store states were checked on 2026-11-11 and change without a commit; recheck
 with `tool/asc/asc.py status`. Both 1.6.4 builds passed Beta App Review. The next
