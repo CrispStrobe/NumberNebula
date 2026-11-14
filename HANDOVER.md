@@ -14,15 +14,17 @@ Working rules are in [AGENTS.md](AGENTS.md).
 head [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/43620238047)
 (including `kompass-aot`) and
 [calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/43620238147)
-passed; the [web build and deployment](https://github.com/CrispStrobe/NumberNebula/actions/runs/43620237990)
-was queued at the time of writing, so recheck that both web hosts serve 1.6.5 (71).
-The `v1.6.5` [release run](https://github.com/CrispStrobe/NumberNebula/actions/runs/43620255734)
-uploaded both builds.
+passed, and the [web build, browser tests and deployment](https://github.com/CrispStrobe/NumberNebula/actions/runs/43620237990)
+passed; both web hosts serve 1.6.5 (71). The `v1.6.5`
+[release run](https://github.com/CrispStrobe/NumberNebula/actions/runs/43620255734)
+uploaded both builds and handed them to TestFlight. macOS 1.6.5 was then sent to
+App Store review by hand ([submit run](https://github.com/CrispStrobe/NumberNebula/actions/runs/43630370828)).
+iOS 1.6.5 waits until Apple has decided on iOS 1.5.45; do not withdraw 1.5.45.
 
 | Platform | App Store | TestFlight |
 |---|---|---|
-| iOS | 1.5.45 (61) Waiting for Review since 2026-11-05 (release type Manual) | 1.6.5 (71), internal testers (1.6.4 (70) external) |
-| macOS | 1.5.45 (61), released 2026-11-10 (replaced 1.4.10) | 1.6.5 (71), internal testers (1.6.4 (70) external) |
+| iOS | 1.5.45 (61) Waiting for Review since 2026-11-05 (release type Manual) | 1.6.5 (71) internal; external waiting for Beta App Review (1.6.4 (70) until then) |
+| macOS | 1.5.45 (61), released 2026-11-10; 1.6.5 (71) Waiting for Review since 2026-11-14 (Manual) | 1.6.5 (71) internal; external waiting for Beta App Review (1.6.4 (70) until then) |
 
 **1.6.5 (71)** fixes a release-build crash when opening any KOMPASS practice or
 check session (see HISTORY.md, 2026-11-14) and adds the compiled-build KOMPASS
