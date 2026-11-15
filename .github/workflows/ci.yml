@@ -207,11 +207,19 @@ jobs:
         run: flutter pub get
 
       - name: Open every KOMPASS session, paper and lab in an AOT build
+        # On Linux the driver does not receive the integration_test result
+        # ("plugin was not detected") and reports success even when the test
+        # failed, so the job also requires the test's own completion marker.
         run: |
+          set -o pipefail
           xvfb-run -a -s "-screen 0 1280x900x24" \
             flutter drive --profile -d linux \
               --driver=test_driver/integration_test.dart \
-              --target=integration_test/kompass_open_test.dart
+              --target=integration_test/kompass_open_test.dart 2>&1 | tee kompass-e2e.log
+          grep -q 'KOMPASS-E2E: done' kompass-e2e.log || {
+            echo "::error::KOMPASS end-to-end run did not reach its last step"
+            exit 1
+          }
 
   version-bump:
     # A PR that changes shipping code must also move the version, otherwise a
