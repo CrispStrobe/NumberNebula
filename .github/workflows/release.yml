@@ -49,10 +49,26 @@ env:
 
 jobs:
   build-upload:
-    runs-on: macos-latest
+    # ITMS-90725: from April 2027 App Store Connect only accepts builds made
+    # with the 27 SDKs (Xcode 27). The standard macOS images only ship
+    # Xcode 26.x, so the store build runs on GitHub's xcode-27 image (arm64)
+    # and fails before signing if the SDK is older.
+    runs-on: xcode-27
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+
+      - name: Select the newest Xcode 27 and require the iOS 27 SDK
+        run: |
+          set -euo pipefail
+          XC=$(ls -d /Applications/Xcode_27*.app | sort -V | tail -1)
+          sudo xcode-select -s "$XC/Contents/Developer"
+          xcodebuild -version
+          SDK=$(xcrun --sdk iphoneos --show-sdk-version)
+          echo "iphoneos SDK: $SDK"
+          if [ "${SDK%%.*}" -lt 27 ]; then
+            echo "::error::iOS SDK $SDK < 27 (ITMS-90725)"; exit 1
+          fi
 
       - name: Read Flutter SDK pin
         run: echo "FLUTTER_VERSION=$(cat .flutter-version)" >> "$GITHUB_ENV"
@@ -76,7 +92,10 @@ jobs:
         run: |
           set -euo pipefail
           KC="$RUNNER_TEMP/nn-signing.keychain-db"
-          KC_PW="ci-$(uuidgen)"
+          # Empty password: on the xcode-27 image unlock-keychain rejects the
+          # password the keychain was just created with (runner-images#14837).
+          # The keychain lives in RUNNER_TEMP on a single-use VM.
+          KC_PW=""
           echo "$P12_B64" | base64 --decode > "$RUNNER_TEMP/dist.p12"
           security create-keychain -p "$KC_PW" "$KC"
           security set-keychain-settings -lut 21600 "$KC"
@@ -197,10 +216,26 @@ jobs:
   build-upload-macos:
     # Mac App Store build. Independent of the iOS job so a macOS-only failure
     # never blocks an iOS release (and vice versa).
-    runs-on: macos-latest
+    # ITMS-90725: from April 2027 App Store Connect only accepts builds made
+    # with the 27 SDKs (Xcode 27). The standard macOS images only ship
+    # Xcode 26.x, so the store build runs on GitHub's xcode-27 image (arm64)
+    # and fails before signing if the SDK is older.
+    runs-on: xcode-27
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+
+      - name: Select the newest Xcode 27 and require the macOS 27 SDK
+        run: |
+          set -euo pipefail
+          XC=$(ls -d /Applications/Xcode_27*.app | sort -V | tail -1)
+          sudo xcode-select -s "$XC/Contents/Developer"
+          xcodebuild -version
+          SDK=$(xcrun --sdk macosx --show-sdk-version)
+          echo "macosx SDK: $SDK"
+          if [ "${SDK%%.*}" -lt 27 ]; then
+            echo "::error::macOS SDK $SDK < 27 (ITMS-90725)"; exit 1
+          fi
 
       - name: Read Flutter SDK pin
         run: echo "FLUTTER_VERSION=$(cat .flutter-version)" >> "$GITHUB_ENV"
@@ -226,7 +261,10 @@ jobs:
           # A throwaway keychain, never `login`: codesign/productbuild must not
           # fall through to a keychain whose keys need an interactive unlock.
           KC="$RUNNER_TEMP/nn-mac-signing.keychain-db"
-          KC_PW="ci-$(uuidgen)"
+          # Empty password: on the xcode-27 image unlock-keychain rejects the
+          # password the keychain was just created with (runner-images#14837).
+          # The keychain lives in RUNNER_TEMP on a single-use VM.
+          KC_PW=""
           echo "$P12_B64" | base64 --decode > "$RUNNER_TEMP/mac-dist.p12"
           security create-keychain -p "$KC_PW" "$KC"
           security set-keychain-settings -lut 21600 "$KC"
