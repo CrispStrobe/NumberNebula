@@ -237,8 +237,13 @@ jobs:
             echo "::error::macOS SDK $SDK < 27 (ITMS-90725)"; exit 1
           fi
 
-      - name: Read Flutter SDK pin
-        run: echo "FLUTTER_VERSION=$(cat .flutter-version)" >> "$GITHUB_ENV"
+      # Not .flutter-version (3.44.1) for the macOS job: Flutter < 3.44.8 fails
+      # release_unpack_macos on Xcode 27 ("FlutterMacOS ... does not contain
+      # architectures arm64 x86_64"; lipo -verify_arch change,
+      # flutter/flutter#188346, fixed by #189792 in 3.44.8). iOS device
+      # archives are unaffected and keep the repo pin.
+      - name: Flutter SDK pin (macOS needs >= 3.44.8 on Xcode 27)
+        run: echo "FLUTTER_VERSION=3.44.9" >> "$GITHUB_ENV"
 
       - uses: subosito/flutter-action@v2
         with:
